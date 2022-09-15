@@ -1,5 +1,0 @@
-package develbox
-
-func main() {
-
-}
