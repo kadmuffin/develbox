@@ -87,22 +87,27 @@ func setupCommands(config *DevSetings) {
 
 func RunCommands(commandList []string, podman Podman, printOut bool, deleteContainer bool) {
 	for _, command := range commandList {
-		if len(command) > 0 {
-			cmd := exec.Command(podman.Path, "exec", "-it", podman.Container.Name, "sh", "-c", command)
-			if printOut {
-				cmd.Stdin = os.Stdin
-				cmd.Stdout = os.Stdout
+		RunCommand([]string{command}, podman, printOut, deleteContainer)
+	}
+}
+
+func RunCommand(command []string, podman Podman, printOut bool, deleteContainer bool) {
+	shellArgs := append([]string{"exec", "-it", podman.Container.Name, "sh", "-c"}, command...)
+	if len(command) > 0 {
+		cmd := exec.Command(podman.Path, shellArgs...)
+		if printOut {
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+		}
+		cmd.Stderr = os.Stderr
+		fmt.Printf("Running command: %s\n", cmd.String())
+		err := cmd.Run()
+		StopContainer(podman)
+		if err != nil {
+			if deleteContainer {
+				RemoveContainer(podman)
 			}
-			cmd.Stderr = os.Stderr
-			fmt.Printf("Running command: %s\n", cmd.String())
-			err := cmd.Run()
-			StopContainer(podman)
-			if err != nil {
-				if deleteContainer {
-					RemoveContainer(podman)
-				}
-				log.Fatal(err)
-			}
+			log.Fatal(err)
 		}
 	}
 }
