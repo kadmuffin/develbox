@@ -28,19 +28,25 @@ var pkg_add = &cobra.Command{
 			log.Fatal("No container found")
 		}
 
-		var packages string = ""
+		flags := []string{}
+		packages := []string{}
 		for _, pkg := range args {
 			if containsString(configs.Packages, pkg) && !forcePkg {
 				fmt.Printf("Skipping installed package: %s (according to develbox.json)", pkg)
 				continue
 			}
 
-			packages += pkg + " "
+			if string(pkg[0]) == "-" {
+				flags = append(flags, pkg)
+				continue
+			}
+
+			packages = append(packages, pkg)
 		}
 
 		develbox.StartContainer(configs.Podman)
-		develbox.RunCommands([]string{strings.Replace(configs.Image.Installer.Add, "{args}", packages, 1)}, configs.Podman, true, false)
-		configs.Packages = append(configs.Packages, args...)
+		develbox.RunCommands([]string{strings.Replace(configs.Image.Installer.Add, "{args}", strings.Join(append(flags, packages...), " "), 1)}, configs.Podman, true, false)
+		configs.Packages = append(configs.Packages, packages...)
 		develbox.WriteConfig(&configs)
 	},
 }
@@ -55,18 +61,25 @@ var pkg_del = &cobra.Command{
 			log.Fatal("No container found")
 		}
 
-		var packages string = ""
+		flags := []string{}
+		packages := []string{}
 		for _, pkg := range args {
 			if !containsString(configs.Packages, pkg) && !forcePkg {
 				fmt.Printf("Skipping not installed package: %s (according to develbox.json)", pkg)
 				continue
 			}
-			packages += pkg + " "
+
+			if string(pkg[0]) == "-" {
+				flags = append(flags, pkg)
+				continue
+			}
+
+			packages = append(packages, pkg)
 		}
 
 		develbox.StartContainer(configs.Podman)
-		develbox.RunCommands([]string{strings.Replace(configs.Image.Installer.Del, "{args}", packages, 1)}, configs.Podman, true, false)
-		configs.Packages = append(configs.Packages, args...)
+		develbox.RunCommands([]string{strings.Replace(configs.Image.Installer.Del, "{args}", strings.Join(append(flags, packages...), " "), 1)}, configs.Podman, true, false)
+		configs.Packages = append(configs.Packages, packages...)
 		develbox.WriteConfig(&configs)
 	},
 }
