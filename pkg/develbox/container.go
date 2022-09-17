@@ -27,30 +27,32 @@ func CreateContainer(config *DevSetings, forceCreation bool) {
 	if config.Podman.Rootless && !config.Podman.Container.RootUser {
 		os.Mkdir(".develbox/home", 0755)
 		arguments = append(arguments, "--userns=keep-id", "--passwd-entry=develbox:*:$UID:0:develbox_container:/home/develbox:/bin/sh", "-v=./.develbox/home:/home/develbox:Z")
-	}
 
-	if config.Podman.Container.Binds.Wayland {
-		arguments = append(arguments, bindWayland()...)
-	}
+		if config.Podman.Container.Binds.Wayland {
+			arguments = append(arguments, bindWayland()...)
+		}
 
-	if config.Podman.Container.Binds.XOrg {
-		arguments = append(arguments, bindXOrg()...)
-	}
+		if config.Podman.Container.Binds.XOrg {
+			arguments = append(arguments, bindXOrg()...)
+			arguments = append(arguments, "--ipc=host")
+		}
 
-	if config.Podman.Container.Binds.Pulseaudio {
-		arguments = append(arguments, "-e", "PULSE_SERVER=/run/user/$EUID/pulse/native", "-v=/run/user/$EUID/pulse/native:/run/user/$EUID/pulse/native", "--device=/dev/snd")
-	}
+		uid := fmt.Sprint(os.Geteuid())
 
-	if config.Podman.Container.Binds.Pipewire {
-		arguments = append(arguments, "-v=/run/user/$EUID/pipewire-0:/run/user/$EUID/pipewire-0", "--device=/dev/snd")
-	}
+		if config.Podman.Container.Binds.Pulseaudio {
+			arguments = append(arguments, "-e", "PULSE_SERVER=/run/user/"+uid+"/pulse/native", "-v=/run/user/"+uid+"/pulse/native:/run/user/"+uid+"/pulse/native", "--device=/dev/snd")
+		}
 
-	if config.Podman.Container.Binds.Camera {
-		arguments = append(arguments, bindCamera()...)
-	}
+		if config.Podman.Container.Binds.Pipewire {
+			arguments = append(arguments, "-v=/run/user/"+uid+"/pipewire-0:/run/user/"+uid+"/pipewire-0", "--device=/dev/snd")
+		}
+		if config.Podman.Container.Binds.Camera {
+			arguments = append(arguments, bindCamera()...)
+		}
 
-	if config.Podman.Container.Binds.DRI {
-		arguments = append(arguments, "--device=/dev/dri")
+		if config.Podman.Container.Binds.DRI {
+			arguments = append(arguments, "--device=/dev/dri")
+		}
 	}
 
 	if len(config.Podman.Container.Args) > 0 {
@@ -150,15 +152,18 @@ func RunCommands(commandList []string, podman Podman, printOut bool, deleteOnFai
 
 func RunCommand(command []string, podman Podman, printOut bool, deleteContainer bool, externalStop bool, errorMessage string, rootOperation bool) []byte {
 	shellArgs := []string{"exec", "-it"}
-	if podman.Rootless && !podman.Container.RootUser && (string(command[0][0]) == "!" || rootOperation) {
+	listCommand := command
+	if podman.Rootless && !podman.Container.RootUser && (string(listCommand[0][0]) == "!" || rootOperation) {
 		shellArgs = append(shellArgs, "--user=0")
 	}
 	shellArgs = append(shellArgs, "-w", podman.Container.WorkDir, podman.Container.Name, "sh", "-c")
+
+	if string(listCommand[0][0]) != "!" {
+		listCommand[0] = strings.Replace(listCommand[0], "!", "", 1)
+	}
+
 	shellArgs = append(shellArgs, command...)
 
-	if string(command[0][0]) != "!" {
-		command[0] = strings.Replace(command[0], "!", "", 1)
-	}
 	if len(command) > 0 {
 		cmd := exec.Command(podman.Path, shellArgs...)
 		cmd.Stderr = os.Stderr
@@ -238,23 +243,26 @@ func processVolumes(container Container) string {
 }
 
 func bindWayland() []string {
+	uid := os.Getuid()
+	waylandDisplay := os.Getenv("WAYLAND_DISPLAY")
+	xdgRuntimeDir := os.Getenv("XDG_RUNTIME_DIR")
 	return []string{
-		"-e", "XDG_RUNTIME_DIR=/tmp",
-		"-e", "WAYLAND_DISPLAY=$WAYLAND_DISPLAY",
+		"-e", "XDG_RUNTIME_DIR=/user/user/" + fmt.Sprint(uid),
+		"-e", "WAYLAND_DISPLAY=" + waylandDisplay,
 		"-e", "XDG_SESSION_TYPE=WAYLAND",
 		"-e", "QT_QPA_PLATFORM=WAYLAND",
 		"-e", "GDK_BACKEND=WAYLAND",
-		"-v", "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY",
-		"--device=/dev/shm",
+		"-v=" + xdgRuntimeDir + "/" + waylandDisplay + ":/run/user/" + fmt.Sprint(uid) + waylandDisplay,
 	}
 }
 func bindXOrg() []string {
+	displayX11 := os.Getenv("DISPLAY")
 	return []string{
-		"-e", "DISPLAY=$DISPLAY",
-		"-v", "/tmp/.X11-unix:/tmp/.X11-unix:rw",
+		"-e", "DISPLAY=" + displayX11,
+		"-v=/tmp/.X11-unix:/tmp/.X11-unix:rw",
+		"-v=" + os.Getenv("HOME") + "/.Xauthority:/home/develbox/.Xauthority:rw",
 		"--cap-drop=ALL",
 		"--security-opt=no-new-privileges",
-		"--device=/dev/shm",
 	}
 }
 
