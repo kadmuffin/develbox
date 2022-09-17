@@ -29,6 +29,30 @@ func CreateContainer(config *DevSetings, forceCreation bool) {
 		arguments = append(arguments, "--userns=keep-id", "--passwd-entry=develbox:*:$UID:0:develbox_container:/home/develbox:/bin/sh", "-v=./.develbox/home:/home/develbox:Z")
 	}
 
+	if config.Podman.Container.Binds.Wayland {
+		arguments = append(arguments, bindWayland()...)
+	}
+
+	if config.Podman.Container.Binds.XOrg {
+		arguments = append(arguments, bindXOrg()...)
+	}
+
+	if config.Podman.Container.Binds.Pulseaudio {
+		arguments = append(arguments, "-e", "PULSE_SERVER=/run/user/$EUID/pulse/native", "-v=/run/user/$EUID/pulse/native:/run/user/$EUID/pulse/native", "--device=/dev/snd")
+	}
+
+	if config.Podman.Container.Binds.Pipewire {
+		arguments = append(arguments, "-v=/run/user/$EUID/pipewire-0:/run/user/$EUID/pipewire-0", "--device=/dev/snd")
+	}
+
+	if config.Podman.Container.Binds.Camera {
+		arguments = append(arguments, bindCamera()...)
+	}
+
+	if config.Podman.Container.Binds.DRI {
+		arguments = append(arguments, "--device=/dev/dri")
+	}
+
 	if len(config.Podman.Container.Args) > 0 {
 		arguments = append(arguments, config.Podman.Container.Args)
 	}
@@ -211,4 +235,45 @@ func processVolumes(container Container) string {
 		return ""
 	}
 	return "-v=" + strings.ReplaceAll(strings.Join(container.Mounts, "-v="), "{CURRENT_DIR}", getCurrentDirectory())
+}
+
+func bindWayland() []string {
+	return []string{
+		"-e", "XDG_RUNTIME_DIR=/tmp",
+		"-e", "WAYLAND_DISPLAY=$WAYLAND_DISPLAY",
+		"-e", "XDG_SESSION_TYPE=WAYLAND",
+		"-e", "QT_QPA_PLATFORM=WAYLAND",
+		"-e", "GDK_BACKEND=WAYLAND",
+		"-v", "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/$WAYLAND_DISPLAY",
+		"--device=/dev/shm",
+	}
+}
+func bindXOrg() []string {
+	return []string{
+		"-e", "DISPLAY=$DISPLAY",
+		"-v", "/tmp/.X11-unix:/tmp/.X11-unix:rw",
+		"--cap-drop=ALL",
+		"--security-opt=no-new-privileges",
+		"--device=/dev/shm",
+	}
+}
+
+func bindCamera() []string {
+	dev, err := os.Open("/dev/")
+	if err != nil {
+		dev.Close()
+		log.Fatal(err)
+	}
+	devfiles, err := dev.Readdirnames(0)
+	if err != nil {
+		dev.Close()
+		log.Fatal(err)
+	}
+	video := []string{}
+	for _, v := range devfiles {
+		if strings.Contains(v, "video") {
+			video = append(video, "--device=/dev/"+v)
+		}
+	}
+	return video
 }

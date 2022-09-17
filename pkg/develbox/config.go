@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-func parse(bytes []byte) DevSetings {
+func parseJson(bytes []byte) DevSetings {
 	var configs DevSetings
 	err := json.Unmarshal(bytes, &configs)
 
@@ -37,7 +37,7 @@ func ReadConfig() DevSetings {
 		log.Fatalf("Couldn't read the file .develbox/config.json, exited with: %s", err)
 	}
 
-	configs := parse(data)
+	configs := parseJson(data)
 	SetContainerName(&configs)
 
 	return configs
