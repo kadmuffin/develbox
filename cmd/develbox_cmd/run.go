@@ -16,17 +16,17 @@ var (
 		Short: "Run the specified command defined in the config file",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			var configs develbox.DevSetings = develbox.ReadConfig("develbox.json")
+			var configs develbox.DevSetings = develbox.ReadConfig()
 			if !develbox.ContainerExists(&configs) {
 				log.Fatal("No container found")
 			}
 
 			develbox.StartContainer(configs.Podman)
 			if customCommand {
-				develbox.RunCommand(args, configs.Podman, true, false)
+				develbox.RunCommand(args, configs.Podman, true, false, false, "%s", false)
 				os.Exit(0)
 			}
-			develbox.RunCommands(configs.Commands[args[0]], configs.Podman, true, false)
+			develbox.RunCommands(configs.Commands[args[0]], configs.Podman, true, false, true, false)
 		},
 	}
 )

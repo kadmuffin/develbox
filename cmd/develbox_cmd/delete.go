@@ -11,7 +11,7 @@ var delete = &cobra.Command{
 	Use:   "delete",
 	Short: "Deletes the container if it exists",
 	Run: func(cmd *cobra.Command, args []string) {
-		var configs develbox.DevSetings = develbox.ReadConfig("develbox.json")
+		var configs develbox.DevSetings = develbox.ReadConfig()
 		if !develbox.ContainerExists(&configs) {
 			log.Fatal("No container found")
 		}

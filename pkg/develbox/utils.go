@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func GetCurrentDirectory() string {
+func getCurrentDirectory() string {
 	currentDir, err := os.Getwd()
 
 	if err != nil {

@@ -21,14 +21,15 @@ var create = &cobra.Command{
 			configs := new(develbox.DevSetings)
 			develbox.SetContainerName(configs)
 			defaults.Set(configs)
+			os.Mkdir(".develbox", 0755)
 			if develbox.ConfigExists() && !forceCreate {
 				log.Fatal("A config file already exist!")
 			}
-			os.Remove("develbox.json")
+			os.Remove(".develbox/config.json")
 			develbox.WriteConfig(configs)
 			os.Exit(0)
 		}
-		var configs develbox.DevSetings = develbox.ReadConfig("develbox.json")
+		var configs develbox.DevSetings = develbox.ReadConfig()
 		develbox.CreateContainer(&configs, forceCreate)
 	},
 }

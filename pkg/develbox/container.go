@@ -20,9 +20,35 @@ func CreateContainer(config *DevSetings, forceCreation bool) {
 
 	fmt.Printf("> Creating container using %s\n", config.Podman.Path)
 
-	currentDir := GetCurrentDirectory()
+	//currentDir := GetCurrentDirectory()
 
-	cmd := exec.Command(config.Podman.Path, "run", "-a", "stdout", "-a", "stderr", "-it", "-d", config.Podman.Container.Args, "--name", config.Podman.Container.Name, "-v", currentDir+":"+config.Podman.Container.MountPoint, config.Image.URI)
+	arguments := []string{"run", "-a", "stdout", "-a", "stderr", "-it", "-d", "--name", config.Podman.Container.Name}
+
+	if config.Podman.Rootless && !config.Podman.Container.RootUser {
+		os.Mkdir(".develbox/home", 0755)
+		arguments = append(arguments, "--userns=keep-id", "--passwd-entry=develbox:*:$UID:0:develbox_container:/home/develbox:/bin/sh", "-v=./.develbox/home:/home/develbox:Z")
+	}
+
+	if len(config.Podman.Container.Args) > 0 {
+		arguments = append(arguments, config.Podman.Container.Args)
+	}
+
+	if len(config.Podman.Container.Ports) > 0 {
+		arguments = append(arguments, processPorts(config.Podman.Container))
+	}
+
+	if len(config.Podman.Container.Mounts) > 0 {
+		arguments = append(arguments, processVolumes(config.Podman.Container))
+	}
+
+	workdir := config.Podman.Container.WorkDir
+	if config.Podman.Rootless {
+		workdir += ":Z"
+	}
+
+	arguments = append(arguments, "-v=.:"+workdir, config.Image.URI)
+
+	cmd := exec.Command(config.Podman.Path, arguments...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
@@ -41,14 +67,16 @@ func CreateContainer(config *DevSetings, forceCreation bool) {
 	if config.Podman.BuildOnly {
 		RemoveContainer(config.Podman)
 	}
-	StopContainer(config.Podman)
 
 	fmt.Print("\nOperation completed.")
 }
 
 func StartContainer(podman Podman) {
 	cmd := exec.Command(podman.Path, "container", "start", podman.Container.Name)
-	cmd.Run()
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("Container is still shutting down or doesn't exist. %s", err)
+	}
 }
 
 // Remove a container with the provided name using podman
@@ -59,8 +87,7 @@ func RemoveContainer(podman Podman) {
 
 // Stops a container with the provided name using podman
 func StopContainer(podman Podman) {
-	fmt.Println("\nStopping container...")
-	cmd := exec.Command(podman.Path, "stop", podman.Container.Name)
+	cmd := exec.Command(podman.Path, "stop", podman.Container.Name, "-t", "4")
 	cmd.Run()
 }
 
@@ -74,57 +101,114 @@ func GetContainerIP(config DevSetings) string {
 }
 
 func setupCommands(config *DevSetings) {
-	commands := config.Image.OnCreation
 
-	for _, pkg := range config.Packages {
-		commands = append(commands, strings.Replace(config.Image.Installer.Add, "{args}", pkg, 1))
+	RunCommands(config.Image.OnCreation, config.Podman, true, true, true, true)
+
+	commands := []string{}
+	if len(config.Packages) > 0 {
+		commands = []string{strings.Replace(strings.Replace(config.Image.Installer.Add, " {-y}", " -y", 1), "{args}", strings.Join(config.Packages, " "), 1)}
 	}
 
 	commands = append(commands, config.Image.OnFinish...)
 
-	RunCommands(commands, config.Podman, true, true)
+	RunCommands(commands, config.Podman, true, true, false, true)
 }
 
-func RunCommands(commandList []string, podman Podman, printOut bool, deleteContainer bool) {
+func RunCommands(commandList []string, podman Podman, printOut bool, deleteOnFailure bool, externalStop bool, rootOperation bool) {
 	for _, command := range commandList {
-		RunCommand([]string{command}, podman, printOut, deleteContainer)
+		RunCommand([]string{command}, podman, printOut, deleteOnFailure, true, "%s", rootOperation)
 	}
+	if externalStop {
+		return
+	}
+	StopContainer(podman)
 }
 
-func RunCommand(command []string, podman Podman, printOut bool, deleteContainer bool) {
-	shellArgs := append([]string{"exec", "-it", podman.Container.Name, "sh", "-c"}, command...)
+func RunCommand(command []string, podman Podman, printOut bool, deleteContainer bool, externalStop bool, errorMessage string, rootOperation bool) []byte {
+	shellArgs := []string{"exec", "-it"}
+	if podman.Rootless && !podman.Container.RootUser && (string(command[0][0]) == "!" || rootOperation) {
+		shellArgs = append(shellArgs, "--user=0")
+	}
+	shellArgs = append(shellArgs, "-w", podman.Container.WorkDir, podman.Container.Name, "sh", "-c")
+	shellArgs = append(shellArgs, command...)
+
+	if string(command[0][0]) != "!" {
+		command[0] = strings.Replace(command[0], "!", "", 1)
+	}
 	if len(command) > 0 {
 		cmd := exec.Command(podman.Path, shellArgs...)
+		cmd.Stderr = os.Stderr
+		var bytes []byte
+		var err error
 		if printOut {
 			cmd.Stdin = os.Stdin
 			cmd.Stdout = os.Stdout
+			fmt.Printf("Running command: %s\n", cmd.String())
+			err = cmd.Run()
+		} else {
+			bytes, err = cmd.Output()
 		}
-		cmd.Stderr = os.Stderr
-		fmt.Printf("Running command: %s\n", cmd.String())
-		err := cmd.Run()
-		StopContainer(podman)
+		if !externalStop {
+			StopContainer(podman)
+		}
 		if err != nil {
 			if deleteContainer {
 				RemoveContainer(podman)
 			}
-			log.Fatal(err)
+			log.Fatalf(errorMessage, err)
 		}
+		return bytes
 	}
+	return nil
 }
 
-func EnterContainer(config *DevSetings) {
-	shell := exec.Command(config.Podman.Path, "exec", "-it", config.Podman.Container.Name, config.Podman.Container.Shell)
+/*
+func Unshare(config DevSetings) {
+	if config.Podman.Rootless && (config.Podman.Container.User != "root" && config.Podman.Container.User != "") {
+		uid := RunCommand([]string{"id -u " + config.Podman.Container.User}, config.Podman, false, true, true, "Couldn't get the UID of the user "+config.Podman.Container.User+", exited with: %s")
+
+		gid := RunCommand([]string{"id -g " + config.Podman.Container.User}, config.Podman, false, true, true, "Couldn't get the GID of the user "+config.Podman.Container.User+", exited with: %s")
+
+		cmd := exec.Command(config.Podman.Path, "unshare", "chown", strings.ReplaceAll(string(uid)+":"+string(gid), "\r\n", ""), "-R", GetCurrentDirectory())
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			RemoveContainer(config.Podman)
+			log.Fatalf("Failed to unshare current folder. %s", err)
+		}
+	}
+}*/
+
+func EnterContainer(config *DevSetings, rootUser bool) {
+	shellArgs := []string{"exec", "-it", "-w", config.Podman.Container.WorkDir}
+	if rootUser {
+		shellArgs = append(shellArgs, "--user=0")
+	}
+	shellArgs = append(shellArgs, config.Podman.Container.Name, config.Podman.Container.Shell)
+	shell := exec.Command(config.Podman.Path, shellArgs...)
 	shell.Stderr = os.Stderr
 	shell.Stdin = os.Stdin
 	shell.Stdout = os.Stdout
 	shell.Run()
-	StopContainer(config.Podman)
+	/*cmd := exec.Command(config.Podman.Path, "stop", config.Podman.Container.Name, "-t", "2s")
+	cmd.Start()*/
 }
 
 func ContainerExists(config *DevSetings) bool {
 	cmd := exec.Command(config.Podman.Path, "container", "exists", config.Podman.Container.Name)
-	if cmd.Run() == nil {
-		return true
+	return cmd.Run() == nil
+}
+
+func processPorts(container Container) string {
+	if len(container.Ports) == 0 {
+		return ""
 	}
-	return false
+	return "-p=" + strings.Join(container.Ports, "-p=")
+}
+
+func processVolumes(container Container) string {
+	if len(container.Mounts) == 0 {
+		return ""
+	}
+	return "-v=" + strings.ReplaceAll(strings.Join(container.Mounts, "-v="), "{CURRENT_DIR}", getCurrentDirectory())
 }

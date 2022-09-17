@@ -7,18 +7,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var stop = &cobra.Command{
-	Use:   "stop",
-	Short: "Stops the container if it exists",
+var start = &cobra.Command{
+	Use:   "start",
+	Short: "Starts the container if it exists",
 	Run: func(cmd *cobra.Command, args []string) {
 		var configs develbox.DevSetings = develbox.ReadConfig()
 		if !develbox.ContainerExists(&configs) {
 			log.Fatal("No container found")
 		}
-		develbox.StopContainer(configs.Podman)
+		develbox.StartContainer(configs.Podman)
 	},
 }
 
 func init() {
-	rootCli.AddCommand(stop)
+	rootCli.AddCommand(start)
 }

@@ -1,30 +1,32 @@
 package develbox
 
 type Installer struct {
-	Add string `default:"apt-get install {args}" json:"add"`
-	Del string `default:"apt-get remove {args}" json:"del"`
+	Add string `default:"apt-get install {args} {-y}" json:"add"` // {-y} needed to auto install on creation
+	Del string `default:"apt-get remove {args} {-y}" json:"del"`
 	Dup string `default:"apt-get upgrade -y" json:"dup"`
 	Upd string `default:"apt-get update" json:"upd"`
 }
 
 type Image struct {
 	URI        string    `default:"debian:latest" json:"uri"`
-	OnCreation []string  `default:"[\"apt-get update\", \"\"]" json:"on-creation"`
+	OnCreation []string  `default:"[\"apt-get update\"]" json:"on-creation"`
 	OnFinish   []string  `default:"[]" json:"on-finish"`
 	Installer  Installer `json:"pkg-manager"`
 }
 
 type Container struct {
-	Name       string `json:"name"`
-	User       string `default:"root" json:"user"`
-	Args       string `default:"--net=host" json:"arguments"`
-	MountPoint string `default:"/code:Z" json:"mount-point"`
-	Shell      string `default:"/bin/bash" json:"shell"`
+	Name     string   `json:"name"`
+	Args     string   `default:"--net=host" json:"arguments"`
+	WorkDir  string   `default:"/code" json:"work-dir"`
+	Shell    string   `default:"/bin/bash" json:"shell"`
+	RootUser bool     `json:"rootUser"`
+	Ports    []string `default:"[]" json:"ports"`
+	Mounts   []string `default:"[]" json:"mounts"`
 }
 
 type Podman struct {
 	Path      string    `default:"podman" json:"path"`
-	Rootless  bool      `json:"unshare"`
+	Rootless  bool      `json:"rootless"`
 	BuildOnly bool      `json:"build-only"`
 	Container Container `json:"container"`
 }

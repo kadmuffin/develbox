@@ -25,16 +25,16 @@ func parse(bytes []byte) DevSetings {
 func SetContainerName(config *DevSetings) {
 	if config.Podman.Container.Name == "" {
 		hasher := sha256.New()
-		hasher.Write([]byte(filepath.Base(GetCurrentDirectory())))
+		hasher.Write([]byte(filepath.Base(getCurrentDirectory())))
 		dir := hasher.Sum(nil)
 		config.Podman.Container.Name = hex.EncodeToString(dir)
 	}
 }
 
-func ReadConfig(filename string) DevSetings {
-	data, err := os.ReadFile(filename)
+func ReadConfig() DevSetings {
+	data, err := os.ReadFile(".develbox/config.json")
 	if err != nil {
-		log.Fatalf("Couldn't read the file %s, exited with: %s", filename, err)
+		log.Fatalf("Couldn't read the file .develbox/config.json, exited with: %s", err)
 	}
 
 	configs := parse(data)
@@ -46,15 +46,21 @@ func ReadConfig(filename string) DevSetings {
 func WriteConfig(configs *DevSetings) {
 	data, _ := json.MarshalIndent(configs, "", "	")
 
-	err := os.WriteFile("develbox.json", data, 0666)
+	err := os.WriteFile(".develbox/config.json", data, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
 	os.Exit(0)
 }
 
+func ConfigFolderExists() bool {
+	_, err := os.Stat(".develbox")
+
+	return !os.IsNotExist(err)
+}
+
 func ConfigExists() bool {
-	_, err := os.Stat("develbox.json")
+	_, err := os.Stat(".develbox/config.json")
 
 	return !os.IsNotExist(err)
 }
