@@ -26,14 +26,15 @@ func CreateContainer(config *DevSetings, forceCreation bool) {
 
 	if config.Podman.Rootless && !config.Podman.Container.RootUser {
 		os.Mkdir(".develbox/home", 0755)
-		arguments = append(arguments, "--userns=keep-id", "--passwd-entry=develbox:*:$UID:0:develbox_container:/home/develbox:/bin/sh", "-v=./.develbox/home:/home/develbox:Z")
+		user := os.Getenv("USER")
+		arguments = append(arguments, "--userns=keep-id", "-e", "USER="+user, "--passwd-entry="+user+":*:$UID:0:develbox_container:/home/"+user+":/bin/sh", "-v=./.develbox/home:/home/"+user+":Z")
 
 		if config.Podman.Container.Binds.Wayland {
 			arguments = append(arguments, bindWayland()...)
 		}
 
 		if config.Podman.Container.Binds.XOrg {
-			arguments = append(arguments, bindXOrg()...)
+			arguments = append(arguments, bindXOrg(user)...)
 			arguments = append(arguments, "--ipc=host")
 		}
 
@@ -128,7 +129,7 @@ func GetContainerIP(config DevSetings) string {
 
 func setupCommands(config *DevSetings) {
 
-	RunCommands(config.Image.OnCreation, config.Podman, true, true, true, true)
+	RunCommands(config.Image.OnCreation, config.Podman, true, true, true, true, true)
 
 	commands := []string{}
 	if len(config.Packages) > 0 {
@@ -137,12 +138,12 @@ func setupCommands(config *DevSetings) {
 
 	commands = append(commands, config.Image.OnFinish...)
 
-	RunCommands(commands, config.Podman, true, true, false, true)
+	RunCommands(commands, config.Podman, true, true, true, false, true)
 }
 
-func RunCommands(commandList []string, podman Podman, printOut bool, deleteOnFailure bool, externalStop bool, rootOperation bool) {
+func RunCommands(commandList []string, podman Podman, printOut bool, printCommand bool, deleteOnFailure bool, externalStop bool, rootOperation bool) {
 	for _, command := range commandList {
-		RunCommand([]string{command}, podman, printOut, deleteOnFailure, true, "%s", rootOperation)
+		RunCommand([]string{command}, podman, printOut, printCommand, deleteOnFailure, true, "%s", rootOperation)
 	}
 	if externalStop {
 		return
@@ -150,20 +151,28 @@ func RunCommands(commandList []string, podman Podman, printOut bool, deleteOnFai
 	StopContainer(podman)
 }
 
-func RunCommand(command []string, podman Podman, printOut bool, deleteContainer bool, externalStop bool, errorMessage string, rootOperation bool) []byte {
+func RunCommand(command []string, podman Podman, printOut bool, printCommand bool, deleteContainer bool, externalStop bool, errorMessage string, rootOperation bool) []byte {
 	shellArgs := []string{"exec", "-it"}
+	shellArgs = append(shellArgs, copyEnvVWaylnd()...)
 	listCommand := command
 	if podman.Rootless && !podman.Container.RootUser && (string(listCommand[0][0]) == "!" || rootOperation) {
 		shellArgs = append(shellArgs, "--user=0")
 	}
 	shellArgs = append(shellArgs, "-w", podman.Container.WorkDir, podman.Container.Name, "sh", "-c")
 
-	if string(listCommand[0][0]) != "!" {
+	if string(listCommand[0][0]) == "!" {
 		listCommand[0] = strings.Replace(listCommand[0], "!", "", 1)
+		rootOperation = true
 	}
+	shellArgs = append(shellArgs, strings.Join(listCommand, " "))
+	/*
+		if rootOperation {
+			shellArgs = append(shellArgs, listCommand...)
 
-	shellArgs = append(shellArgs, command...)
-
+		} else {
+			shellArgs = append(shellArgs, strings.ReplaceAll("\"{}\"", "{}", strings.Join(listCommand, " ")))
+		}
+	*/
 	if len(command) > 0 {
 		cmd := exec.Command(podman.Path, shellArgs...)
 		cmd.Stderr = os.Stderr
@@ -172,7 +181,9 @@ func RunCommand(command []string, podman Podman, printOut bool, deleteContainer 
 		if printOut {
 			cmd.Stdin = os.Stdin
 			cmd.Stdout = os.Stdout
-			fmt.Printf("Running command: %s\n", cmd.String())
+			if printCommand {
+				fmt.Printf("Running command: %s\n", cmd.String())
+			}
 			err = cmd.Run()
 		} else {
 			bytes, err = cmd.Output()
@@ -243,24 +254,35 @@ func processVolumes(container Container) string {
 }
 
 func bindWayland() []string {
-	uid := os.Getuid()
 	waylandDisplay := os.Getenv("WAYLAND_DISPLAY")
 	xdgRuntimeDir := os.Getenv("XDG_RUNTIME_DIR")
 	return []string{
-		"-e", "XDG_RUNTIME_DIR=/user/user/" + fmt.Sprint(uid),
+		"-e", "XDG_RUNTIME_DIR=" + xdgRuntimeDir,
 		"-e", "WAYLAND_DISPLAY=" + waylandDisplay,
-		"-e", "XDG_SESSION_TYPE=WAYLAND",
-		"-e", "QT_QPA_PLATFORM=WAYLAND",
-		"-e", "GDK_BACKEND=WAYLAND",
-		"-v=" + xdgRuntimeDir + "/" + waylandDisplay + ":/run/user/" + fmt.Sprint(uid) + waylandDisplay,
+		/*		"-e", "XDG_SESSION_TYPE=WAYLAND",
+				"-e", "QT_QPA_PLATFORM=WAYLAND",
+				"-e", "GDK_BACKEND=WAYLAND",*/
+		"-v=" + xdgRuntimeDir + "/" + waylandDisplay + ":" + xdgRuntimeDir + "/" + waylandDisplay + ":rw",
 	}
 }
-func bindXOrg() []string {
+
+func copyEnvVWaylnd() []string {
+	sessionType := os.Getenv("XDG_SESSION_TYPE")
+
+	env := []string{"-e", "XDG_SESSION_TYPE=" + sessionType}
+
+	if sessionType == "wayland" {
+		env = append(env, "-e", "QT_QPA_PLATFORM=WAYLAND", "-e", "GDK_BACKEND=WAYLAND", "-e", "MOZ_ENABLE_WAYLAND=1")
+	}
+
+	return env
+}
+func bindXOrg(user string) []string {
 	displayX11 := os.Getenv("DISPLAY")
 	return []string{
 		"-e", "DISPLAY=" + displayX11,
 		"-v=/tmp/.X11-unix:/tmp/.X11-unix:rw",
-		"-v=" + os.Getenv("HOME") + "/.Xauthority:/home/develbox/.Xauthority:rw",
+		"-v=" + os.Getenv("HOME") + "/.Xauthority:/home/" + user + "/.Xauthority:rw",
 		"--cap-drop=ALL",
 		"--security-opt=no-new-privileges",
 	}

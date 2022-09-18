@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/kadmuffin/develbox/pkg/develbox"
+	"github.com/kadmuffin/develbox/src/pkg/develbox"
 	"github.com/spf13/cobra"
 )
 

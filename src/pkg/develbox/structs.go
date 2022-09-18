@@ -1,33 +1,34 @@
 package develbox
 
 type Installer struct {
-	Add string `default:"apt-get install {args} {-y}" json:"add"` // {-y} needed to auto install on creation
-	Del string `default:"apt-get remove {args} {-y}" json:"del"`
-	Dup string `default:"apt-get upgrade -y" json:"dup"`
-	Upd string `default:"apt-get update" json:"upd"`
+	Add  string `default:"apk add {args}" json:"add"` // add "{-y}" to auto install on creation on debian
+	Del  string `default:"apk del {args}" json:"del"`
+	Upd  string `default:"apk update" json:"update"`
+	Dup  string `default:"apk upgrade" json:"upgrade"`
+	Srch string `default:"apk search" json:"search"`
 }
 
 type Image struct {
-	URI        string    `default:"debian:latest" json:"uri"`
-	OnCreation []string  `default:"[\"apt-get update\"]" json:"on-creation"`
+	URI        string    `default:"alpine:latest" json:"uri"`
+	OnCreation []string  `default:"[\"apk update\"]" json:"on-creation"`
 	OnFinish   []string  `default:"[]" json:"on-finish"`
 	Installer  Installer `json:"pkg-manager"`
 }
 
 type Binds struct {
-	Wayland    bool `json:"wayland"`
-	XOrg       bool `json:"xorg"`
-	Pulseaudio bool `json:"pulseaudio"`
+	Wayland    bool `default:"true" json:"wayland"`
+	XOrg       bool `default:"true" json:"xorg"`
+	Pulseaudio bool `default:"true" json:"pulseaudio"`
 	Pipewire   bool `json:"pipewire"`
-	DRI        bool `json:"dri"`
-	Camera     bool `json:"camera"`
+	DRI        bool `default:"true" json:"dri"`
+	Camera     bool `default:"true" json:"camera"`
 }
 
 type Container struct {
 	Name     string `json:"name"`
 	Args     string `default:"--net=host" json:"arguments"`
 	WorkDir  string `default:"/code" json:"work-dir"`
-	Shell    string `default:"/bin/bash" json:"shell"`
+	Shell    string `default:"/bin/sh" json:"shell"`
 	RootUser bool   `json:"root-user"`
 	Binds    Binds
 	Ports    []string `default:"[]" json:"ports"`
@@ -36,8 +37,8 @@ type Container struct {
 
 type Podman struct {
 	Path      string    `default:"podman" json:"path"`
-	Rootless  bool      `json:"rootless"`
-	BuildOnly bool      `json:"build-only"`
+	Rootless  bool      `default:"true" json:"rootless"`
+	BuildOnly bool      `json:"create-deletion"`
 	Container Container `json:"container"`
 }
 
