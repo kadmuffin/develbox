@@ -12,19 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package develbox
+package pkgm
 
 import (
-	"log"
-	"os"
+	"fmt"
+
+	"github.com/kadmuffin/develbox/src/pkg/config"
+	"github.com/kadmuffin/develbox/src/pkg/podman"
 )
 
-func getCurrentDirectory() string {
-	currentDir, err := os.Getwd()
+type Operation struct {
+	Type     string   `json:"operation"`
+	Packages []string `json:"packages"`
+	flags    []string `json:"flags"`
+}
 
-	if err != nil {
-		log.Fatalf("Failed to get current directory:\n	%s", err)
+func (e *Operation) Process(cfg config.Struct) error {
+	pman := podman.New(cfg.Podman.Path)
+
+	if e.Type == "add" {
+
 	}
+	return fmt.Errorf("Couldn't find the key '%s' on the list of supported operations.", e.Type)
+}
 
-	return currentDir
+func actualProcessing(base string) {
+
 }

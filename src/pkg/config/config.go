@@ -12,52 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package develbox
+package config
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"log"
 	"os"
-	"path/filepath"
 )
 
-func parseJson(bytes []byte) DevSetings {
-	var configs DevSetings
+func parseJson(bytes []byte) Struct {
+	var configs Struct
 	err := json.Unmarshal(bytes, &configs)
 
 	if err != nil {
 		log.Fatalf("Couldn't parse the config file, exited with: %s", err)
 	}
 
-	SetContainerName(&configs)
+	configs.SetDefaults()
 
 	return configs
 }
 
-func SetContainerName(config *DevSetings) {
-	if config.Podman.Container.Name == "" {
-		hasher := sha256.New()
-		hasher.Write([]byte(filepath.Base(getCurrentDirectory())))
-		dir := hasher.Sum(nil)
-		config.Podman.Container.Name = hex.EncodeToString(dir)
-	}
-}
-
-func ReadConfig() DevSetings {
+func Read() Struct {
 	data, err := os.ReadFile(".develbox/config.json")
 	if err != nil {
 		log.Fatalf("Couldn't read the file .develbox/config.json, exited with: %s", err)
 	}
 
 	configs := parseJson(data)
-	SetContainerName(&configs)
 
 	return configs
 }
 
-func WriteConfig(configs *DevSetings) {
+func WriteConfig(configs *Struct) {
 	data, _ := json.MarshalIndent(configs, "", "	")
 
 	err := os.WriteFile(".develbox/config.json", data, 0644)
@@ -77,4 +64,14 @@ func ConfigExists() bool {
 	_, err := os.Stat(".develbox/config.json")
 
 	return !os.IsNotExist(err)
+}
+
+func getCurrentDirectory() string {
+	currentDir, err := os.Getwd()
+
+	if err != nil {
+		log.Fatalf("Failed to get current directory:\n	%s", err)
+	}
+
+	return currentDir
 }

@@ -12,14 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package develbox
+package config
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"path/filepath"
+
+	"github.com/creasty/defaults"
+)
 
 type Installer struct {
 	Add  string `default:"apk add {args}" json:"add"` // add "{-y}" to auto install on creation on debian
 	Del  string `default:"apk del {args}" json:"del"`
-	Upd  string `default:"apk update" json:"update"`
-	Dup  string `default:"apk upgrade" json:"upgrade"`
-	Srch string `default:"apk search" json:"search"`
+	Upd  string `default:"apk update {args}" json:"update"`
+	Dup  string `default:"apk upgrade {args}" json:"upgrade"`
+	Srch string `default:"apk search {args}" json:"search"`
 }
 
 type Image struct {
@@ -30,12 +38,14 @@ type Image struct {
 }
 
 type Binds struct {
-	Wayland    bool `default:"true" json:"wayland"`
-	XOrg       bool `default:"true" json:"xorg"`
-	Pulseaudio bool `default:"true" json:"pulseaudio"`
-	Pipewire   bool `json:"pipewire"`
-	DRI        bool `default:"true" json:"dri"`
-	Camera     bool `default:"true" json:"camera"`
+	// These now get auto-mounted by default
+	//	Wayland    bool `default:"true" json:"wayland"`
+	//	Pulseaudio bool `default:"true" json:"pulseaudio"`
+
+	Pipewire bool `default:"true" json:"pipewire"`
+	XOrg     bool `default:"true" json:"xorg"`
+
+	Dev bool `default:"true" json:"/dev"`
 }
 
 type Container struct {
@@ -56,9 +66,19 @@ type Podman struct {
 	Container Container `json:"container"`
 }
 
-type DevSetings struct {
+type Struct struct {
 	Image    Image               `json:"image"`
 	Podman   Podman              `json:"podman"`
 	Commands map[string][]string `default:"{}" json:"commands"`
 	Packages []string            `default:"[]" json:"packages"`
+}
+
+func (e *Struct) SetDefaults() {
+	defaults.Set(e)
+	if e.Podman.Container.Name == "" {
+		hasher := sha256.New()
+		hasher.Write([]byte(filepath.Base(getCurrentDirectory())))
+		dir := hasher.Sum(nil)
+		e.Podman.Container.Name = hex.EncodeToString(dir)
+	}
 }

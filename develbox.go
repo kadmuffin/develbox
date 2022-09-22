@@ -14,8 +14,8 @@
 
 package main
 
-import "github.com/kadmuffin/develbox/src/cmd/develbox_cmd"
+import "github.com/kadmuffin/develbox/src/cmd"
 
 func main() {
-	develbox_cmd.Execute()
+	cmd.Execute()
 }

@@ -12,31 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package develbox_cmd
+package cmd
 
 import (
-	"log"
-
-	"github.com/kadmuffin/develbox/src/pkg/develbox"
 	"github.com/spf13/cobra"
 )
 
-var root bool
+var (
+	forceAction bool
+	rootCli     = &cobra.Command{
+		Use:   "develbox",
+		Short: "Develbox - Simple CLI tool useful for managing dev enviroments.",
+		Long: `Develbox - A simple but dirty CLI tool that manages containerized dev enviroments.
 
-var enter = &cobra.Command{
-	Use:   "enter",
-	Short: "Enters to the container",
-	Run: func(cmd *cobra.Command, args []string) {
-		var configs develbox.DevSetings = develbox.ReadConfig()
-		if !develbox.ContainerExists(&configs) {
-			log.Fatal("No container found")
-		}
-		develbox.StartContainer(configs.Podman)
-		develbox.EnterContainer(&configs, root)
-	},
-}
+Created so I don't have to expose my entire computer to random node modules (and to learn Go, that means BAD CODE).`,
+		Run: func(cmd *cobra.Command, args []string) {
 
-func init() {
-	enter.Flags().BoolVarP(&root, "root", "r", false, "Enters the container with the root user")
-	rootCli.AddCommand(enter)
+		},
+	}
+)
+
+func Execute() {
+	rootCli.PersistentFlags().BoolVarP(&forceAction, "force", "f", false, "Forces the subsequent action to execute.")
+	rootCli.Execute()
 }
