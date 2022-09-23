@@ -48,7 +48,7 @@ func Create(cfg config.Struct) {
 		args = append(args, "--mount", "type=bind,source=./.develbox/home,destination=/home/%s,rslave")
 
 		if err != nil && !os.IsExist(err) {
-			glg.Fatalf("Something went wrong while creating the .develbox/home folder. %s", err)
+			glg.Fatalf("Something went wrong while creating the .develbox/home folder. %w", err)
 		}
 
 		// Mounts Wayland, XOrg, Pulseaudio, etc...
