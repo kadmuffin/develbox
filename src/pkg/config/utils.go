@@ -1,7 +1,10 @@
 package config
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"os"
+	"path/filepath"
 
 	"github.com/kpango/glg"
 )
@@ -41,4 +44,14 @@ func GetCurrentDirectory() string {
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
+}
+
+// Returns a hash string made using the current directory's name.
+func GetDirNmHash() string {
+	currentDirName := filepath.Base(GetCurrentDirectory())
+	hasher := sha256.New()
+	hasher.Write([]byte(currentDirName))
+	dir := hasher.Sum(nil)
+	return hex.EncodeToString(dir)
+
 }

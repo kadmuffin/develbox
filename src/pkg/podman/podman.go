@@ -34,6 +34,9 @@ type Attach struct {
 
 func New(path string) Podman {
 	glg.Debugf("Creating podman instance using '%s'.", path)
+	if err := exec.Command("podman").Run(); err != nil {
+		glg.Fatalf("Can't access the podman executable: %w", err)
+	}
 	return Podman{path: path}
 }
 

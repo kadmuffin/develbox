@@ -15,12 +15,9 @@
 package config
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"log"
 	"os"
-	"path/filepath"
 )
 
 func parseJson(bytes []byte) Struct {
@@ -55,14 +52,4 @@ func WriteConfig(configs *Struct) {
 		log.Fatal(err)
 	}
 	os.Exit(0)
-}
-
-// Returns a hash string made using the current directory's name.
-func GetDirNmHash() string {
-	currentDirName := filepath.Base(GetCurrentDirectory())
-	hasher := sha256.New()
-	hasher.Write([]byte(currentDirName))
-	dir := hasher.Sum(nil)
-	return hex.EncodeToString(dir)
-
 }

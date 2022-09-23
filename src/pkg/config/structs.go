@@ -71,4 +71,7 @@ type Struct struct {
 
 func (e *Struct) SetDefaults() {
 	defaults.Set(e)
+	if e.Podman.Container.Name == "" {
+		e.Podman.Container.Name = GetDirNmHash()
+	}
 }
