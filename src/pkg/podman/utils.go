@@ -7,5 +7,5 @@ import "github.com/kadmuffin/develbox/src/pkg/config"
 // To do this we check the /run directory for .containerenv (podman)
 // or .dockerenv (docker)
 func InsideContainer() bool {
-	return config.FileExists("/run/.containerenv") || config.FileExists("/run/.dockerenv")
+	return config.FileExists("/run/.containerenv") || config.FileExists("/.dockerenv")
 }
