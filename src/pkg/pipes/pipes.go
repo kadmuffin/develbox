@@ -37,6 +37,10 @@ func New(path string) *Pipe {
 	return &Pipe{path: path}
 }
 
+func (e *Pipe) Path() string {
+	return e.path
+}
+
 // Creates a new FIFO pipe using syscall.Mkfifo(). In case of error the function returns an error
 func (e *Pipe) Create() error {
 	return syscall.Mkfifo(e.path, 0666)

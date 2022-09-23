@@ -15,6 +15,7 @@
 package pkgm
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/kadmuffin/develbox/src/pkg/config"
@@ -98,4 +99,12 @@ func (e *operation) sendCommand(base string, pman podman.Podman) error {
 	arguments = append(arguments, e.Flags...)
 
 	return pman.Exec(arguments, true, true, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
+}
+
+// Parses a bytes list and returns aan operation
+// and an error.
+func Read(data []byte) (operation, error) {
+	opertn := operation{}
+	err := json.Unmarshal(data, &opertn)
+	return opertn, err
 }

@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/kadmuffin/develbox/src/pkg/config"
+	"github.com/kadmuffin/develbox/src/pkg/pipes"
 	"github.com/kadmuffin/develbox/src/pkg/podman"
 	"github.com/kpango/glg"
 )
@@ -130,4 +131,16 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
 		glg.Fatalf("Something went wrong with finishing setting up your container. %s", err)
 	}
+}
+
+// Runs a shell in the container
+// and creates a pipe for package
+// installations.
+func Enter(cfg config.Struct, root bool) {
+	pman := podman.New(cfg.Podman.Path)
+    pipe := pipes.New(".develbox/home/.develbox")
+	pipe.Create()
+	go readPipe(&cfg, pipe)
+	pman.Exec([]string{cfg.Podman.Container.Shell}, false, root, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
+	pipe.Remove()
 }
