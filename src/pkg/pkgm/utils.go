@@ -14,6 +14,12 @@
 
 package pkgm
 
+// Splits packages from flags in string arrays.
+//
+// Returns a tuple with packages first, and the flags.
+// (&packages, &flags)
+//
+// Useful for parsing the packages & flags from Cobra
 func ParseArguments(arguments []string) (*[]string, *[]string) {
 	packages := []string{}
 	flags := []string{}
@@ -28,6 +34,9 @@ func ParseArguments(arguments []string) (*[]string, *[]string) {
 	return &packages, &flags
 }
 
+// Loops through the list and returns true if an item matches the string.
+//
+// Returns true if the item matched our string. False if not.
 func ContainsString(list []string, match string) bool {
 	for _, item := range list {
 		if item == match {
@@ -37,6 +46,8 @@ func ContainsString(list []string, match string) bool {
 	return false
 }
 
+// Returns a new array based on `appendList` without anything
+// repeated on the base list.
 func RemoveDuplicates(baseList *[]string, appendList *[]string) []string {
 	newList := []string{}
 	for _, item := range *appendList {

@@ -22,13 +22,26 @@ import (
 	"github.com/kpango/glg"
 )
 
-type Operation struct {
+// A struct that is used to install/delete packages.
+type operation struct {
 	Type     string   `json:"operation"`
 	Packages []string `json:"packages"`
 	Flags    []string `json:"flags"`
 }
 
-func (e *Operation) Process(cfg *config.Struct) error {
+// Creates a new operation struct that is used to request a transaction.
+//
+// After creating a operation, run yourOperation.Process() to install/delete/etc
+//
+// Accepted types: ("add", "del", "update", "upgrade")
+func NewOperation(opType string, packages []string, flags []string) operation {
+	return operation{Type: opType, Packages: packages, Flags: flags}
+}
+
+// Processes the transaction and updates the config reference.
+//
+// Returns an error in case of failure.
+func (e *operation) Process(cfg *config.Struct) error {
 	pman := podman.New(cfg.Podman.Path)
 
 	if e.Type == "add" {
@@ -75,7 +88,11 @@ func (e *Operation) Process(cfg *config.Struct) error {
 	return glg.Errorf("couldn't find the key '%s' on the list of supported operations", e.Type)
 }
 
-func (e *Operation) sendCommand(base string, pman podman.Podman) error {
+// Runs a podman command with the config's pkgmanager settings.
+//
+// Returns an error so we can know if something failed or the user
+// did a Ctrl+C and stopped the transaction. Either way, packages failed to install.
+func (e *operation) sendCommand(base string, pman podman.Podman) error {
 	arguments := []string{strings.Replace(base, "{args}", "", 1)}
 	arguments = append(arguments, e.Packages...)
 	arguments = append(arguments, e.Flags...)

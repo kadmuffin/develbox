@@ -22,7 +22,8 @@ import (
 )
 
 type Podman struct {
-	path string
+	path    string
+	lastCmd exec.Cmd
 }
 
 type Attach struct {
@@ -125,4 +126,11 @@ func (e *Podman) Remove(args []string, attach Attach) error {
 	glg.Debugf("Removing container using the following arguments:\n  - %s", params)
 
 	return e.cmd(params, attach).Run()
+}
+
+// Returns the last ran command
+//
+// Useful if you need to access it's output or other information.
+func (e *Podman) GetLastCommand() exec.Cmd {
+	return e.lastCmd
 }

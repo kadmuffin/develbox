@@ -15,10 +15,6 @@
 package config
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"path/filepath"
-
 	"github.com/creasty/defaults"
 )
 
@@ -75,10 +71,4 @@ type Struct struct {
 
 func (e *Struct) SetDefaults() {
 	defaults.Set(e)
-	if e.Podman.Container.Name == "" {
-		hasher := sha256.New()
-		hasher.Write([]byte(filepath.Base(getCurrentDirectory())))
-		dir := hasher.Sum(nil)
-		e.Podman.Container.Name = hex.EncodeToString(dir)
-	}
 }
