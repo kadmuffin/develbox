@@ -15,6 +15,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/kadmuffin/develbox/src/cmd/pkg"
 	"github.com/kadmuffin/develbox/src/pkg/podman"
 	"github.com/spf13/cobra"
@@ -28,7 +30,10 @@ var (
 
 Created so I don't have to expose my entire computer to random node modules (and to learn Go, that means BAD CODE).`,
 		Run: func(cmd *cobra.Command, args []string) {
-
+			if len(args) == 0 {
+				cmd.Help()
+				os.Exit(0)
+			}
 		},
 	}
 )

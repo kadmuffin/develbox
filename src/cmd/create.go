@@ -45,6 +45,6 @@ var (
 )
 
 func init() {
-	Enter.Flags().BoolVarP(&createCfg, "config", "c", false, "Use to create a new config file")
-	Enter.Flags().BoolVarP(&forceReplace, "force", "f", false, "Use to force the creation of a container/config")
+	Create.Flags().BoolVarP(&createCfg, "config", "c", false, "Use to create a new config file")
+	Create.Flags().BoolVarP(&forceReplace, "force", "f", false, "Use to force the creation of a container/config")
 }
