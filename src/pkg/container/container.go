@@ -108,7 +108,10 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	}
 
 	if len(cfg.Packages) > 0 {
-		command := []string{strings.Replace(strings.Replace(cfg.Image.Installer.Add, " {-y}", " -y", 1), "{args}", strings.Join(cfg.Packages, " "), 1)}
+		spacedPkgs := strings.Join(cfg.Packages, " ")
+		addBase := strings.ReplaceAll(cfg.Image.Installer.Add, " {-y}", " -y")
+
+		command := []string{strings.ReplaceAll(addBase, "{args}", spacedPkgs)}
 
 		err = pman.Exec(command, true, true,
 			podman.Attach{
@@ -147,7 +150,13 @@ func Enter(cfg config.Struct, root bool) error {
 	// Read commands in a separate thread
 	go readPipe(&cfg, pipe)
 
-	err := pman.Exec([]string{cfg.Podman.Container.Shell}, false, root, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
+	err := pman.Exec([]string{cfg.Podman.Container.Shell}, false, root, 
+		podman.Attach{
+			Stdin: true,
+			Stdout: true,
+			Stderr: true,
+		})
+
 	pipe.Remove()
 	return err
 }
