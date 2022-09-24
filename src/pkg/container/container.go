@@ -56,6 +56,9 @@ func Create(cfg config.Struct) {
 		args = append(args, mountBindings(cfg)...)
 	}
 
+	// Mounts develbox binary from GOPATH
+	args = append(args, mountDevBBin())
+
 	if len(cfg.Podman.Container.Mounts) > 0 {
 		args = append(args, processVolumes(cfg))
 	}
@@ -136,11 +139,15 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 // Runs a shell in the container
 // and creates a pipe for package
 // installations.
-func Enter(cfg config.Struct, root bool) {
+func Enter(cfg config.Struct, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
-    pipe := pipes.New(".develbox/home/.develbox")
+	pipe := pipes.New(".develbox/home/.develbox")
 	pipe.Create()
+
+	// Read commands in a separate thread
 	go readPipe(&cfg, pipe)
-	pman.Exec([]string{cfg.Podman.Container.Shell}, false, root, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
+
+	err := pman.Exec([]string{cfg.Podman.Container.Shell}, false, root, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
 	pipe.Remove()
+	return err
 }

@@ -126,6 +126,17 @@ func mountWorkDir(cfg config.Struct) string {
 	return fmt.Sprintf("-v=.:%s", workdir)
 }
 
+// Mounts develbox from $GOPATH/bin
+func mountDevBBin() string {
+	value, found := os.LookupEnv("GOPATH")
+	if !found {
+		home := os.Getenv("HOME")
+		value = fmt.Sprintf("%s/go", home)
+	}
+
+	return fmt.Sprintf("v=%s/bin/develbox:/usr/bin/develbox:ro", value)
+}
+
 // Mounts all the required binds in the config file.
 //
 // Wayland & Pulseaudio get mounted by default. And possible

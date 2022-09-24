@@ -16,6 +16,7 @@ package pkgm
 
 import (
 	"encoding/json"
+	"os"
 	"strings"
 
 	"github.com/kadmuffin/develbox/src/pkg/config"
@@ -34,7 +35,7 @@ type operation struct {
 //
 // After creating a operation, run yourOperation.Process() to install/delete/etc
 //
-// Accepted types: ("add", "del", "update", "upgrade")
+// Accepted types: ("add", "del", "update", "upgrade", "search")
 func NewOperation(opType string, packages []string, flags []string) operation {
 	return operation{Type: opType, Packages: packages, Flags: flags}
 }
@@ -99,6 +100,18 @@ func (e *operation) sendCommand(base string, pman podman.Podman) error {
 	arguments = append(arguments, e.Flags...)
 
 	return pman.Exec(arguments, true, true, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
+}
+
+// writes a JSON formatted data into a file.
+//
+// In this case, it's used to write into the pipe.
+func (e *operation) Write(path string, perm os.FileMode) error {
+	data, err := json.Marshal(e)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, data, perm)
 }
 
 // Parses a bytes list and returns aan operation

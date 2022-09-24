@@ -15,15 +15,16 @@
 package cmd
 
 import (
+	"github.com/kadmuffin/develbox/src/cmd/pkg"
+	"github.com/kadmuffin/develbox/src/pkg/podman"
 	"github.com/spf13/cobra"
 )
 
 var (
-	forceAction bool
-	rootCli     = &cobra.Command{
+	rootCli = &cobra.Command{
 		Use:   "develbox",
 		Short: "Develbox - Simple CLI tool useful for managing dev enviroments.",
-		Long: `Develbox - A simple but dirty CLI tool that manages containerized dev enviroments.
+		Long: `Develbox - A simple but dirty CLI tool that manages containerized dev environments.
 
 Created so I don't have to expose my entire computer to random node modules (and to learn Go, that means BAD CODE).`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -33,6 +34,17 @@ Created so I don't have to expose my entire computer to random node modules (and
 )
 
 func Execute() {
-	rootCli.PersistentFlags().BoolVarP(&forceAction, "force", "f", false, "Forces the subsequent action to execute.")
+	// Package manager operations
+	rootCli.AddCommand(pkg.Add)
+	rootCli.AddCommand(pkg.Del)
+	rootCli.AddCommand(pkg.Update)
+	rootCli.AddCommand(pkg.Upgrade)
+	rootCli.AddCommand(pkg.Search)
+
+	if !podman.InsideContainer() {
+		rootCli.AddCommand(Enter)
+		rootCli.AddCommand(Create)
+	}
+
 	rootCli.Execute()
 }

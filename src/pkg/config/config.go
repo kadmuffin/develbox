@@ -16,40 +16,32 @@ package config
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 )
 
-func parseJson(bytes []byte) Struct {
+func Read() (Struct, error) {
+	data, err := os.ReadFile(".develbox/config.json")
+	if err != nil {
+		return Struct{}, err
+	}
+
 	var configs Struct
-	err := json.Unmarshal(bytes, &configs)
+	err = json.Unmarshal(data, &configs)
 
 	if err != nil {
-		log.Fatalf("Couldn't parse the config file, exited with: %s", err)
+		return configs, err
 	}
 
 	configs.SetDefaults()
-
-	return configs
+	return configs, nil
 }
 
-func Read() Struct {
-	data, err := os.ReadFile(".develbox/config.json")
-	if err != nil {
-		log.Fatalf("Couldn't read the file .develbox/config.json, exited with: %s", err)
-	}
-
-	configs := parseJson(data)
-
-	return configs
-}
-
-func WriteConfig(configs *Struct) {
+func WriteConfig(configs *Struct) error {
 	data, _ := json.MarshalIndent(configs, "", "	")
 
 	err := os.WriteFile(".develbox/config.json", data, 0644)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	os.Exit(0)
+	return nil
 }
