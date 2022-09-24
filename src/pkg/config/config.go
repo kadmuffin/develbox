@@ -32,7 +32,7 @@ func Read() (Struct, error) {
 		return configs, err
 	}
 
-	SetDefaults(&configs)
+	SetName(&configs)
 	return configs, nil
 }
 

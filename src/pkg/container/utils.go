@@ -25,14 +25,15 @@ import (
 // Returns a list of all the files inside a path that match a name
 func GetFolderFiles(path string, match string) ([]string, error) {
 	folder, err := os.Open(path)
-	defer folder.Close()
 	if err != nil {
 		return []string{}, err
 	}
+	defer folder.Close()
 	files, err := folder.Readdirnames(0)
 	if err != nil {
 		return []string{}, err
 	}
+	defer folder.Close()
 	matches := []string{}
 	for _, v := range files {
 		if strings.Contains(v, match) {
@@ -59,9 +60,9 @@ func processVolumes(cfg config.Struct) string {
 }
 
 // Loops through the commands list and runs each one separately
-func RunCommandList(commands []string, pman *podman.Podman, root bool, attach podman.Attach) error {
+func RunCommandList(name string, commands []string, pman *podman.Podman, root bool, attach podman.Attach) error {
 	for _, command := range commands {
-		err := pman.Exec([]string{command}, true, root, attach)
+		err := pman.Exec([]string{name, command}, true, root, attach).Run()
 		if err != nil {
 			return err
 		}

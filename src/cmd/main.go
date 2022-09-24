@@ -15,9 +15,11 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/kadmuffin/develbox/src/cmd/pkg"
+	"github.com/kadmuffin/develbox/src/pkg/config"
 	"github.com/kadmuffin/develbox/src/pkg/podman"
 	"github.com/spf13/cobra"
 )
@@ -39,12 +41,15 @@ Created so I don't have to expose my entire computer to random node modules (and
 )
 
 func Execute() {
-	// Package manager operations
-	rootCli.AddCommand(pkg.Add)
-	rootCli.AddCommand(pkg.Del)
-	rootCli.AddCommand(pkg.Update)
-	rootCli.AddCommand(pkg.Upgrade)
-	rootCli.AddCommand(pkg.Search)
+	pipeDir := fmt.Sprintf("/home/%s/.develbox", os.Getenv("USER"))
+	if !podman.InsideContainer() || config.FileExists(pipeDir) {
+		// Package manager operations
+		rootCli.AddCommand(pkg.Add)
+		rootCli.AddCommand(pkg.Del)
+		rootCli.AddCommand(pkg.Update)
+		rootCli.AddCommand(pkg.Upgrade)
+		rootCli.AddCommand(pkg.Search)
+	}
 
 	if !podman.InsideContainer() {
 		rootCli.AddCommand(Enter)

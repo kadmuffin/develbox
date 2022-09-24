@@ -54,12 +54,12 @@ func (e *Pipe) Remove() error {
 
 // Waits and reads the contents of the pipe.
 /* Use after pipe.Create() */
-func (e *Pipe) ReadPipe() ([]byte, error) {
+func (e *Pipe) Read() ([]byte, error) {
 	return os.ReadFile(e.path)
 }
 
 // Writes data to the pipe. In case of failure it returns an error.
 /* Use after pipe.Create() */
-func (e *Pipe) WritePipe(data []byte) error {
+func (e *Pipe) Write(data []byte) error {
 	return os.WriteFile(e.path, data, 0666)
 }

@@ -16,7 +16,9 @@ package pkgm
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/kadmuffin/develbox/src/pkg/config"
@@ -45,10 +47,11 @@ func NewOperation(opType string, packages []string, flags []string) operation {
 // Returns an error in case of failure.
 func (e *operation) Process(cfg *config.Struct) error {
 	pman := podman.New(cfg.Podman.Path)
+	cname := cfg.Podman.Container.Name
 
 	switch e.Type {
 	case "add":
-		if err := e.sendCommand(cfg.Image.Installer.Add, pman); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Add, pman).Run(); err != nil {
 			return glg.Errorf("couldn't install the requested packages: %w", err)
 		}
 
@@ -57,7 +60,7 @@ func (e *operation) Process(cfg *config.Struct) error {
 		return nil
 
 	case "del":
-		if err := e.sendCommand(cfg.Image.Installer.Del, pman); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Del, pman).Run(); err != nil {
 			return glg.Errorf("couldn't removing the requested packages: %w", err)
 		}
 
@@ -66,19 +69,19 @@ func (e *operation) Process(cfg *config.Struct) error {
 		return nil
 
 	case "search":
-		if err := e.sendCommand(cfg.Image.Installer.Srch, pman); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Srch, pman).Run(); err != nil {
 			return glg.Errorf("couldn't search the requested packages: %w", err)
 		}
 		return nil
 
 	case "update":
-		if err := e.sendCommand(cfg.Image.Installer.Upd, pman); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Upd, pman).Run(); err != nil {
 			return glg.Errorf("something failed while running update: %w", err)
 		}
 		return nil
 
 	case "upgrade":
-		if err := e.sendCommand(cfg.Image.Installer.Upd, pman); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Upd, pman).Run(); err != nil {
 			return glg.Errorf("something failed while running update: %w", err)
 		}
 		return nil
@@ -87,14 +90,41 @@ func (e *operation) Process(cfg *config.Struct) error {
 	return glg.Errorf("couldn't find the key '%s' on the list of supported operations", e.Type)
 }
 
+// Processes the transaction and returns a command
+//
+// Config updates have to be handle separately
+func (e *operation) ProcessCmd(cfg *config.Struct) (*exec.Cmd, error) {
+	pman := podman.New(cfg.Podman.Path)
+	cname := cfg.Podman.Container.Name
+
+	switch e.Type {
+	case "add":
+		return e.sendCommand(cname, cfg.Image.Installer.Add, pman), nil
+
+	case "del":
+		return e.sendCommand(cname, cfg.Image.Installer.Del, pman), nil
+
+	case "search":
+		return e.sendCommand(cname, cfg.Image.Installer.Srch, pman), nil
+
+	case "update":
+		return e.sendCommand(cname, cfg.Image.Installer.Upd, pman), nil
+
+	case "upgrade":
+		return e.sendCommand(cname, cfg.Image.Installer.Upd, pman), nil
+	}
+
+	return &exec.Cmd{}, glg.Errorf("couldn't find the key '%s' on the list of supported operations", e.Type)
+}
+
 // Runs a podman command with the config's pkgmanager settings.
 //
 // Returns an error so we can know if something failed or the user
 // did a Ctrl+C and stopped the transaction. Either way, packages failed to install.
-func (e *operation) sendCommand(base string, pman podman.Podman) error {
-	arguments := []string{strings.Replace(base, "{args}", "", 1)}
-	arguments = append(arguments, e.Packages...)
-	arguments = append(arguments, e.Flags...)
+func (e *operation) sendCommand(cname, base string, pman podman.Podman) *exec.Cmd {
+	packages := strings.Join(e.Packages, " ")
+	flags := strings.Join(e.Flags, " ")
+	arguments := []string{cname, strings.Replace(base, "{args}", fmt.Sprintf("%s %s", packages, flags), 1)}
 
 	return pman.Exec(arguments, true, true, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
 }

@@ -17,19 +17,20 @@ package podman
 import (
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/kpango/glg"
 )
 
 type Podman struct {
-	path    string
-	lastCmd exec.Cmd
+	path string
 }
 
 type Attach struct {
-	Stdin  bool
-	Stdout bool
-	Stderr bool
+	Stdin     bool
+	Stdout    bool
+	Stderr    bool
+	PseudoTTY bool
 }
 
 func New(path string) Podman {
@@ -59,35 +60,57 @@ func (e *Podman) cmd(args []string, attach Attach) *exec.Cmd {
 }
 
 // Creates a container using the arguments provided.
-func (e *Podman) Create(args []string, attach Attach) error {
+func (e *Podman) Create(args []string, attach Attach) *exec.Cmd {
 	params := []string{"run", "-d", "-t", "--init"}
 	params = append(params, args...)
 
-	glg.Debugf("Creating container using the following arguments:\n  - %s", params)
+	cmd := e.cmd(params, attach)
+	glg.Debugf("Creating container using the following command: %s", cmd.String())
 
-	return e.cmd(params, attach).Run()
+	return cmd
 }
 
 // Executes a command inside a running container and
 // attaches (Stdin, Stdout) if "attach" is true.
-func (e *Podman) Exec(args []string, sh bool, root bool, attach Attach) error {
-	params := []string{"exec"}
+func (e *Podman) Exec(args []string, sh bool, root bool, attach Attach) *exec.Cmd {
+	params := []string{"exec", "-i"}
+
+	if attach.PseudoTTY {
+		params = append(params, "-t")
+	}
+
+	if attach == *new(Attach) {
+		params = append(params, "-d")
+	}
+
 	if root {
 		params = append(params, "--user", "0:0")
 	}
 
-	params = append(params, "sh", "-c")
-	params = append(params, args...)
+	params = append(params, args[0])
 
-	glg.Debugf("Executing a command using %s:\n  - Command: %s", params)
+	if sh {
+		params = append(params, "sh", "-c")
+	}
 
-	return e.cmd(params, attach).Run()
+	params = append(params, args[1:]...)
+
+	cmd := e.cmd(params, attach)
+	glg.Debugf("Executing command: %s", cmd.String())
+
+	return cmd
 }
 
 // Returns a boolean that indicates if the container was found.
 func (e *Podman) Exists(name string) bool {
-	params := []string{"container", "exists"}
-	params = append(params, name)
+	params := []string{"container", "exists", name}
+
+	// Docker doesn't have an exists function, so this is
+	// the closest thing I could find.
+	if strings.Contains(e.path, "docker") {
+		params = []string{"ps", "-a", "|", "grep", name}
+		return e.cmd(params, Attach{}).Run() == nil
+	}
 
 	return e.cmd(params, Attach{}).Run() != nil
 }
@@ -123,6 +146,8 @@ func (e *Podman) Stop(args []string, attach Attach) error {
 // In arguments, the first argument can should the
 // container's name/id if no flag are added before of the name.
 func (e *Podman) Remove(args []string, attach Attach) error {
+	e.Stop(args, attach)
+
 	params := []string{"rm"}
 	params = append(params, args...)
 
@@ -131,9 +156,21 @@ func (e *Podman) Remove(args []string, attach Attach) error {
 	return e.cmd(params, attach).Run()
 }
 
-// Returns the last ran command
+// Copies files into the container
+func (e *Podman) Copy(args []string, attach Attach) *exec.Cmd {
+	e.Stop(args, attach)
+
+	params := []string{"cp"}
+	params = append(params, args...)
+
+	glg.Debugf("Running copy using the following arguments:\n  - %s", params)
+
+	return e.cmd(params, attach)
+}
+
+// Checks if the path contains the word "docker"
 //
-// Useful if you need to access it's output or other information.
-func (e *Podman) GetLastCommand() exec.Cmd {
-	return e.lastCmd
+// Mainly here so we can make this work on docker too.
+func (e *Podman) IsDocker() bool {
+	return strings.Contains(e.path, "docker")
 }

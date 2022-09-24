@@ -15,6 +15,8 @@
 package container
 
 import (
+	"os"
+
 	"github.com/kadmuffin/develbox/src/pkg/config"
 	"github.com/kadmuffin/develbox/src/pkg/pipes"
 	"github.com/kadmuffin/develbox/src/pkg/pkgm"
@@ -23,9 +25,9 @@ import (
 
 // Reads a pipe and installs the requested
 // packages.
-func readPipe(cfg *config.Struct, pipe *pipes.Pipe) {
-	for config.FileExists(pipe.Path()) {
-		data, err := pipe.ReadPipe()
+func pkgPipe(cfg *config.Struct, pipe *pipes.Pipe) {
+	for {
+		data, err := pipe.Read()
 		if err != nil {
 			pipe.Remove()
 			glg.Errorf("can't read pipe, deleting pipe: %w", err)
@@ -36,6 +38,14 @@ func readPipe(cfg *config.Struct, pipe *pipes.Pipe) {
 			glg.Errorf("can't parse json data: %w", err)
 		}
 
-		opertn.Process(cfg)
+		cmd, err := opertn.ProcessCmd(cfg)
+		if err != nil {
+			glg.Errorf("operation type is invalid: %w", err)
+		}
+
+		file, _ := os.Open(pipe.Path())
+		cmd.Stdin = file
+		cmd.Run()
+		pipe.Remove()
 	}
 }

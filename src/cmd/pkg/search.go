@@ -15,9 +15,6 @@
 package pkg
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/kadmuffin/develbox/src/pkg/config"
 	"github.com/kadmuffin/develbox/src/pkg/pkgm"
 	"github.com/kadmuffin/develbox/src/pkg/podman"
@@ -34,10 +31,6 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			packages, flags := pkgm.ParseArguments(args)
 			opertn := pkgm.NewOperation("search", *packages, *flags)
-
-			if podman.InsideContainer() {
-				return opertn.Write(fmt.Sprintf("/home/%s/.develbox", os.Getenv("USER")), 0755)
-			}
 
 			cfg, err := config.Read()
 			if err != nil {

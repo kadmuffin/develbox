@@ -20,13 +20,17 @@ import (
 	"strings"
 
 	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/pipes"
 	"github.com/kadmuffin/develbox/src/pkg/podman"
 	"github.com/kpango/glg"
 )
 
-func Create(cfg config.Struct) {
+func Create(cfg config.Struct, deleteOld bool) {
 	pman := podman.New(cfg.Podman.Path)
+
+	if deleteOld {
+		glg.Debug("Deleting old container!")
+		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{})
+	}
 
 	if pman.Exists(cfg.Podman.Container.Name) {
 		glg.Fail("Container already exists!")
@@ -37,27 +41,34 @@ func Create(cfg config.Struct) {
 
 	args := []string{"--name", cfg.Podman.Container.Name}
 
+	glg.Debugf("rootless is set to: %t", cfg.Podman.Rootless)
 	if cfg.Podman.Rootless {
+
+		// Because I can't figure it right now, rootless with docker won't work
+		if pman.IsDocker() {
+			glg.Error("Rootless mode doesn't currently work with Docker")
+			os.Exit(1)
+		}
+
 		// Remaps the container UID & GID so we can modify the /code folder
 		args = append(args, "--userns=keep-id")
 
 		// Setups a user account with the current account name
 		args = append(args, fmt.Sprintf("--passwd-entry=%s:*:$UID:0:develbox_container:/home/%s:/bin/sh", user, user))
 
-		// Creates & mounts a home directory so we can access it easily
-		err := os.Mkdir(".develbox/home", 0755)
-		args = append(args, "--mount", "type=bind,source=./.develbox/home,destination=/home/%s,rslave")
-
-		if err != nil && !os.IsExist(err) {
-			glg.Fatalf("Something went wrong while creating the .develbox/home folder. %w", err)
-		}
-
 		// Mounts Wayland, XOrg, Pulseaudio, etc...
 		args = append(args, mountBindings(cfg)...)
 	}
 
-	// Mounts develbox binary from GOPATH
-	args = append(args, mountDevBBin())
+	// Creates & mounts a home directory so we can access it easily
+	// Not usable as a home directory without rootless mode
+	// We just mount it right now to get the pipe working
+	err := os.Mkdir(".develbox/home", 0755)
+	args = append(args, "--mount", fmt.Sprintf("type=bind,source=%s/.develbox/home,destination=/home/%s,bind-propagation=rslave", config.GetCurrentDirectory(), user))
+
+	if err != nil && !os.IsExist(err) {
+		glg.Fatalf("Something went wrong while creating the .develbox/home folder. %w", err)
+	}
 
 	if len(cfg.Podman.Container.Mounts) > 0 {
 		args = append(args, processVolumes(cfg))
@@ -74,13 +85,17 @@ func Create(cfg config.Struct) {
 	// Mount the main folder and pass the image URI before the
 	// container is created.
 	args = append(args, mountWorkDir(cfg), cfg.Image.URI)
-	err := pman.Create(args, podman.Attach{Stdout: true, Stderr: true})
+	err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
 
 	if err != nil {
 		glg.Fatalf("Something went wrong while creating the container.")
 	}
 
 	setupContainer(&pman, cfg)
+
+	// Copies the develbox binary from GOPATH
+	// into the container
+	copyDevBBin(pman, cfg.Podman.Container.Name)
 
 	pman.Stop([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
 
@@ -96,11 +111,13 @@ func Create(cfg config.Struct) {
 func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	// Runs commands that should be ran just
 	// after the container was created
-	err := RunCommandList(cfg.Image.OnCreation, pman, true,
+	err := RunCommandList(cfg.Podman.Container.Name,
+		cfg.Image.OnCreation, pman, true,
 		podman.Attach{
-			Stdin:  true,
-			Stdout: true,
-			Stderr: true,
+			Stdin:     true,
+			Stdout:    true,
+			Stderr:    true,
+			PseudoTTY: true,
 		})
 
 	if err != nil {
@@ -112,14 +129,16 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		spacedPkgs := strings.Join(cfg.Packages, " ")
 		addBase := strings.ReplaceAll(cfg.Image.Installer.Add, " {-y}", " -y")
 
-		command := []string{strings.ReplaceAll(addBase, "{args}", spacedPkgs)}
+		command := []string{cfg.Podman.Container.Name,
+			strings.ReplaceAll(addBase, "{args}", spacedPkgs)}
 
 		err = pman.Exec(command, true, true,
 			podman.Attach{
-				Stdin:  true,
-				Stdout: true,
-				Stderr: true,
-			})
+				Stdin:     true,
+				Stdout:    true,
+				Stderr:    true,
+				PseudoTTY: true,
+			}).Run()
 
 		if err != nil {
 			pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
@@ -127,11 +146,13 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		}
 	}
 
-	err = RunCommandList(cfg.Image.OnFinish, pman, true,
+	err = RunCommandList(cfg.Podman.Container.Name,
+		cfg.Image.OnFinish, pman, true,
 		podman.Attach{
-			Stdin:  true,
-			Stdout: true,
-			Stderr: true,
+			Stdin:     true,
+			Stdout:    true,
+			Stderr:    true,
+			PseudoTTY: true,
 		})
 
 	if err != nil {
@@ -145,19 +166,19 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 // installations.
 func Enter(cfg config.Struct, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
-	pipe := pipes.New(".develbox/home/.develbox")
-	pipe.Create()
+	//	pipe := pipes.New(".develbox/home/.develbox")
+	//	pipe.Create()
 
-	// Read commands in a separate thread
-	go readPipe(&cfg, pipe)
-
-	err := pman.Exec([]string{cfg.Podman.Container.Shell}, false, root, 
+	cmd := pman.Exec([]string{cfg.Podman.Container.Name, cfg.Podman.Container.Shell}, false, root,
 		podman.Attach{
-			Stdin: true,
-			Stdout: true,
-			Stderr: true,
+			Stdin:     true,
+			Stdout:    true,
+			Stderr:    true,
+			PseudoTTY: true,
 		})
 
-	pipe.Remove()
+	//	go pkgPipe(&cfg, pipe)
+	err := cmd.Run()
+	//	pipe.Remove()
 	return err
 }

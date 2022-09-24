@@ -44,7 +44,7 @@ var (
 				glg.Error(err)
 				return
 			}
-			container.Create(cfg)
+			container.Create(cfg, forceReplace)
 			return
 		},
 	}

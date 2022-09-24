@@ -21,6 +21,7 @@ import (
 	"os/exec"
 
 	"github.com/kadmuffin/develbox/src/pkg/config"
+	"github.com/kadmuffin/develbox/src/pkg/podman"
 	"github.com/kpango/glg"
 )
 
@@ -62,16 +63,24 @@ func getEnvVars() []string {
 
 // Mounts the directory used by xorg and adds user with xhost
 func mountXOrg() string {
-	glg.Debugf("Mounting XOrg.")
+	if !config.FileExists("/tmp/.X11-unix") {
+		glg.Errorf("didn't find xorg socket, skipping mount...")
+		return ""
+	}
 
+	glg.Debugf("Mounting XOrg.")
 	exec.Command("xhost", fmt.Sprintf("+SI:localhost:%s", os.Getenv("USER"))).Run()
 	return "-v=/tmp/.X11-unix:/tmp/.X11-unix:rw"
 }
 
 // Loads the Wayland socket into the container
 func mountWayland(xdrRunt string) string {
-	waylandDisplay := os.Getenv("WAYLAND_DISPLAY")
+	waylandDisplay, found := os.LookupEnv("WAYLAND_DISPLAY")
 
+	if !found {
+		glg.Errorf("didn't find wayland display, skipping mount...")
+		return ""
+	}
 	glg.Debugf("Mounting Wayland socket: %s/%s", xdrRunt, waylandDisplay)
 
 	return fmt.Sprintf("-v=%s/%s:%s/%s", xdrRunt, waylandDisplay, xdrRunt, waylandDisplay)
@@ -81,11 +90,16 @@ func mountWayland(xdrRunt string) string {
 //
 // Here so we can have audio inside the container
 // using pipewire directly.
-func mountPipepwire(xdrRunt string) []string {
-	glg.Debugf("Mounting Pipewire socket: %s/pipewire-0", xdrRunt)
-	return []string{
-		fmt.Sprintf("-v=%s/pipewire-0:%s/pipewire-0", xdrRunt, xdrRunt),
+func mountPipepwire(xdrRunt string) string {
+	pwPath := fmt.Sprintf("%s/pipewire-0", xdrRunt)
+
+	if !config.FileExists(pwPath) {
+		glg.Errorf("didn't find pipewire socket, skipping mount...")
+		return ""
 	}
+
+	glg.Debugf("Mounting Pipewire socket: %s", pwPath)
+	return fmt.Sprintf("-v=%s:%s", pwPath, pwPath)
 }
 
 // Mounts the pulseaudio socket
@@ -95,8 +109,13 @@ func mountPipepwire(xdrRunt string) []string {
 // by default. Pipewire offers a pulseaudio socket so it
 // should also work.
 func mountPulseaudio(xdrRunt string) []string {
+	paPath := fmt.Sprintf("%s/pulse/native", xdrRunt)
+	if !config.FileExists(paPath) {
+		glg.Errorf("didn't find the pulseaudio socket, skipping mount...")
+		return []string{}
+	}
 	return []string{
-		fmt.Sprintf("-v=%s/pulse/native:%s/pulse/native", xdrRunt, xdrRunt),
+		fmt.Sprintf("-v=%s:%s", paPath, paPath),
 		"--device=/dev/snd",
 	}
 }
@@ -115,26 +134,26 @@ func mountDev() []string {
 // Mounts the Workspace directory with proper SELinux label
 // if necessary.
 func mountWorkDir(cfg config.Struct) string {
-	workdir := cfg.Podman.Container.WorkDir
+	workDir := cfg.Podman.Container.WorkDir
 
 	// Adding "private unshare label" so SELinux doesn't
 	// get mad at us when running without "--privileged"
 	if cfg.Podman.Rootless {
-		workdir += ":Z"
+		workDir += ":Z"
 	}
 
-	return fmt.Sprintf("-v=.:%s", workdir)
+	return fmt.Sprintf("-v=%s:%s -w=%s", config.GetCurrentDirectory(), workDir, workDir)
 }
 
-// Mounts develbox from $GOPATH/bin
-func mountDevBBin() string {
+// Copy develbox from $GOPATH/bin
+func copyDevBBin(pman podman.Podman, cname string) {
 	value, found := os.LookupEnv("GOPATH")
 	if !found {
 		home := os.Getenv("HOME")
 		value = fmt.Sprintf("%s/go", home)
 	}
 
-	return fmt.Sprintf("v=%s/bin/develbox:/usr/bin/develbox:ro", value)
+	pman.Copy([]string{fmt.Sprintf("%s/bin/develbox", value), fmt.Sprintf("%s:/bin/develbox", cname)}, podman.Attach{})
 }
 
 // Mounts all the required binds in the config file.
@@ -148,6 +167,7 @@ func mountBindings(cfg config.Struct) []string {
 
 	if !found {
 		xdrRuntime = fmt.Sprintf("/run/user/%d", os.Getuid())
+		os.Setenv("XDG_RUNTIME_DIR", xdrRuntime)
 		glg.Warnf("Couldn't find $XDR_RUNTIME_DIR, assuming %s", xdrRuntime)
 	}
 
@@ -159,7 +179,7 @@ func mountBindings(cfg config.Struct) []string {
 	args = append(args, mountPulseaudio(xdrRuntime)...)
 
 	if cfg.Podman.Container.Binds.Pipewire {
-		args = append(args, mountPipepwire(xdrRuntime)...)
+		args = append(args, mountPipepwire(xdrRuntime))
 	}
 
 	if cfg.Podman.Container.Binds.Dev {
