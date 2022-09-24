@@ -71,7 +71,8 @@ func Create(cfg config.Struct) {
 
 	args = append(args, getEnvVars()...)
 
-	// Mount the main folder and pass the image URI before the container
+	// Mount the main folder and pass the image URI before the
+	// container is created.
 	args = append(args, mountWorkDir(cfg), cfg.Image.URI)
 	err := pman.Create(args, podman.Attach{Stdout: true, Stderr: true})
 
