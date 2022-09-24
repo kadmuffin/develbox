@@ -23,14 +23,15 @@ import (
 )
 
 // Returns a list of all the files inside a path that match a name
-func GetFolderFiles(path string, match string) []string {
+func GetFolderFiles(path string, match string) ([]string, error) {
 	folder, err := os.Open(path)
+	defer folder.Close()
 	if err != nil {
-		folder.Close()
+		return []string{}, err
 	}
 	files, err := folder.Readdirnames(0)
 	if err != nil {
-		folder.Close()
+		return []string{}, err
 	}
 	matches := []string{}
 	for _, v := range files {
@@ -38,7 +39,7 @@ func GetFolderFiles(path string, match string) []string {
 			matches = append(matches, v)
 		}
 	}
-	return matches
+	return matches, nil
 }
 
 // Checks if a file/path exists using os.Stat()

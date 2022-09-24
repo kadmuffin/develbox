@@ -46,7 +46,8 @@ func NewOperation(opType string, packages []string, flags []string) operation {
 func (e *operation) Process(cfg *config.Struct) error {
 	pman := podman.New(cfg.Podman.Path)
 
-	if e.Type == "add" {
+	switch e.Type {
+	case "add":
 		if err := e.sendCommand(cfg.Image.Installer.Add, pman); err != nil {
 			return glg.Errorf("couldn't install the requested packages: %w", err)
 		}
@@ -54,9 +55,8 @@ func (e *operation) Process(cfg *config.Struct) error {
 		cfg.Packages = append(cfg.Packages, RemoveDuplicates(&cfg.Packages, &e.Packages)...)
 
 		return nil
-	}
 
-	if e.Type == "del" {
+	case "del":
 		if err := e.sendCommand(cfg.Image.Installer.Del, pman); err != nil {
 			return glg.Errorf("couldn't removing the requested packages: %w", err)
 		}
@@ -64,23 +64,20 @@ func (e *operation) Process(cfg *config.Struct) error {
 		cfg.Packages = RemoveDuplicates(&e.Packages, &cfg.Packages)
 
 		return nil
-	}
 
-	if e.Type == "search" {
+	case "search":
 		if err := e.sendCommand(cfg.Image.Installer.Srch, pman); err != nil {
 			return glg.Errorf("couldn't search the requested packages: %w", err)
 		}
 		return nil
-	}
 
-	if e.Type == "update" {
+	case "update":
 		if err := e.sendCommand(cfg.Image.Installer.Upd, pman); err != nil {
 			return glg.Errorf("something failed while running update: %w", err)
 		}
 		return nil
-	}
 
-	if e.Type == "upgrade" {
+	case "upgrade":
 		if err := e.sendCommand(cfg.Image.Installer.Upd, pman); err != nil {
 			return glg.Errorf("something failed while running update: %w", err)
 		}
