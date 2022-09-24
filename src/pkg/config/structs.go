@@ -69,9 +69,9 @@ type Struct struct {
 	Packages []string            `default:"[]" json:"packages"`
 }
 
-func (e *Struct) SetDefaults() {
-	defaults.Set(e)
-	if e.Podman.Container.Name == "" {
-		e.Podman.Container.Name = GetDirNmHash()
+func SetDefaults(cfg *Struct) {
+	defaults.Set(cfg)
+	if cfg.Podman.Container.Name == "" {
+		cfg.Podman.Container.Name = GetDirNmHash()
 	}
 }

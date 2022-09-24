@@ -32,11 +32,12 @@ func Read() (Struct, error) {
 		return configs, err
 	}
 
-	configs.SetDefaults()
+	SetDefaults(&configs)
 	return configs, nil
 }
 
 func WriteConfig(configs *Struct) error {
+	os.Mkdir(".develbox", 0755)
 	data, _ := json.MarshalIndent(configs, "", "	")
 
 	err := os.WriteFile(".develbox/config.json", data, 0644)

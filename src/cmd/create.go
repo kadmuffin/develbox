@@ -17,6 +17,7 @@ package cmd
 import (
 	"github.com/kadmuffin/develbox/src/pkg/config"
 	"github.com/kadmuffin/develbox/src/pkg/container"
+	"github.com/kpango/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -27,19 +28,24 @@ var (
 		Use:        "create",
 		SuggestFor: []string{"config"},
 		Short:      "Creates a new container/config for this project",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			if createCfg {
 				cfg := config.Struct{}
-				cfg.SetDefaults()
-				return config.WriteConfig(&cfg)
+				config.SetDefaults(&cfg)
+				err := config.WriteConfig(&cfg)
+				if err != nil {
+					glg.Error(err)
+				}
+				return
 			}
 
 			cfg, err := config.Read()
 			if err != nil {
-				return err
+				glg.Error(err)
+				return
 			}
 			container.Create(cfg)
-			return nil
+			return
 		},
 	}
 )
