@@ -28,7 +28,7 @@ func ParseArguments(arguments []string) (*[]string, *[]string) {
 			flags = append(flags, arg)
 			continue
 		}
-		packages = append(packages, arguments...)
+		packages = append(packages, arg)
 	}
 
 	return &packages, &flags

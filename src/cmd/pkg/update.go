@@ -33,7 +33,7 @@ var (
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			packages, flags := pkgm.ParseArguments(args)
-			opertn := pkgm.NewOperation("update", *packages, *flags)
+			opertn := pkgm.NewOperation("update", *packages, *flags, false)
 
 			cfg, err := config.Read()
 			if err != nil {
@@ -41,7 +41,11 @@ var (
 			}
 			pman := podman.New(cfg.Podman.Path)
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-			return opertn.Process(&cfg)
+			opertn.Process(&cfg)
+			if err != nil {
+				return err
+			}
+			return config.WriteConfig(&cfg)
 		},
 	}
 )

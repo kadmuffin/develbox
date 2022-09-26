@@ -14,8 +14,21 @@
 
 package main
 
-import "github.com/kadmuffin/develbox/src/cmd"
+import (
+	"os"
+	"strconv"
+
+	"github.com/kadmuffin/develbox/src/cmd"
+	"github.com/kpango/glg"
+)
 
 func main() {
+	debug := os.Getenv("DEVELBOX_DEBUG")
+	glg.Get().SetLevel(glg.ERR)
+
+	value, err := strconv.ParseBool(debug)
+	if err == nil && value {
+		glg.Get().SetLevel(glg.DEBG)
+	}
 	cmd.Execute()
 }

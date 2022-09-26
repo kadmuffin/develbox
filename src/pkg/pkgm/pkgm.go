@@ -28,9 +28,10 @@ import (
 
 // A struct that is used to install/delete packages.
 type operation struct {
-	Type     string   `json:"operation"`
-	Packages []string `json:"packages"`
-	Flags    []string `json:"flags"`
+	Type        string   `json:"operation"`
+	Packages    []string `json:"packages"`
+	Flags       []string `json:"flags"`
+	AutoInstall bool     `json:"auto-install"`
 }
 
 // Creates a new operation struct that is used to request a transaction.
@@ -38,8 +39,8 @@ type operation struct {
 // After creating a operation, run yourOperation.Process() to install/delete/etc
 //
 // Accepted types: ("add", "del", "update", "upgrade", "search")
-func NewOperation(opType string, packages []string, flags []string) operation {
-	return operation{Type: opType, Packages: packages, Flags: flags}
+func NewOperation(opType string, packages []string, flags []string, autoInstall bool) operation {
+	return operation{Type: opType, Packages: packages, Flags: flags, AutoInstall: autoInstall}
 }
 
 // Processes the transaction and updates the config reference.
@@ -124,7 +125,13 @@ func (e *operation) ProcessCmd(cfg *config.Struct) (*exec.Cmd, error) {
 func (e *operation) sendCommand(cname, base string, pman podman.Podman) *exec.Cmd {
 	packages := strings.Join(e.Packages, " ")
 	flags := strings.Join(e.Flags, " ")
-	arguments := []string{cname, strings.Replace(base, "{args}", fmt.Sprintf("%s %s", packages, flags), 1)}
+	modifBase := strings.Replace(base, "{args}", fmt.Sprintf("%s %s", packages, flags), 1)
+	if e.AutoInstall {
+		modifBase = strings.Replace(modifBase, "{-y}", "-y", 1)
+	} else {
+		modifBase = strings.Replace(modifBase, "{-y}", "", 1)
+	}
+	arguments := []string{cname, modifBase}
 
 	return pman.Exec(arguments, true, true, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
 }

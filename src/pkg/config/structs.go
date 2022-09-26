@@ -34,25 +34,20 @@ type Image struct {
 }
 
 type Binds struct {
-	// These now get auto-mounted by default
-	//	Wayland    bool `default:"true" json:"wayland"`
-	//	Pulseaudio bool `default:"true" json:"pulseaudio"`
-
-	Pipewire bool `default:"true" json:"pipewire"`
-	XOrg     bool `default:"true" json:"xorg"`
-
-	Dev bool `default:"true" json:"/dev"`
+	XOrg bool `default:"true" json:"xorg"`
+	Dev  bool `default:"true" json:"/dev"`
 }
 
 type Container struct {
-	Name     string `json:"name"`
-	Args     string `default:"--net=host" json:"arguments"`
-	WorkDir  string `default:"/code" json:"work-dir"`
-	Shell    string `default:"/bin/sh" json:"shell"`
-	RootUser bool   `json:"root-user"`
-	Binds    Binds
-	Ports    []string `default:"[]" json:"ports"`
-	Mounts   []string `default:"[]" json:"mounts"`
+	Name       string   `json:"name"`
+	Args       []string `default:"[\"--net=host\"]" json:"arguments"`
+	WorkDir    string   `default:"/code" json:"work-dir"`
+	Shell      string   `default:"/bin/sh" json:"shell"`
+	RootUser   bool     `json:"root-user"`
+	Privileged bool     `default:"true" json:"privileged"`
+	Binds      Binds    `json:"binds"`
+	Ports      []string `default:"[]" json:"ports"`
+	Mounts     []string `default:"[]" json:"mounts"`
 }
 
 type Podman struct {

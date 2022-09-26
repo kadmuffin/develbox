@@ -12,37 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package cmd
 
 import (
 	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/pkgm"
 	"github.com/kadmuffin/develbox/src/pkg/podman"
 	"github.com/spf13/cobra"
 )
 
 var (
-	Add = &cobra.Command{
-		Use:                "add",
-		SuggestFor:         []string{"install"},
-		Short:              "Installs packages into the container",
-		Long:               "Installs packages using the package manager defined in the config.",
-		DisableFlagParsing: true,
+	Run = &cobra.Command{
+		Use:   "run",
+		Short: "Runs the command defined in the config file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			packages, flags := pkgm.ParseArguments(args)
-			opertn := pkgm.NewOperation("add", *packages, *flags, false)
-
 			cfg, err := config.Read()
 			if err != nil {
 				return err
 			}
 			pman := podman.New(cfg.Podman.Path)
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-			err = opertn.Process(&cfg)
-			if err != nil {
-				return err
-			}
-			return config.WriteConfig(&cfg)
+
+			params := []string{cfg.Podman.Container.Name}
+			params = append(params, cfg.Commands[args[0]]...)
+
+			command := pman.Exec(params, true, false,
+				podman.Attach{
+					Stdin:     true,
+					Stdout:    true,
+					Stderr:    true,
+					PseudoTTY: true,
+				})
+
+			return command.Run()
 		},
 	}
 )

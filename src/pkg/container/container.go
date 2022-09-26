@@ -77,14 +77,19 @@ func Create(cfg config.Struct, deleteOld bool) {
 		args = append(args, processPorts(cfg))
 	}
 	if len(cfg.Podman.Container.Args) > 0 {
-		args = append(args, cfg.Podman.Container.Args)
+		args = append(args, cfg.Podman.Container.Args...)
+	}
+
+	if cfg.Podman.Container.Privileged {
+		args = append(args, "--privileged")
 	}
 
 	args = append(args, getEnvVars()...)
 
 	// Mount the main folder and pass the image URI before the
 	// container is created.
-	args = append(args, mountWorkDir(cfg), cfg.Image.URI)
+	args = append(args, mountWorkDir(cfg)...)
+	args = append(args, cfg.Image.URI)
 	err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
 
 	if err != nil {
@@ -92,10 +97,6 @@ func Create(cfg config.Struct, deleteOld bool) {
 	}
 
 	setupContainer(&pman, cfg)
-
-	// Copies the develbox binary from GOPATH
-	// into the container
-	copyDevBBin(pman, cfg.Podman.Container.Name)
 
 	pman.Stop([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
 

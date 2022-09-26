@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/kadmuffin/develbox/src/cmd/pkg"
+	"github.com/kadmuffin/develbox/src/cmd/state"
 	"github.com/kadmuffin/develbox/src/pkg/config"
 	"github.com/kadmuffin/develbox/src/pkg/podman"
 	"github.com/spf13/cobra"
@@ -30,7 +31,7 @@ var (
 		Short: "Develbox - Simple CLI tool useful for managing dev enviroments.",
 		Long: `Develbox - A simple but dirty CLI tool that manages containerized dev environments.
 
-Created so I don't have to expose my entire computer to random node modules (and to learn Go, that means BAD CODE).`,
+Created so I don't have to expose my entire computer to random node modules (and to learn Go, that means BAD CODE :'D).`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				cmd.Help()
@@ -54,6 +55,11 @@ func Execute() {
 	if !podman.InsideContainer() {
 		rootCli.AddCommand(Enter)
 		rootCli.AddCommand(Create)
+		rootCli.AddCommand(Exec)
+		rootCli.AddCommand(Run)
+		rootCli.AddCommand(state.Start)
+		rootCli.AddCommand(state.Stop)
+		rootCli.AddCommand(state.Trash)
 	}
 
 	rootCli.Execute()

@@ -35,7 +35,7 @@ type Attach struct {
 
 func New(path string) Podman {
 	glg.Debugf("Creating podman instance using '%s'.", path)
-	if err := exec.Command(path).Run(); err != nil {
+	if err := exec.Command(path, "version").Run(); err != nil {
 		glg.Fatalf("Can't access the podman executable: %w", err)
 	}
 	return Podman{path: path}
@@ -109,10 +109,9 @@ func (e *Podman) Exists(name string) bool {
 	// the closest thing I could find.
 	if strings.Contains(e.path, "docker") {
 		params = []string{"ps", "-a", "|", "grep", name}
-		return e.cmd(params, Attach{}).Run() == nil
 	}
 
-	return e.cmd(params, Attach{}).Run() != nil
+	return e.cmd(params, Attach{}).Run() == nil
 }
 
 // Starts a container and returns an error in case of failure.

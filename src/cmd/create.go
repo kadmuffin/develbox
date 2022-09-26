@@ -45,7 +45,6 @@ var (
 				return
 			}
 			container.Create(cfg, forceReplace)
-			return
 		},
 	}
 )
