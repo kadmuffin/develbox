@@ -3,6 +3,4 @@
 # and commit this file to your remote git repository to share the goodness with others.
 
 tasks:
-  - init: go get && go build ./... && go test ./...
-
-
+  - init: sudo apt-get install podman -y && go get && go build ./... && go test ./...
