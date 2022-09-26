@@ -53,7 +53,7 @@ func (e *operation) Process(cfg *config.Struct) error {
 	switch e.Type {
 	case "add":
 		if err := e.sendCommand(cname, cfg.Image.Installer.Add, pman).Run(); err != nil {
-			return glg.Errorf("couldn't install the requested packages: %w", err)
+			return glg.Errorf("couldn't install the requested packages: %s", err)
 		}
 
 		cfg.Packages = append(cfg.Packages, RemoveDuplicates(&cfg.Packages, &e.Packages)...)
@@ -62,7 +62,7 @@ func (e *operation) Process(cfg *config.Struct) error {
 
 	case "del":
 		if err := e.sendCommand(cname, cfg.Image.Installer.Del, pman).Run(); err != nil {
-			return glg.Errorf("couldn't removing the requested packages: %w", err)
+			return glg.Errorf("couldn't removing the requested packages: %s", err)
 		}
 
 		cfg.Packages = RemoveDuplicates(&e.Packages, &cfg.Packages)
@@ -71,19 +71,19 @@ func (e *operation) Process(cfg *config.Struct) error {
 
 	case "search":
 		if err := e.sendCommand(cname, cfg.Image.Installer.Srch, pman).Run(); err != nil {
-			return glg.Errorf("couldn't search the requested packages: %w", err)
+			return glg.Errorf("couldn't search the requested packages: %s", err)
 		}
 		return nil
 
 	case "update":
 		if err := e.sendCommand(cname, cfg.Image.Installer.Upd, pman).Run(); err != nil {
-			return glg.Errorf("something failed while running update: %w", err)
+			return glg.Errorf("something failed while running update: %s", err)
 		}
 		return nil
 
 	case "upgrade":
 		if err := e.sendCommand(cname, cfg.Image.Installer.Upd, pman).Run(); err != nil {
-			return glg.Errorf("something failed while running update: %w", err)
+			return glg.Errorf("something failed while running update: %s", err)
 		}
 		return nil
 	}

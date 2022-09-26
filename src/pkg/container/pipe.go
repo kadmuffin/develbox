@@ -30,17 +30,17 @@ func pkgPipe(cfg *config.Struct, pipe *pipes.Pipe) {
 		data, err := pipe.Read()
 		if err != nil {
 			pipe.Remove()
-			glg.Errorf("can't read pipe, deleting pipe: %w", err)
+			glg.Errorf("can't read pipe, deleting pipe: %s", err)
 		}
 
 		opertn, err := pkgm.Read(data)
 		if err != nil {
-			glg.Errorf("can't parse json data: %w", err)
+			glg.Errorf("can't parse json data: %s", err)
 		}
 
 		cmd, err := opertn.ProcessCmd(cfg)
 		if err != nil {
-			glg.Errorf("operation type is invalid: %w", err)
+			glg.Errorf("operation type is invalid: %s", err)
 		}
 
 		file, _ := os.Open(pipe.Path())

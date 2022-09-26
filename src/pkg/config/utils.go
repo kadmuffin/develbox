@@ -45,7 +45,7 @@ func GetCurrentDirectory() string {
 	currentDir, err := os.Getwd()
 
 	if err != nil {
-		glg.Fatalf("failed to get current directory:\n	%w", err)
+		glg.Fatalf("failed to get current directory:\n	%s", err)
 	}
 
 	return currentDir

@@ -67,7 +67,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 	args = append(args, "--mount", fmt.Sprintf("type=bind,source=%s/.develbox/home,destination=/home/%s,bind-propagation=rslave", config.GetCurrentDirectory(), user))
 
 	if err != nil && !os.IsExist(err) {
-		glg.Fatalf("Something went wrong while creating the .develbox/home folder. %w", err)
+		glg.Fatalf("Something went wrong while creating the .develbox/home folder. %s", err)
 	}
 
 	if len(cfg.Podman.Container.Mounts) > 0 {
