@@ -18,7 +18,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/kadmuffin/develbox/src/cmd"
+	"github.com/kadmuffin/develbox/cmd"
 	"github.com/kpango/glg"
 )
 

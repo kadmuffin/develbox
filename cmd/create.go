@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/container"
+	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/container"
 	"github.com/kpango/glg"
 	"github.com/spf13/cobra"
 )

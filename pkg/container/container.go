@@ -19,8 +19,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/podman"
+	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/pipes"
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
 )
 
@@ -191,8 +192,8 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 // installations.
 func Enter(cfg config.Struct, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
-	//	pipe := pipes.New(".develbox/home/.develbox")
-	//	pipe.Create()
+	pipe := pipes.New(".develbox/home/.develbox")
+	pipe.Create()
 
 	cmd := pman.Exec([]string{cfg.Podman.Container.Name, cfg.Podman.Container.Shell}, false, root,
 		podman.Attach{
@@ -202,8 +203,8 @@ func Enter(cfg config.Struct, root bool) error {
 			PseudoTTY: true,
 		})
 
-	//	go pkgPipe(&cfg, pipe)
+	go pkgPipe(&cfg, pipe)
 	err := cmd.Run()
-	//	pipe.Remove()
+	pipe.Remove()
 	return err
 }

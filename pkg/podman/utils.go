@@ -14,7 +14,7 @@
 
 package podman
 
-import "github.com/kadmuffin/develbox/src/pkg/config"
+import "github.com/kadmuffin/develbox/pkg/config"
 
 // Checks if we are inside a container
 //

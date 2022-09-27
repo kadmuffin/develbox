@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kadmuffin/develbox/src/cmd/pkg"
-	"github.com/kadmuffin/develbox/src/cmd/state"
-	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/podman"
+	"github.com/kadmuffin/develbox/cmd/pkg"
+	"github.com/kadmuffin/develbox/cmd/state"
+	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/spf13/cobra"
 )
 

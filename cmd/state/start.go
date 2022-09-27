@@ -15,8 +15,8 @@
 package state
 
 import (
-	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/podman"
+	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/spf13/cobra"
 )
 

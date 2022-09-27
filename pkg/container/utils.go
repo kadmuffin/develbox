@@ -18,8 +18,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/podman"
+	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/podman"
 )
 
 // Returns a list of all the files inside a path that match a name

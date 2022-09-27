@@ -15,22 +15,22 @@
 package pkg
 
 import (
-	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/pkgm"
-	"github.com/kadmuffin/develbox/src/pkg/podman"
+	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/pkgm"
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/spf13/cobra"
 )
 
 var (
-	Upgrade = &cobra.Command{
-		Use:                "upgrade",
-		Aliases:            []string{"dup"},
-		Short:              "Upgrades packages in the container",
-		Long:               "Upgrades (all, usually) packages using the package manager defined in the config.",
+	Search = &cobra.Command{
+		Use:                "search",
+		Aliases:            []string{"srch"},
+		Short:              "Search for packages using the pkg manager",
+		Long:               "Search for (all, usually) matching packages using the package manager defined in the config.",
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			packages, flags := pkgm.ParseArguments(args)
-			opertn := pkgm.NewOperation("upgrade", *packages, *flags, false)
+			opertn := pkgm.NewOperation("search", *packages, *flags, false)
 
 			cfg, err := config.Read()
 			if err != nil {

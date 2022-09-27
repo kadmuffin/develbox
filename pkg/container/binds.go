@@ -20,7 +20,7 @@ import (
 
 	"os/exec"
 
-	"github.com/kadmuffin/develbox/src/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kpango/glg"
 )
 

@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,36 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package pkg
 
 import (
-	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/container"
-	"github.com/kadmuffin/develbox/src/pkg/podman"
+	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/pkgm"
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/spf13/cobra"
 )
 
 var (
-	root  bool
-	Enter = &cobra.Command{
-		Use:     "enter",
-		Aliases: []string{"shell"},
-		Short:   "Launches a shell inside the container",
-		Long: `Launches a the shell defined in the config inside the container.
-		
-		To install packages inside the container use the develbox`,
+	Update = &cobra.Command{
+		Use:     "update",
+		Aliases: []string{"upd"},
+		Short:   "Updates the package databases in container",
+		Long: `Updates package databases using the package manager defined in the config.
+
+		To actually update packages try using upgrade instead.
+		`,
+		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			packages, flags := pkgm.ParseArguments(args)
+			opertn := pkgm.NewOperation("update", *packages, *flags, false)
+
 			cfg, err := config.Read()
 			if err != nil {
 				return err
 			}
 			pman := podman.New(cfg.Podman.Path)
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-			return container.Enter(cfg, root)
+			opertn.Process(&cfg)
+			if err != nil {
+				return err
+			}
+			return config.Write(&cfg)
 		},
 	}
 )
-
-func init() {
-	Enter.Flags().BoolVarP(&root, "root", "r", false, "Use to start a root shell in the container")
-}

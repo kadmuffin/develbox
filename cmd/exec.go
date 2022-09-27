@@ -12,26 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package state
+package cmd
 
 import (
-	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/podman"
+	"strings"
+
+	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/spf13/cobra"
 )
 
 var (
-	Stop = &cobra.Command{
-		Use:     "stop",
-		Aliases: []string{"down"},
-		Short:   "Stops the container",
+	Exec = &cobra.Command{
+		Use:                "exec",
+		Short:              "Executes a program inside the container",
+		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Read()
 			if err != nil {
 				return err
 			}
 			pman := podman.New(cfg.Podman.Path)
-			return pman.Stop([]string{cfg.Podman.Container.Name}, podman.Attach{})
+			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
+
+			params := []string{cfg.Podman.Container.Name}
+			params = append(params, strings.Join(args, " "))
+			command := pman.Exec(params, false, false,
+				podman.Attach{
+					Stdin:     true,
+					Stdout:    true,
+					Stderr:    true,
+					PseudoTTY: true,
+				})
+
+			return command.Run()
 		},
 	}
 )

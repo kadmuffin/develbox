@@ -12,38 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package state
 
 import (
-	"github.com/kadmuffin/develbox/src/pkg/config"
-	"github.com/kadmuffin/develbox/src/pkg/podman"
+	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/spf13/cobra"
 )
 
 var (
-	Run = &cobra.Command{
-		Use:   "run",
-		Short: "Runs the command defined in the config file",
+	Trash = &cobra.Command{
+		Use:   "trash",
+		Short: "Deletes the container",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Read()
 			if err != nil {
 				return err
 			}
 			pman := podman.New(cfg.Podman.Path)
-			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-
-			params := []string{cfg.Podman.Container.Name}
-			params = append(params, cfg.Commands[args[0]]...)
-
-			command := pman.Exec(params, true, false,
-				podman.Attach{
-					Stdin:     true,
-					Stdout:    true,
-					Stderr:    true,
-					PseudoTTY: true,
-				})
-
-			return command.Run()
+			return pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{})
 		},
 	}
 )
