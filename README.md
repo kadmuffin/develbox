@@ -76,7 +76,7 @@ develbox stop
 
 ## Contributing
 
-If you wish to contribute to this small repo, you are welcome to submit your pull request. Take into account that I'm a total noob at this, so explanations and patience is very appreciated!
+If you wish to contribute to this small repo, you are welcome to submit your pull request. Take into account that I'm a total noob at this, so explanations and patience are appreciated!
 
 ## License
 
