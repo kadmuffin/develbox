@@ -41,7 +41,7 @@ var (
 					err = exec.Command("docker", "--version").Run()
 					if err == nil {
 						cfg.Podman.Path = "docker"
-						glg.Warn("Error while finding podman! Using docker instead.")
+						glg.Warn("Couldn't while finding podman! Using docker instead.")
 					} else {
 						glg.Warn("Couldn't find podman nor docker on PATH!")
 					}
