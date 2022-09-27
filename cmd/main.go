@@ -22,6 +22,7 @@ import (
 	"github.com/kadmuffin/develbox/cmd/state"
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/podman"
+	"github.com/kpango/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -42,6 +43,10 @@ Created so I don't have to expose my entire computer to random node modules (and
 )
 
 func Execute() {
+	if os.Getuid() == 0 {
+		glg.Errorf("Develbox doesn't currently support being ran as root.")
+	}
+
 	pipeDir := fmt.Sprintf("/home/%s/.develbox", os.Getenv("USER"))
 	if !podman.InsideContainer() || config.FileExists(pipeDir) {
 		// Package manager operations
