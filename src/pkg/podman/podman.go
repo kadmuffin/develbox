@@ -44,7 +44,7 @@ func New(path string) Podman {
 	if err := cmd.Run(); err != nil {
 		glg.Fatalf("Can't access the podman executable: %s", err)
 	}
-	
+
 	return Podman{path: path}
 }
 
@@ -117,7 +117,7 @@ func (e *Podman) Exists(name string) bool {
 
 	// Docker doesn't have an exists function, so this is
 	// the closest thing I could find.
-	if strings.Contains(e.path, "docker") {
+	if e.IsDocker() {
 		params = []string{"ps", "-a", "|", "grep", name}
 	}
 
@@ -215,4 +215,9 @@ func (e *Podman) Version() ([]int64, error) {
 		return []int64{}, err
 	}
 	return []int64{major, minor, patch}, nil
+}
+
+// Runs any podman subcommand (for example: ps)
+func (e *Podman) RawCommand(args []string, attach Attach) *exec.Cmd {
+	return e.cmd(args, attach)
 }

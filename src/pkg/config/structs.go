@@ -15,6 +15,8 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/creasty/defaults"
 )
 
@@ -66,7 +68,7 @@ type Struct struct {
 
 func SetName(cfg *Struct) {
 	if cfg.Podman.Container.Name == "" {
-		cfg.Podman.Container.Name = GetDirNmHash()
+		cfg.Podman.Container.Name = fmt.Sprintf("develbox-%s", GetDirNmHash()[:32])
 	}
 }
 

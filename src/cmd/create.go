@@ -34,7 +34,6 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			if createCfg {
 				cfg := config.Struct{}
-				config.SetDefaults(&cfg)
 
 				err := exec.Command(cfg.Podman.Path, "--version").Run()
 				if err != nil {
@@ -46,8 +45,9 @@ var (
 						glg.Warn("Couldn't find podman nor docker on PATH!")
 					}
 				}
+				config.SetDefaults(&cfg)
 
-				err = config.WriteConfig(&cfg)
+				err = config.Write(&cfg)
 				if err != nil {
 					glg.Error(err)
 				}

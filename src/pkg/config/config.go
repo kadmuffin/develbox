@@ -36,7 +36,7 @@ func Read() (Struct, error) {
 	return configs, nil
 }
 
-func WriteConfig(configs *Struct) error {
+func Write(configs *Struct) error {
 	os.Mkdir(".develbox", 0755)
 	data, _ := json.MarshalIndent(configs, "", "	")
 

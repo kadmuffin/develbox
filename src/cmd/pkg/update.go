@@ -45,7 +45,7 @@ var (
 			if err != nil {
 				return err
 			}
-			return config.WriteConfig(&cfg)
+			return config.Write(&cfg)
 		},
 	}
 )
