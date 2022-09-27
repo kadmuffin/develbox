@@ -101,20 +101,24 @@ func mountWorkDir(cfg config.Struct) []string {
 	}
 }
 
-// Mounts all the required binds in the config file.
-//
-// Wayland & Pulseaudio get mounted by default. And possible
-// bindings are XOrg, Pipewire, /dev (so we can access cameras & DRI).
-func mountBindings(cfg config.Struct) []string {
-	args := []string{}
-
+// Returns a string pointing to $XDG_RUNTIME_DIR and a boolean indicating
+// if the folder exists or not.
+func getXDGRuntime() (string, bool) {
 	xdgRuntime, found := os.LookupEnv("XDG_RUNTIME_DIR")
 
 	if !found {
 		xdgRuntime = fmt.Sprintf("/run/user/%d", os.Getuid())
-		os.Setenv("XDG_RUNTIME_DIR", xdgRuntime)
 		glg.Warnf("Couldn't find $XDG_RUNTIME_DIR, assuming %s", xdgRuntime)
 	}
+
+	return xdgRuntime, config.FileExists(xdgRuntime)
+}
+
+// Mounts all the required binds in the config file.
+func mountBindings(cfg config.Struct, xdgRuntime string) []string {
+	args := []string{}
+
+	os.Setenv("XDG_RUNTIME_DIR", xdgRuntime)
 
 	if cfg.Podman.Container.Binds.XOrg {
 		args = append(args, mountXOrg())

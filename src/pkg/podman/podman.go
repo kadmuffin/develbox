@@ -15,8 +15,11 @@
 package podman
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/kpango/glg"
@@ -34,10 +37,14 @@ type Attach struct {
 }
 
 func New(path string) Podman {
-	glg.Debugf("Creating podman instance using '%s'.", path)
-	if err := exec.Command(path, "version").Run(); err != nil {
+	glg.Debugf("Podman path set to '%s'.", path)
+	cmd := exec.Command(path, "--version")
+	glg.Debugf("Verifying that podman exists using '%s'.", cmd.String())
+
+	if err := cmd.Run(); err != nil {
 		glg.Fatalf("Can't access the podman executable: %s", err)
 	}
+	
 	return Podman{path: path}
 }
 
@@ -73,6 +80,7 @@ func (e *Podman) Create(args []string, attach Attach) *exec.Cmd {
 // Executes a command inside a running container and
 // attaches (Stdin, Stdout) if "attach" is true.
 func (e *Podman) Exec(args []string, sh bool, root bool, attach Attach) *exec.Cmd {
+	uid := os.Getuid()
 	params := []string{"exec", "-i"}
 
 	if attach.PseudoTTY {
@@ -85,6 +93,8 @@ func (e *Podman) Exec(args []string, sh bool, root bool, attach Attach) *exec.Cm
 
 	if root {
 		params = append(params, "--user", "0:0")
+	} else {
+		params = append(params, "--user", fmt.Sprintf("%d:%d", uid, uid))
 	}
 
 	params = append(params, args[0])
@@ -172,4 +182,37 @@ func (e *Podman) Copy(args []string, attach Attach) *exec.Cmd {
 // Mainly here so we can make this work on docker too.
 func (e *Podman) IsDocker() bool {
 	return strings.Contains(e.path, "docker")
+}
+
+// Gets the current podman version
+//
+// It parses the version out of the version string,
+// returns a list in the following format:
+//
+/* []int64{major, minor, patch} */
+func (e *Podman) Version() ([]int64, error) {
+	data, err := e.cmd([]string{"--version"}, Attach{}).Output()
+	if err != nil {
+		return []int64{}, err
+	}
+	regex, err := regexp.Compile("([0-9]+)\\.([0-9]+)\\.([0-9]+)([0-9a-zA-z-\\.]+)*")
+	parsed := regex.FindStringSubmatch(string(data))
+
+	glg.Debug(parsed, string(data))
+
+	major, err := strconv.ParseInt(parsed[1], 10, 0)
+	if err != nil {
+		return []int64{}, err
+	}
+
+	minor, err := strconv.ParseInt(parsed[2], 10, 0)
+	if err != nil {
+		return []int64{}, err
+	}
+
+	patch, err := strconv.ParseInt(parsed[3], 10, 0)
+	if err != nil {
+		return []int64{}, err
+	}
+	return []int64{major, minor, patch}, nil
 }

@@ -1,6 +1,2 @@
-# The init command is super long because:
-# - Gitpod.io uses Ubuntu 20.04 which doesn't have the podman
-#   package in the repos, so we have to manually install it from
-#   the kubic repos.
 tasks:
-  - init: "sudo apt-get install curl wget gnupg2 -y && source /etc/os-release && sudo sh -c \"echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list\" && wget -nv https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_${VERSION_ID}/Release.key -O- | sudo apt-key add - && sudo apt-get update -qq -y && sudo apt-get -qq -y install podman && go get && go build ./... && go test ./..."
+  - init: "go get && go build ./... && go test ./..."

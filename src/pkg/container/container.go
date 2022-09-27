@@ -24,8 +24,11 @@ import (
 	"github.com/kpango/glg"
 )
 
+var createEtcPwd bool
+
 func Create(cfg config.Struct, deleteOld bool) {
 	pman := podman.New(cfg.Podman.Path)
+	version, err := pman.Version()
 
 	if deleteOld {
 		glg.Debug("Deleting old container!")
@@ -37,33 +40,41 @@ func Create(cfg config.Struct, deleteOld bool) {
 		os.Exit(1)
 	}
 
+	if pman.IsDocker() {
+		glg.Warn("Be aware that while probably Docker works, it may have unknown issues.")
+	}
+
 	user := os.Getenv("USER")
+	uid := os.Getuid()
 
 	args := []string{"--name", cfg.Podman.Container.Name}
 
 	glg.Debugf("rootless is set to: %t", cfg.Podman.Rootless)
 	if cfg.Podman.Rootless {
 
-		// Because I can't figure it right now, rootless with docker won't work
-		if pman.IsDocker() {
-			glg.Error("Rootless mode doesn't currently work with Docker")
-			os.Exit(1)
+		if !pman.IsDocker() && uid != 0 {
+			// Remaps the container UID & GID so we can modify the /code folder
+			args = append(args, "--userns=keep-id")
 		}
 
-		// Remaps the container UID & GID so we can modify the /code folder
-		args = append(args, "--userns=keep-id")
-
-		// Setups a user account with the current account name
-		args = append(args, fmt.Sprintf("--passwd-entry=%s:*:$UID:0:develbox_container:/home/%s:/bin/sh", user, user))
+		if !pman.IsDocker() && (version[0] >= 5 || version[0] >= 4 && version[1] >= 2) {
+			// Setups a user account with the current account name
+			args = append(args, fmt.Sprintf("--passwd-entry=%s:*:$UID:0:develbox_container:/home/%s:/bin/sh", user, user))
+		} else {
+			createEtcPwd = true
+		}
 
 		// Mounts Wayland, XOrg, Pulseaudio, etc...
-		args = append(args, mountBindings(cfg)...)
+		xdgRunt, found := getXDGRuntime()
+		if found {
+			args = append(args, mountBindings(cfg, xdgRunt)...)
+		} else {
+			glg.Warn("Can't mount $XDG_RUNTIME_DIR, directory doesn't exist!")
+		}
 	}
 
 	// Creates & mounts a home directory so we can access it easily
-	// Not usable as a home directory without rootless mode
-	// We just mount it right now to get the pipe working
-	err := os.Mkdir(".develbox/home", 0755)
+	err = os.Mkdir(".develbox/home", 0755)
 	args = append(args, "--mount", fmt.Sprintf("type=bind,source=%s/.develbox/home,destination=/home/%s,bind-propagation=rslave", config.GetCurrentDirectory(), user))
 
 	if err != nil && !os.IsExist(err) {
@@ -94,6 +105,19 @@ func Create(cfg config.Struct, deleteOld bool) {
 
 	if err != nil {
 		glg.Fatalf("Something went wrong while creating the container.")
+	}
+
+	// Adds the current user to /etc/passwd
+	// Only used if the current podman version doesn't
+	// support --passwd-entry
+	if createEtcPwd {
+		cmd := pman.Exec([]string{cfg.Podman.Container.Name, fmt.Sprintf("echo '%s:*:%d:0:develbox_container:/home/%s:/bin/sh' >> /etc/passwd", user, os.Getuid(), user)}, true, true, podman.Attach{Stderr: true})
+		glg.Debugf("Running command: %s", cmd.String())
+		err = cmd.Run()
+
+		if err != nil {
+			glg.Warnf("Couldn't setup user on /etc/passwd: %s", err)
+		}
 	}
 
 	setupContainer(&pman, cfg)

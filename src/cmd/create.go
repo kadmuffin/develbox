@@ -15,6 +15,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os/exec"
+
 	"github.com/kadmuffin/develbox/src/pkg/config"
 	"github.com/kadmuffin/develbox/src/pkg/container"
 	"github.com/kpango/glg"
@@ -32,16 +35,29 @@ var (
 			if createCfg {
 				cfg := config.Struct{}
 				config.SetDefaults(&cfg)
-				err := config.WriteConfig(&cfg)
+
+				err := exec.Command(cfg.Podman.Path, "--version").Run()
+				if err != nil {
+					err = exec.Command("docker", "--version").Run()
+					if err == nil {
+						cfg.Podman.Path = "docker"
+						glg.Warn("Error while finding podman! Using docker instead.")
+					} else {
+						glg.Warn("Couldn't find podman nor docker on PATH!")
+					}
+				}
+
+				err = config.WriteConfig(&cfg)
 				if err != nil {
 					glg.Error(err)
 				}
+				fmt.Println("Config file created!")
 				return
 			}
 
 			cfg, err := config.Read()
 			if err != nil {
-				glg.Error(err)
+				glg.Errorf("Failed to read .develbox/config.json! Try running 'develbox create -c --force' to create a new one.")
 				return
 			}
 			container.Create(cfg, forceReplace)
