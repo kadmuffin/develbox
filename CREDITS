@@ -6,6 +6,9 @@ github.com/kpango/glg,https://github.com/kpango/glg/blob/v1.6.13/LICENSE,MIT
 # Indirect dependencies
 github.com/spf13/pflag,https://github.com/spf13/pflag/blob/v1.0.5/LICENSE,BSD-3-Clause
 github.com/inconshreveable/mousetrap,https://github.com/inconshreveable/mousetrap/blob/v1.0.1/LICENSE,Apache-2.0
+github.com/kpango/fastime,https://github.com/kpango/fastime/blob/master/LICENSE,MIT
+github.com/goccy/go-json,https://github.com/goccy/go-json/blob/master/LICENSE,MIT
+golang.org/x/sys,https://cs.opensource.google/go/x/sys/+/master:LICENSE,BSD-3-Clause
 
 # Inspiration
 github.com/jetpack-io/devbox,https://github.com/jetpack-io/devbox/blob/main/LICENSE,Apache-2.0
