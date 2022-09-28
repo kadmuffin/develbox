@@ -56,7 +56,7 @@ To create a new container we first have to create a new config file:
 develbox create -c
 ```
 
-You can now change the config file to use another image or add any packages you wish to be install when creating the container.
+You can now change the config file to use another image or add any packages you wish to be install when creating the container. To actually create the container just run:
 
 ```bash
 develbox create
