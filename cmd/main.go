@@ -29,10 +29,10 @@ import (
 var (
 	rootCli = &cobra.Command{
 		Use:   "develbox",
-		Short: "Develbox - Simple CLI tool useful for managing dev enviroments.",
-		Long: `Develbox - A simple but dirty CLI tool that manages containerized dev environments.
+		Short: "Develbox - CLI tool useful for creating dev environments.",
+		Long: `Develbox - A CLI tool that manages containerized dev environments.
 
-Created so I don't have to expose my entire computer to random node modules (and to learn Go, that means BAD CODE :'D).`,
+Created so I don't have to expose my entire computer to random node modules.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				cmd.Help()
