@@ -85,7 +85,7 @@ This project is under the [Apache 2.0 License](https://github.com/kadmuffin/deve
 ## Acknowledgments
   - **Billie Thompson** - *Provided README Template* -
     [PurpleBooth](https://github.com/PurpleBooth)
-  - **Jetpack's Devbox** - Inspiration - [Devbox](github.com/jetpack-io/devbox)
-  - **Toolbox** - Used as reference for some things (for example, how to load /dev) - [Toolbox](github.com/containers/toolbox)
+  - **Jetpack's Devbox** - Inspiration - [Devbox](https://github.com/jetpack-io/devbox)
+  - **Toolbox** - Used as reference for some things (for example, how to load /dev) - [Toolbox](https://github.com/containers/toolbox)
   - **Martin Viereck** - Helpful Wiki - [x11docker](https://github.com/mviereck/x11docker)
   - And even more projects in [CREDITS](https://github.com/kadmuffin/develbox/blob/main/CREDITS).
