@@ -30,6 +30,10 @@ func Create(cfg config.Struct, deleteOld bool) {
 	pman := podman.New(cfg.Podman.Path)
 	version, err := pman.Version()
 
+	if err != nil {
+		glg.Errorf("Can't parse podman version: %s", err)
+	}
+
 	if deleteOld {
 		glg.Debug("Deleting old container!")
 		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{})
