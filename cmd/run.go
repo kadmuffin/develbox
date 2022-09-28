@@ -33,7 +33,7 @@ var (
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 
 			params := []string{cfg.Podman.Container.Name}
-			params = append(params, cfg.Commands[args[0]]...)
+			params = append(params, cfg.Commands[args[0]])
 
 			command := pman.Exec(params, true, false,
 				podman.Attach{

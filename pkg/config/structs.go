@@ -60,10 +60,10 @@ type Podman struct {
 }
 
 type Struct struct {
-	Image    Image               `json:"image"`
-	Podman   Podman              `json:"podman"`
-	Commands map[string][]string `default:"{}" json:"commands"`
-	Packages []string            `default:"[]" json:"packages"`
+	Image    Image             `json:"image"`
+	Podman   Podman            `json:"podman"`
+	Commands map[string]string `default:"{}" json:"commands"`
+	Packages []string          `default:"[]" json:"packages"`
 }
 
 func SetName(cfg *Struct) {
