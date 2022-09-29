@@ -34,9 +34,6 @@ var envVars = []string{
 	"DESKTOP_SESSION",
 	"WAYLAND_DISPLAY",
 	"DISPLAY",
-	// Not adding XAuthority as I don't know a way other than not mount the
-	// entire /run/user/$UID directory in the container
-	"XAUTHORITY",
 	"GDK_BACKEND",
 	"PULSE_SERVER",
 	"USER",

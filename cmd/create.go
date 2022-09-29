@@ -16,6 +16,9 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"os/exec"
 
 	"github.com/kadmuffin/develbox/pkg/config"
@@ -27,13 +30,27 @@ import (
 var (
 	createCfg    bool
 	forceReplace bool
+	downloadUrl  string
 	Create       = &cobra.Command{
-		Use:        "create",
+		Use:        "create [CONFIG_NAME]",
 		SuggestFor: []string{"config"},
 		Short:      "Creates a new container/config for this project",
+		Args:       cobra.MaximumNArgs(1),
+		Example:    "develbox create -c alpine/latest",
 		Run: func(cmd *cobra.Command, args []string) {
+			configExists := config.ConfigExists()
+
 			if createCfg {
+				if configExists && !forceReplace {
+					glg.Errorf("Config file already exists!")
+					os.Exit(1)
+				}
+
 				cfg := config.Struct{}
+
+				if len(args) == 1 {
+					cfg = downloadConfig(args[0])
+				}
 
 				err := exec.Command(cfg.Podman.Path, "--version").Run()
 				if err != nil {
@@ -68,4 +85,31 @@ var (
 func init() {
 	Create.Flags().BoolVarP(&createCfg, "config", "c", false, "Use to create a new config file")
 	Create.Flags().BoolVarP(&forceReplace, "force", "f", false, "Use to force the creation of a container/config")
+	Create.Flags().StringVarP(&downloadUrl, "source", "s", "https://raw.githubusercontent.com/kadmuffin/develbox/main/configs", "A base path from where to get the configs.")
+}
+
+func downloadConfig(argum string) config.Struct {
+	resp, err := http.Get(fmt.Sprintf("%s/%s.json", downloadUrl, argum))
+
+	if err != nil {
+		glg.Fatal(err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		glg.Errorf("Response from source returned bad status: %s", resp.StatusCode)
+		os.Exit(1)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		glg.Fatalf("Something went wrong while downloading the config file. %s", err)
+	}
+
+	cfg, err := config.ReadBytes(data)
+	if err != nil {
+		glg.Fatalf("Failed to parse the JSON data. %s", err)
+	}
+	return cfg
 }

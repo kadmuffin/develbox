@@ -1,0 +1,42 @@
+{
+	"image": {
+		"uri": "alpine:latest",
+		"on-creation": [
+			"apk update"
+		],
+		"on-finish": [],
+		"pkg-manager": {
+			"operations": {
+				"add": "apk add {args}",
+				"del": "apk del {args}",
+				"update": "apk update {args}",
+				"upgrade": "apk upgrade {args}",
+				"search": "apk search {args}"
+			},
+			"args-modifier": {}
+		}
+	},
+	"podman": {
+		"path": "podman",
+		"rootless": true,
+		"create-deletion": false,
+		"container": {
+			"name": "",
+			"arguments": [
+				"--net=host"
+			],
+			"work-dir": "/code",
+			"shell": "/usr/bin/fish",
+			"root-user": false,
+			"privileged": true,
+			"binds": {
+				"xorg": true,
+				"/dev": true
+			},
+			"ports": [],
+			"mounts": []
+		}
+	},
+	"commands": {},
+	"packages": ["fish"]
+}

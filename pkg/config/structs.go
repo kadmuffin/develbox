@@ -20,12 +20,17 @@ import (
 	"github.com/creasty/defaults"
 )
 
-type Installer struct {
+type Operations struct {
 	Add  string `default:"apk add {args}" json:"add"` // add "{-y}" to auto install on creation on debian
 	Del  string `default:"apk del {args}" json:"del"`
 	Upd  string `default:"apk update {args}" json:"update"`
 	Dup  string `default:"apk upgrade {args}" json:"upgrade"`
 	Srch string `default:"apk search {args}" json:"search"`
+}
+
+type Installer struct {
+	Operations  Operations        `json:"operations"`
+	ArgModifier map[string]string `default:"{}" json:"args-modifier"`
 }
 
 type Image struct {

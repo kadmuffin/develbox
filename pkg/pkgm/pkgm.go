@@ -52,7 +52,7 @@ func (e *operation) Process(cfg *config.Struct) error {
 
 	switch e.Type {
 	case "add":
-		if err := e.sendCommand(cname, cfg.Image.Installer.Add, pman).Run(); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Operations.Add, pman, cfg.Image.Installer.ArgModifier["add"]).Run(); err != nil {
 			return glg.Errorf("couldn't install the requested packages: %s", err)
 		}
 
@@ -61,7 +61,7 @@ func (e *operation) Process(cfg *config.Struct) error {
 		return nil
 
 	case "del":
-		if err := e.sendCommand(cname, cfg.Image.Installer.Del, pman).Run(); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Operations.Del, pman, cfg.Image.Installer.ArgModifier["del"]).Run(); err != nil {
 			return glg.Errorf("couldn't removing the requested packages: %s", err)
 		}
 
@@ -70,19 +70,19 @@ func (e *operation) Process(cfg *config.Struct) error {
 		return nil
 
 	case "search":
-		if err := e.sendCommand(cname, cfg.Image.Installer.Srch, pman).Run(); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Operations.Srch, pman, cfg.Image.Installer.ArgModifier["search"]).Run(); err != nil {
 			return glg.Errorf("couldn't search the requested packages: %s", err)
 		}
 		return nil
 
 	case "update":
-		if err := e.sendCommand(cname, cfg.Image.Installer.Upd, pman).Run(); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Operations.Upd, pman, cfg.Image.Installer.ArgModifier["update"]).Run(); err != nil {
 			return glg.Errorf("something failed while running update: %s", err)
 		}
 		return nil
 
 	case "upgrade":
-		if err := e.sendCommand(cname, cfg.Image.Installer.Upd, pman).Run(); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Operations.Upd, pman, cfg.Image.Installer.ArgModifier["upgrade"]).Run(); err != nil {
 			return glg.Errorf("something failed while running update: %s", err)
 		}
 		return nil
@@ -100,19 +100,19 @@ func (e *operation) ProcessCmd(cfg *config.Struct) (*exec.Cmd, error) {
 
 	switch e.Type {
 	case "add":
-		return e.sendCommand(cname, cfg.Image.Installer.Add, pman), nil
+		return e.sendCommand(cname, cfg.Image.Installer.Operations.Add, pman, cfg.Image.Installer.ArgModifier["add"]), nil
 
 	case "del":
-		return e.sendCommand(cname, cfg.Image.Installer.Del, pman), nil
+		return e.sendCommand(cname, cfg.Image.Installer.Operations.Del, pman, cfg.Image.Installer.ArgModifier["del"]), nil
 
 	case "search":
-		return e.sendCommand(cname, cfg.Image.Installer.Srch, pman), nil
+		return e.sendCommand(cname, cfg.Image.Installer.Operations.Srch, pman, cfg.Image.Installer.ArgModifier["search"]), nil
 
 	case "update":
-		return e.sendCommand(cname, cfg.Image.Installer.Upd, pman), nil
+		return e.sendCommand(cname, cfg.Image.Installer.Operations.Upd, pman, cfg.Image.Installer.ArgModifier["update"]), nil
 
 	case "upgrade":
-		return e.sendCommand(cname, cfg.Image.Installer.Upd, pman), nil
+		return e.sendCommand(cname, cfg.Image.Installer.Operations.Upd, pman, cfg.Image.Installer.ArgModifier["upgrade"]), nil
 	}
 
 	return &exec.Cmd{}, glg.Errorf("couldn't find the key '%s' on the list of supported operations", e.Type)
@@ -122,8 +122,8 @@ func (e *operation) ProcessCmd(cfg *config.Struct) (*exec.Cmd, error) {
 //
 // Returns an error so we can know if something failed or the user
 // did a Ctrl+C and stopped the transaction. Either way, packages failed to install.
-func (e *operation) sendCommand(cname, base string, pman podman.Podman) *exec.Cmd {
-	packages := strings.Join(e.Packages, " ")
+func (e *operation) sendCommand(cname, base string, pman podman.Podman, argModifier string) *exec.Cmd {
+	packages := processPackages(e.Packages, argModifier)
 	flags := strings.Join(e.Flags, " ")
 	modifBase := strings.Replace(base, "{args}", fmt.Sprintf("%s %s", packages, flags), 1)
 	if e.AutoInstall {

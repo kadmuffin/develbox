@@ -25,15 +25,7 @@ func Read() (Struct, error) {
 		return Struct{}, err
 	}
 
-	var configs Struct
-	err = json.Unmarshal(data, &configs)
-
-	if err != nil {
-		return configs, err
-	}
-
-	SetName(&configs)
-	return configs, nil
+	return ReadBytes(data)
 }
 
 func Write(configs *Struct) error {
@@ -45,4 +37,16 @@ func Write(configs *Struct) error {
 		return err
 	}
 	return nil
+}
+
+func ReadBytes(data []byte) (Struct, error) {
+	var configs Struct
+	err := json.Unmarshal(data, &configs)
+
+	if err != nil {
+		return configs, err
+	}
+
+	SetName(&configs)
+	return configs, nil
 }

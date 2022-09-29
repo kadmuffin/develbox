@@ -14,6 +14,8 @@
 
 package pkgm
 
+import "strings"
+
 // Splits packages from flags in string arrays.
 //
 // Returns a tuple with packages first, and the flags.
@@ -56,4 +58,17 @@ func RemoveDuplicates(baseList *[]string, appendList *[]string) []string {
 		}
 	}
 	return newList
+}
+
+func processPackages(packages []string, argModifier string) string {
+	pkgs := []string{}
+
+	if !strings.Contains(argModifier, "{package}") {
+		return strings.Join(packages, " ")
+	}
+
+	for _, pkg := range packages {
+		pkgs = append(pkgs, strings.ReplaceAll(argModifier, "{package}", pkg))
+	}
+	return strings.Join(pkgs, " ")
 }

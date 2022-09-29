@@ -17,9 +17,9 @@ package container
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/pkgm"
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
 )
@@ -155,20 +155,9 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	}
 
 	if len(cfg.Packages) > 0 {
-		spacedPkgs := strings.Join(cfg.Packages, " ")
-		addBase := strings.ReplaceAll(cfg.Image.Installer.Add, " {-y}", " -y")
+		opert := pkgm.NewOperation("add", cfg.Packages, []string{}, true)
 
-		command := []string{cfg.Podman.Container.Name,
-			strings.ReplaceAll(addBase, "{args}", spacedPkgs)}
-
-		err = pman.Exec(command, true, true,
-			podman.Attach{
-				Stdin:     true,
-				Stdout:    true,
-				Stderr:    true,
-				PseudoTTY: true,
-			}).Run()
-
+		err := opert.Process(&cfg)
 		if err != nil {
 			pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
 			glg.Fatalf("Something went wrong while installing the specified packages. %s", err)
