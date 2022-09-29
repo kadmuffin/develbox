@@ -2,7 +2,9 @@
     "image": {
         "uri": "docker.io/nixos/nix:latest",
         "on-creation": [
-            "nix-channel --update"
+            "nix-channel --update",
+			"nix-env -i gnused",
+			"sed -i 's/sandbox = false/sandbox = true/g' /etc/nix/nix.conf"
         ],
         "on-finish": [],
         "pkg-manager": {
@@ -14,8 +16,7 @@
                 "search": "nix-env -qaP {args}"
             },
             "args-modifier": {
-                "add": "nixpkgs.{package}",
-                "search": "nixpkgs.{package}"
+                "add": "nixpkgs.{package}"
             }
         }
     },
