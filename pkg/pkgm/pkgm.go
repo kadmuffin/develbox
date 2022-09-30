@@ -76,13 +76,13 @@ func (e *operation) Process(cfg *config.Struct) error {
 		return nil
 
 	case "update":
-		if err := e.sendCommand(cname, cfg.Image.Installer.Operations.Dup, pman, cfg.Image.Installer.ArgModifier["update"]).Run(); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Operations.Upd, pman, cfg.Image.Installer.ArgModifier["update"]).Run(); err != nil {
 			return glg.Errorf("something failed while running update: %s", err)
 		}
 		return nil
 
 	case "upgrade":
-		if err := e.sendCommand(cname, cfg.Image.Installer.Operations.Upd, pman, cfg.Image.Installer.ArgModifier["upgrade"]).Run(); err != nil {
+		if err := e.sendCommand(cname, cfg.Image.Installer.Operations.Dup, pman, cfg.Image.Installer.ArgModifier["upgrade"]).Run(); err != nil {
 			return glg.Errorf("something failed while running update: %s", err)
 		}
 		return nil
@@ -109,10 +109,10 @@ func (e *operation) ProcessCmd(cfg *config.Struct) (*exec.Cmd, error) {
 		return e.sendCommand(cname, cfg.Image.Installer.Operations.Srch, pman, cfg.Image.Installer.ArgModifier["search"]), nil
 
 	case "update":
-		return e.sendCommand(cname, cfg.Image.Installer.Operations.Dup, pman, cfg.Image.Installer.ArgModifier["update"]), nil
+		return e.sendCommand(cname, cfg.Image.Installer.Operations.Upd, pman, cfg.Image.Installer.ArgModifier["update"]), nil
 
 	case "upgrade":
-		return e.sendCommand(cname, cfg.Image.Installer.Operations.Upd, pman, cfg.Image.Installer.ArgModifier["upgrade"]), nil
+		return e.sendCommand(cname, cfg.Image.Installer.Operations.Dup, pman, cfg.Image.Installer.ArgModifier["upgrade"]), nil
 	}
 
 	return &exec.Cmd{}, glg.Errorf("couldn't find the key '%s' on the list of supported operations", e.Type)
