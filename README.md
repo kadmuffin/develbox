@@ -40,7 +40,7 @@ You can get them from your package manager usually with as `go` and `podman`.
 
 ### Installing
 
-You can get the project using `go install` like this:
+You can get the project using `go install` like this.
 
 ```bash
 go install github.com/kadmuffin/develbox@latest
@@ -50,13 +50,18 @@ go install github.com/kadmuffin/develbox@latest
 
 > It's recommended that you add `.develbox/home` to your`.gitignore` file.
 
-To create a new container we first have to create a new config file:
+#### Setting up a config
+To create a new container we first have to create a new config file, you currently can choose from any config file from [this folder](configs/). For example, with the [Ubuntu config](configs/ubuntu/jammy.json) you would run the command like this.
 
 ```bash
-develbox create -c
+develbox create -c ubuntu/jammy
 ```
 
-You can now change the config file to use another image or add any packages you wish to be install when creating the container. To actually create the container just run:
+If no arguments are provided, it will default to an Alpine config. After this you can modify the configs to add any package you want to be installed when creating the container.
+
+#### Creating the container
+
+You can now proceed to create the container with the following command.
 
 ```bash
 develbox create
@@ -68,10 +73,26 @@ After that you can enter the container using:
 develbox enter
 ```
 
-And after you are done stop the container with:
+And stop the container with:
 
 ```bash
 develbox stop
+```
+
+You can delete it using `develbox trash` too.
+
+#### Managing packages
+
+To add a package to the container we can run `develbox add`, for example, if we wish to add `nano` to the container:
+
+```bash
+develbox add nano
+```
+
+Now if we want to delete the package, we use the `develbox del` command:
+
+```bash
+develbox del nano
 ```
 
 ## Contributing
