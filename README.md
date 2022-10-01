@@ -1,6 +1,6 @@
 # Develbox
 
-A tool to create project specific containers using Podman and Go.
+A tool to create project-specific containers using Podman and Go.
 
 ## Why this exists
 
@@ -8,7 +8,7 @@ After reading about [JetPack's Devbox](https://github.com/jetpack-io/devbox) on 
 
 The issue was that Nix isn't available on Fedora Silverblue, as it currently doesn't comply with the [FHS](https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard) (_Nix directory is located on `/nix`, but `/` is read-only on [Silverblue](https://docs.fedoraproject.org/en-US/fedora-silverblue/technical-information/#filesystem-layout)_) and has issues with [SELinux](https://github.com/NixOS/nix/issues/2374). There are other ways to install it, like:
 
-- [Matthewpi's guide](https://gist.github.com/matthewpi/08c3d652e7879e4c4c30bead7021ff73) to manually install Nix
+- [Matthewpi's guide](https://gist.github.com/matthewpi/08c3d652e7879e4c4c30bead7021ff73) to manually installing Nix
 - Changing to another distro, like [NixOS](https://nixos.org/) directly
 - [Yajo's fork](https://github.com/moduon/nix-installers/tree/rpm-ostree) (still hasn't been [merged](https://github.com/nix-community/nix-installers/pull/8) into [upstream](https://github.com/nix-community/nix-installers))
 - [Nix User Chroot](https://github.com/nix-community/nix-user-chroot) (I became aware of this one too late into the project)
@@ -16,19 +16,19 @@ The issue was that Nix isn't available on Fedora Silverblue, as it currently doe
 
 > _I could instead have used developments containers with VSCode now that I think about it._
 
-So instead of choosing all of those good options, I decided to try make a script that does something similar to [Devbox](https://github.com/jetpack-io/devbox) and [Toolbox](github.com/containers/toolbox) but worse just to learn Golang.
+So instead of choosing all of those good options, I decided to try to make a script that does something similar to [Devbox](https://github.com/jetpack-io/devbox) and [Toolbox](github.com/containers/toolbox) but worse just to learn Golang.
 
 ## What does that mean?
 
 Mainly, it means that the code quality here probably is not the best. There are a ton of things that should be improved or made more secure.
 
-I would fix them but my current knowledge on coding, containers and linux isn't enough to make this a better product.
+I would fix them but my current knowledge of coding, containers, and Linux isn't enough to make this a better product.
 
 **TL;DR: It's best to not use this in your projects, as it is made for personal use.**
 
 ## Getting Started
 
-If you are okay with all that, you can install this script by doing the following. First we should visit the prerequisites.
+If you are okay with all that, you can install this script by doing the following. First, we should visit the prerequisites.
 
 ### Prerequisites
 
@@ -51,13 +51,13 @@ go install github.com/kadmuffin/develbox@latest
 > It's recommended that you add `.develbox/home` to your`.gitignore` file.
 
 #### Setting up a config
-To create a new container we first have to create a new config file, you currently can choose from any config file from [this folder](configs/). For example, with the [Ubuntu config](configs/ubuntu/jammy.json) you would run the command like this.
+To create a new container we first have to create a new config file, you currently can choose from any config file from [this folder](configs/). For example, with the [Ubuntu config](configs/ubuntu/jammy.json), you would run the command like this.
 
 ```bash
 develbox create -c ubuntu/jammy
 ```
 
-If no arguments are provided, it will default to an Alpine config. After this you can modify the configs to add any package you want to be installed when creating the container.
+If no arguments are provided, it will default to an Alpine config. After this, you can modify the configs to add any package you want to be installed when creating the container.
 
 #### Creating the container
 
@@ -89,7 +89,7 @@ To add a package to the container we can run `develbox add`, for example, if we 
 develbox add nano
 ```
 
-Now if we want to delete the package, we use the `develbox del` command:
+Now, if we want to delete the package, we use the `develbox del` command:
 
 ```bash
 develbox del nano
