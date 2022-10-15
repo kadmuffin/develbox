@@ -48,12 +48,12 @@ func ContainsString(list []string, match string) bool {
 	return false
 }
 
-// Returns a new array based on `appendList` without anything
-// repeated on the base list.
-func RemoveDuplicates(baseList *[]string, appendList *[]string) []string {
+// Returns a new array based on `baseList` without anything
+// repeated on the append list.
+func RemoveDuplicates(appendList *[]string, baseList *[]string) []string {
 	newList := []string{}
-	for _, item := range *appendList {
-		if !ContainsString(*baseList, item) {
+	for _, item := range *baseList {
+		if !ContainsString(*appendList, item) {
 			newList = append(newList, item)
 		}
 	}

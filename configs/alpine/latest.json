@@ -38,5 +38,6 @@
 		}
 	},
 	"commands": {},
-	"packages": ["fish"]
+	"packages": [],
+	"devpackages": ["fish"]
 }

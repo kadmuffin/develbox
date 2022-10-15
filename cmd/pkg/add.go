@@ -30,7 +30,8 @@ var (
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			packages, flags := pkgm.ParseArguments(args)
-			opertn := pkgm.NewOperation("add", *packages, *flags, false)
+			parsedFlags, devInstall := parseFlags(flags)
+			opertn := pkgm.NewOperation("add", *packages, *parsedFlags, false)
 
 			cfg, err := config.Read()
 			if err != nil {
@@ -38,7 +39,7 @@ var (
 			}
 			pman := podman.New(cfg.Podman.Path)
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-			err = opertn.Process(&cfg)
+			err = opertn.Process(&cfg, devInstall)
 			if err != nil {
 				return err
 			}
@@ -46,3 +47,20 @@ var (
 		},
 	}
 )
+
+func parseFlags(flags *[]string) (*[]string, bool) {
+	var devInstall bool
+	var parsedFlags []string
+	for _, flag := range *flags {
+		if flag == "--dev" || flag == "-D" {
+			devInstall = true
+			continue
+		}
+		parsedFlags = append(parsedFlags, flag)
+	}
+	return &parsedFlags, devInstall
+}
+
+func init() {
+	Add.Flags().BoolP("dev", "D", false, "Install packages as development dependencies")
+}

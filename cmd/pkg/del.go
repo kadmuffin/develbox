@@ -38,7 +38,7 @@ var (
 			}
 			pman := podman.New(cfg.Podman.Path)
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-			opertn.Process(&cfg)
+			opertn.Process(&cfg, false)
 			if err != nil {
 				return err
 			}

@@ -155,9 +155,10 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	}
 
 	if len(cfg.Packages) > 0 {
-		opert := pkgm.NewOperation("add", cfg.Packages, []string{}, true)
+		opert := pkgm.NewOperation("add", append(cfg.Packages, cfg.DevPackages...), []string{}, true)
 
-		err := opert.Process(&cfg)
+		cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
+		err = cmd.Run()
 		if err != nil {
 			pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
 			glg.Fatalf("Something went wrong while installing the specified packages. %s", err)

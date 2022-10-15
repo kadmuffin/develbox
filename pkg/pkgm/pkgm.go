@@ -46,8 +46,9 @@ func NewOperation(opType string, packages []string, flags []string, autoInstall 
 // Processes the transaction and updates the config reference.
 //
 // Returns an error in case of failure.
-// Wrapper around ProcessCmd()
-func (e *operation) Process(cfg *config.Struct) error {
+// Wrapper around ProcessCmd() that updates
+// the config reference.
+func (e *operation) Process(cfg *config.Struct, devAdd bool) error {
 	cmd, err := e.ProcessCmd(cfg, podman.Attach{
 		Stdin:     true,
 		Stdout:    true,
@@ -56,6 +57,23 @@ func (e *operation) Process(cfg *config.Struct) error {
 	})
 	if err != nil {
 		return err
+	}
+
+	switch e.Type {
+	case "add":
+		cfg.Packages = RemoveDuplicates(&e.Packages, &cfg.Packages)
+		cfg.DevPackages = RemoveDuplicates(&e.Packages, &cfg.DevPackages)
+
+		switch devAdd {
+		case true:
+			cfg.DevPackages = append(cfg.DevPackages, e.Packages...)
+		case false:
+			cfg.Packages = append(cfg.Packages, e.Packages...)
+		}
+
+	case "del":
+		cfg.Packages = RemoveDuplicates(&e.Packages, &cfg.Packages)
+		cfg.DevPackages = RemoveDuplicates(&e.Packages, &cfg.DevPackages)
 	}
 	return cmd.Run()
 }

@@ -30,5 +30,6 @@ func main() {
 	if err == nil && value {
 		glg.Get().SetLevel(glg.DEBG)
 	}
+
 	cmd.Execute()
 }
