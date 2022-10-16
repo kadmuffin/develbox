@@ -12,7 +12,8 @@
 				"search": "apk search {args}"
 			},
 			"args-modifier": {}
-		}
+		},
+		"env-vars": {}
 	},
 	"podman": {
 		"path": "podman",
@@ -29,7 +30,8 @@
 			"privileged": true,
 			"binds": {
 				"xorg": true,
-				"/dev": true
+				"/dev": true,
+				"env-vars": []
 			},
 			"ports": [],
 			"mounts": []

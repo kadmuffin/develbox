@@ -22,18 +22,36 @@ import (
 	"github.com/kadmuffin/develbox/pkg/podman"
 )
 
-// Returns a list of all the files inside a path that match a name
-func GetFolderFiles(path string, match string) ([]string, error) {
-	folder, err := os.Open(path)
+// Reads all the names in the a path, and returns them
+// If an item is a folder it will return it like this:
+// "foldername/" instead of "foldername"
+func GetFolderFiles(path string) ([]string, error) {
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return []string{}, err
 	}
-	defer folder.Close()
-	files, err := folder.Readdirnames(0)
+
+	var names []string
+	for _, file := range files {
+		if file.IsDir() {
+			names = append(names, file.Name()+"/")
+		} else {
+			names = append(names, file.Name())
+		}
+	}
+	return names, nil
+}
+
+// Returns a list of all the files inside a path that match a string
+//
+// Wrapper around GetFolderFiles() that filters the results
+func GetFolderFilesMtch(path string, match string) ([]string, error) {
+	files, err := GetFolderFiles(path)
+
 	if err != nil {
 		return []string{}, err
 	}
-	defer folder.Close()
+
 	matches := []string{}
 	for _, v := range files {
 		if strings.Contains(v, match) {

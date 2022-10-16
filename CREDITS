@@ -2,6 +2,7 @@
 github.com/creasty/defaults,https://github.com/creasty/defaults/blob/v1.6.0/LICENSE,MIT
 github.com/spf13/cobra,https://github.com/spf13/cobra/blob/v1.5.0/LICENSE.txt,Apache-2.0
 github.com/kpango/glg,https://github.com/kpango/glg/blob/v1.6.13/LICENSE,MIT
+github.com/sabhiram/go-gitignore,https://github.com/sabhiram/go-gitignore/blob/master/LICENSE,MIT
 
 # Indirect dependencies
 github.com/spf13/pflag,https://github.com/spf13/pflag/blob/v1.0.5/LICENSE,BSD-3-Clause

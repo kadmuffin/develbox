@@ -122,8 +122,11 @@ func (e *operation) StringCommand(cfg *config.Installer) (string, error) {
 	}
 
 	flags := strings.Join(e.Flags, " ")
+	if flags != "" {
+		flags += " "
+	}
 	packages := processPackages(e.Packages, cfg.ArgModifier[e.Type])
-	modifBase := strings.Replace(baseCmd, "{args}", fmt.Sprintf("%s %s", flags, packages), 1)
+	modifBase := strings.Replace(baseCmd, "{args}", fmt.Sprintf("%s%s", flags, packages), 1)
 	if e.AutoInstall {
 		modifBase = strings.Replace(modifBase, "{-y}", "-y", 1)
 	} else {

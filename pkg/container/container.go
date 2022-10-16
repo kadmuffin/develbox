@@ -75,7 +75,11 @@ func Create(cfg config.Struct, deleteOld bool) {
 		} else {
 			glg.Warn("Can't mount $XDG_RUNTIME_DIR, directory doesn't exist!")
 		}
+
 	}
+
+	// Mount gitconfig globably inside container
+	args = append(args, fmt.Sprintf("-v=/home/%s/.gitconfig:/etc/gitconfig:ro", user))
 
 	// Creates & mounts a home directory so we can access it easily
 	err = os.Mkdir(".develbox/home", 0755)
@@ -99,7 +103,20 @@ func Create(cfg config.Struct, deleteOld bool) {
 		args = append(args, "--privileged")
 	}
 
-	args = append(args, getEnvVars()...)
+	args = append(args, getEnvVars(dfltEnvVars)...)
+
+	if len(cfg.Podman.Container.Binds.Vars) > 0 {
+		args = append(args, getEnvVars(cfg.Podman.Container.Binds.Vars)...)
+	}
+
+	if len(cfg.Image.EnvVars) > 0 {
+		args = append(args, setEnvVars(cfg.Image.EnvVars)...)
+	}
+
+	// Mount configs from host
+	args = append(args, "-v=/etc/localtime:/etc/localtime:ro")
+	args = append(args, "-v=/etc/resolv.conf:/etc/resolv.conf:ro")
+	args = append(args, "-v=/etc/hosts:/etc/hosts:ro")
 
 	// Mount the main folder and pass the image URI before the
 	// container is created.

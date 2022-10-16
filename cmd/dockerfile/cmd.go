@@ -21,25 +21,36 @@ import (
 	"regexp"
 
 	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/container"
 	"github.com/kadmuffin/develbox/pkg/pkgm"
 	"github.com/kpango/glg"
+	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/spf13/cobra"
 )
 
 var (
-	command string
+	command      string
+	includeFiles bool
+	devBuild     bool
 
 	Build = &cobra.Command{
 		Use:   "build",
 		Short: "Builds a dockerfile based on the config file",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var dckFile []string
+			gitignore, err := ignore.CompileIgnoreFile(".gitignore")
+			if err != nil {
+				return err
+			}
+
 			cfg, err := config.Read()
 			if err != nil {
 				return err
 			}
 
 			dckFile = append(dckFile, fmt.Sprintf("FROM %s", cfg.Image.URI))
+
+			dckFile = append(dckFile, getEnvVars(cfg.Image.EnvVars)...)
 
 			// Add precmds before adding any packages
 			dckFile = append(dckFile, appendRun(cfg.Image.OnCreation)...)
@@ -51,6 +62,9 @@ var (
 
 			// Add packages
 			pkgInstall := pkgm.NewOperation("add", cfg.Packages, []string{}, true)
+			if devBuild {
+				pkgInstall.Packages = append(pkgInstall.Packages, cfg.DevPackages...)
+			}
 			packages, _ := pkgInstall.StringCommand(&cfg.Image.Installer)
 			dckFile = append(dckFile, fmt.Sprintf("RUN %s", packages))
 
@@ -67,15 +81,19 @@ var (
 				}
 			}
 
+			// Mounts the current directory to the container's workspace
+			if includeFiles {
+				dckFile = append(dckFile, mountWorkspace(cfg.Podman.Container.WorkDir, gitignore)...)
+			}
+
 			if command != "" {
-				// Fail if cfg.Commands map sdoesn't contain the variable command
 				if _, ok := cfg.Commands[command]; !ok {
 					return glg.Errorf("command %s not found in config file", command)
 				}
 
-				dckFile = append(dckFile, fmt.Sprintf("ENTRYPOINT [\"/bin/sh\", \"-c\", \"%s\"]", cfg.Commands[command]))
+				dckFile = append(dckFile, fmt.Sprintf("ENTRYPOINT [\"%s\", \"-c\", \"%s\"]", cfg.Podman.Container.Shell, cfg.Commands[command]))
 			} else {
-				dckFile = append(dckFile, "ENTRYPOINT [\"/bin/sh\"]")
+				dckFile = append(dckFile, fmt.Sprintf("ENTRYPOINT [\"%s\"]", cfg.Podman.Container.Shell))
 			}
 
 			if config.FileExists("Dockerfile") {
@@ -96,7 +114,7 @@ func writeList(path string, list []string) error {
 	defer file.Close()
 
 	for _, line := range list {
-		_, err := file.WriteString(line + "\n")
+		_, err := file.WriteString(line + "\n\n")
 
 		if err != nil {
 			return err
@@ -131,6 +149,39 @@ func appendRun(list []string) []string {
 	return newList
 }
 
+// Mounts the current directory to the container's workspace
+// and copies any file that doesn't match the .gitignore
+func mountWorkspace(workspace string, gitignore *ignore.GitIgnore) []string {
+	lines := []string{
+		fmt.Sprintf("WORKDIR %s", workspace),
+		fmt.Sprintf("VOLUME [\"%s\"]", workspace),
+	}
+	files, err := container.GetFolderFiles(".")
+	if err != nil {
+		glg.Fatal(err)
+	}
+
+	for _, file := range files {
+		if !gitignore.MatchesPath(file) {
+			lines = append(lines, fmt.Sprintf("COPY %s %s/%s", file, workspace, file))
+		}
+	}
+
+	return lines
+}
+
+// Returns a list of string that sets the environment variables
+// in the Dockerfile
+func getEnvVars(vars map[string]string) []string {
+	var lines []string
+	for key, value := range vars {
+		lines = append(lines, fmt.Sprintf("ENV %s=%s", key, value))
+	}
+	return lines
+}
+
 func init() {
 	Build.Flags().StringVarP(&command, "command", "c", "", "Command from config file to run on container start")
+	Build.Flags().BoolVarP(&includeFiles, "include-files", "i", false, "Include files in current directory in container")
+	Build.Flags().BoolVarP(&devBuild, "dev", "d", false, "Include dev packages")
 }

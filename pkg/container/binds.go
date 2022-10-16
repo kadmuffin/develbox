@@ -24,7 +24,7 @@ import (
 	"github.com/kpango/glg"
 )
 
-var envVars = []string{
+var dfltEnvVars = []string{
 	"XDG_CURRENT_DESKTOP",
 	"XDG_RUNTIME_DIR",
 	"XDG_SESSION_CLASS",
@@ -43,9 +43,9 @@ var envVars = []string{
 // into the container.
 //
 // See https://github.com/containers/toolbox/blob/main/src/pkg/utils/utils.go#L273
-func getEnvVars() []string {
+func getEnvVars(vars []string) []string {
 	result := []string{}
-	for _, envVar := range envVars {
+	for _, envVar := range vars {
 		variable, found := os.LookupEnv(envVar)
 		if found {
 			result = append(result, "-e", fmt.Sprintf("%s=%s", envVar, variable))
@@ -55,6 +55,17 @@ func getEnvVars() []string {
 	}
 
 	return result
+}
+
+// Sets a lists of env variables to the container
+func setEnvVars(vars map[string]string) []string {
+	args := []string{}
+
+	for key, value := range vars {
+		args = append(args, "-e", fmt.Sprintf("%s=%s", key, value))
+	}
+
+	return args
 }
 
 // Mounts the directory used by xorg and adds user with xhost

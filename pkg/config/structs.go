@@ -34,15 +34,17 @@ type Installer struct {
 }
 
 type Image struct {
-	URI        string    `default:"alpine:latest" json:"uri"`
-	OnCreation []string  `default:"[\"apk update\"]" json:"on-creation"`
-	OnFinish   []string  `default:"[]" json:"on-finish"`
-	Installer  Installer `json:"pkg-manager"`
+	URI        string            `default:"alpine:latest" json:"uri"`
+	OnCreation []string          `default:"[\"apk update\"]" json:"on-creation"`
+	OnFinish   []string          `default:"[]" json:"on-finish"`
+	Installer  Installer         `json:"pkg-manager"`
+	EnvVars    map[string]string `default:"{}" json:"env-vars"`
 }
 
 type Binds struct {
-	XOrg bool `default:"true" json:"xorg"`
-	Dev  bool `default:"true" json:"/dev"`
+	XOrg bool     `default:"true" json:"xorg"`
+	Dev  bool     `default:"true" json:"/dev"`
+	Vars []string `default:"[]" json:"env-vars"`
 }
 
 type Container struct {
