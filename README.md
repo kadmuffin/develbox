@@ -33,6 +33,7 @@ If you are okay with all that, you can install this script by doing the followin
 ### Prerequisites
 
 This project requires you to have installed
+
 - [Go](https://go.dev/)
 - [Podman](https://podman.io/) or [Docker](https://www.docker.com/), ideally use Podman.
 
@@ -50,15 +51,6 @@ go install github.com/kadmuffin/develbox@latest
 
 > It's recommended that you add `.develbox/home` to your`.gitignore` file.
 
-#### Setting up a config
-To create a new container we first have to create a new config file, you currently can choose from any config file from [this folder](configs/). For example, with the [Ubuntu config](configs/ubuntu/jammy.json), you would run the command like this.
-
-```bash
-develbox create -c ubuntu/jammy
-```
-
-If no arguments are provided, it will default to an Alpine config. After this, you can modify the configs to add any package you want to be installed when creating the container.
-
 #### Creating the container
 
 You can now proceed to create the container with the following command.
@@ -66,6 +58,10 @@ You can now proceed to create the container with the following command.
 ```bash
 develbox create
 ```
+
+Configs file will be located at `.develbox/config.json`
+
+#### Opening the shell
 
 After that you can enter the container using:
 
@@ -104,9 +100,10 @@ If you wish to contribute to this small repo, you are welcome to submit your pul
 This project is under the [Apache 2.0 License](https://github.com/kadmuffin/develbox/blob/main/LICENSE).
 
 ## Acknowledgments
-  - **Billie Thompson** - *Provided README Template* -
+
+- **Billie Thompson** - _Provided README Template_ -
     [PurpleBooth](https://github.com/PurpleBooth)
-  - **Jetpack's Devbox** - Inspiration - [Devbox](https://github.com/jetpack-io/devbox)
-  - **Toolbox** - Used as reference for some things (for example, how to load /dev) - [Toolbox](https://github.com/containers/toolbox)
-  - **Martin Viereck** - Helpful Wiki - [x11docker](https://github.com/mviereck/x11docker)
-  - And even more projects in [CREDITS](https://github.com/kadmuffin/develbox/blob/main/CREDITS).
+- **Jetpack's Devbox** - Inspiration - [Devbox](https://github.com/jetpack-io/devbox)
+- **Toolbox** - Used as reference for some things (for example, how to load /dev) - [Toolbox](https://github.com/containers/toolbox)
+- **Martin Viereck** - Helpful Wiki - [x11docker](https://github.com/mviereck/x11docker)
+- And even more projects in [CREDITS](https://github.com/kadmuffin/develbox/blob/main/CREDITS).
