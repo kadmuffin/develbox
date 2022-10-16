@@ -1,23 +1,17 @@
 {
     "image": {
-        "uri": "docker.io/nixos/nix:latest",
-        "on-creation": [
-            "nix-channel --update",
-			"nix-env -i gnused",
-			"sed -i 's/sandbox = false/sandbox = true/g' /etc/nix/nix.conf"
-        ],
+        "uri": "fedora:rawhide",
+        "on-creation": [],
         "on-finish": [],
         "pkg-manager": {
             "operations": {
-                "add": "nix-env -iA {args}",
-                "del": "nix-env -e {args}",
-                "update": "nix-channel --update {args}",
-                "upgrade": "nix-env -u {args}",
-                "search": "nix-env -qaP {args}"
+                "add": "dnf install {args} {-y}",
+                "del": "dnf remove {args}",
+                "update": "dnf update {args}",
+                "upgrade": "dnf upgrade {args}",
+                "search": "dnf search {args}"
             },
-            "args-modifier": {
-                "add": "nixpkgs.{package}"
-            }
+            "args-modifier": {}
         },
         "env-vars": {}
     },
@@ -27,11 +21,9 @@
         "create-deletion": false,
         "container": {
             "name": "",
-            "arguments": [
-                "--net=host"
-            ],
+            "arguments": [],
             "work-dir": "/code",
-            "shell": "/root/.nix-profile/bin/fish",
+            "shell": "/usr/bin/fish",
             "root-user": false,
             "privileged": true,
             "binds": {

@@ -15,13 +15,12 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/kadmuffin/develbox/cmd/create"
 	"github.com/kadmuffin/develbox/cmd/dockerfile"
 	"github.com/kadmuffin/develbox/cmd/pkg"
 	"github.com/kadmuffin/develbox/cmd/state"
-	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
 	"github.com/spf13/cobra"
@@ -29,8 +28,9 @@ import (
 
 var (
 	rootCli = &cobra.Command{
-		Use:   "develbox",
-		Short: "Develbox - CLI tool useful for creating dev environments.",
+		Use:     "develbox",
+		Version: "0.1.0",
+		Short:   "Develbox - CLI tool useful for creating dev environments.",
 		Long: `Develbox - A CLI tool that manages containerized dev environments.
 
 Created so I don't have to expose my entire computer to random node modules.`,
@@ -45,29 +45,27 @@ Created so I don't have to expose my entire computer to random node modules.`,
 
 func Execute() {
 	if os.Getuid() == 0 {
-		glg.Errorf("Develbox doesn't currently support being ran as root.")
+		glg.Fatal("Develbox doesn't currently support being ran as root.")
 	}
 
-	pipeDir := fmt.Sprintf("/home/%s/.develbox", os.Getenv("USER"))
-	if !podman.InsideContainer() || config.FileExists(pipeDir) {
+	if !podman.InsideContainer() {
 		// Package manager operations
 		rootCli.AddCommand(pkg.Add)
 		rootCli.AddCommand(pkg.Del)
 		rootCli.AddCommand(pkg.Update)
 		rootCli.AddCommand(pkg.Upgrade)
 		rootCli.AddCommand(pkg.Search)
-		rootCli.AddCommand(dockerfile.Build)
-	}
 
-	if !podman.InsideContainer() {
 		rootCli.AddCommand(Enter)
-		rootCli.AddCommand(Create)
+		rootCli.AddCommand(create.Create)
 		rootCli.AddCommand(Exec)
 		rootCli.AddCommand(Run)
 		rootCli.AddCommand(state.Start)
 		rootCli.AddCommand(state.Stop)
 		rootCli.AddCommand(state.Trash)
 	}
+	rootCli.AddCommand(Version)
+	rootCli.AddCommand(dockerfile.Build)
 
 	rootCli.Execute()
 }

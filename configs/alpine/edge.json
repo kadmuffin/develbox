@@ -1,6 +1,6 @@
 {
 	"image": {
-		"uri": "alpine:latest",
+		"uri": "alpine:edge",
 		"on-creation": [],
 		"on-finish": [],
 		"pkg-manager": {
@@ -21,9 +21,7 @@
 		"create-deletion": false,
 		"container": {
 			"name": "",
-			"arguments": [
-				"--net=host"
-			],
+			"arguments": [],
 			"work-dir": "/code",
 			"shell": "/usr/bin/fish",
 			"root-user": false,

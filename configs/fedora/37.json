@@ -21,9 +21,7 @@
         "create-deletion": false,
         "container": {
             "name": "",
-            "arguments": [
-                "--net=host"
-            ],
+            "arguments": [],
             "work-dir": "/code",
             "shell": "/usr/bin/fish",
             "root-user": false,

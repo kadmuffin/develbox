@@ -1,6 +1,6 @@
 {
     "image": {
-        "uri": "debian:testing",
+        "uri": "debian:bullseye",
         "on-creation": [],
         "on-finish": [],
         "pkg-manager": {

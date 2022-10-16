@@ -1,17 +1,23 @@
 {
     "image": {
-        "uri": "debian:testing",
-        "on-creation": [],
+        "uri": "docker.io/nixos/nix:latest",
+        "on-creation": [
+            "nix-channel --update",
+			"nix-env -i gnused",
+			"sed -i 's/sandbox = false/sandbox = true/g' /etc/nix/nix.conf"
+        ],
         "on-finish": [],
         "pkg-manager": {
             "operations": {
-                "add": "apt-get install {args} {-y}",
-                "del": "apt-get remove {args}",
-                "update": "apt-get update {args}",
-                "upgrade": "apt-get upgrade {args}",
-                "search": "apt-get search {args}"
+                "add": "nix-env -iA {args}",
+                "del": "nix-env -e {args}",
+                "update": "nix-channel --update {args}",
+                "upgrade": "nix-env -u {args}",
+                "search": "nix-env -qaP {args}"
             },
-            "args-modifier": {}
+            "args-modifier": {
+                "add": "nixpkgs.{package}"
+            }
         },
         "env-vars": {}
     },
@@ -23,7 +29,7 @@
             "name": "",
             "arguments": [],
             "work-dir": "/code",
-            "shell": "/usr/bin/fish",
+            "shell": "/root/.nix-profile/bin/fish",
             "root-user": false,
             "privileged": true,
             "binds": {

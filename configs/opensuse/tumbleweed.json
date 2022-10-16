@@ -1,15 +1,15 @@
 {
     "image": {
-        "uri": "debian:testing",
+        "uri": "opensuse/tumbleweed",
         "on-creation": [],
         "on-finish": [],
         "pkg-manager": {
             "operations": {
-                "add": "apt-get install {args} {-y}",
-                "del": "apt-get remove {args}",
-                "update": "apt-get update {args}",
-                "upgrade": "apt-get upgrade {args}",
-                "search": "apt-get search {args}"
+                "add": "zypper install {args} {-y}",
+                "del": "zypper remove {args}",
+                "update": "zypper refresh {args}",
+                "upgrade": "zypper dup {args}",
+                "search": "zypper search {args}"
             },
             "args-modifier": {}
         },
