@@ -217,6 +217,16 @@ func (e *Podman) Version() ([]int64, error) {
 	return []int64{major, minor, patch}, nil
 }
 
+// Builds a new image using Podman
+func (e *Podman) Build(path string, tag string, attach Attach) *exec.Cmd {
+	params := []string{"build"}
+	params = append(params, tag)
+
+	glg.Debugf("Running build using the following arguments:\n  - %s", params)
+
+	return e.cmd(params, attach)
+}
+
 // Runs any podman subcommand (for example: ps)
 func (e *Podman) RawCommand(args []string, attach Attach) *exec.Cmd {
 	return e.cmd(args, attach)

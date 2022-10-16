@@ -1,9 +1,7 @@
 {
     "image": {
         "uri": "ubuntu:jammy",
-        "on-creation": [
-            "apt-get update"
-        ],
+        "on-creation": [],
         "on-finish": [],
         "pkg-manager": {
             "operations": {

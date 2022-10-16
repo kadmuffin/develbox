@@ -84,66 +84,62 @@ func (e *operation) Process(cfg *config.Struct, devAdd bool) error {
 func (e *operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.Cmd, error) {
 	pman := podman.New(cfg.Podman.Path)
 	cname := cfg.Podman.Container.Name
+	baseCmd, err := e.StringCommand(&cfg.Image.Installer)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return e.sendCommand(
+		cname,
+		baseCmd,
+		pman,
+		attach), nil
+}
+
+// Returns the string that will be send to
+// the container.
+//
+// For example: "apt install -y vim"
+func (e *operation) StringCommand(cfg *config.Installer) (string, error) {
+	var baseCmd string
 
 	switch e.Type {
 	case "add":
-		return e.sendCommand(
-			cname,
-			cfg.Image.Installer.Operations.Add,
-			cfg.Image.Installer.ArgModifier["add"],
-			pman,
-			attach), nil
-
+		baseCmd = cfg.Operations.Add
 	case "del":
-		return e.sendCommand(
-			cname,
-			cfg.Image.Installer.Operations.Del,
-			cfg.Image.Installer.ArgModifier["del"],
-			pman,
-			attach), nil
-
+		baseCmd = cfg.Operations.Del
 	case "search":
-		return e.sendCommand(
-			cname,
-			cfg.Image.Installer.Operations.Srch,
-			cfg.Image.Installer.ArgModifier["search"],
-			pman,
-			attach), nil
-
+		baseCmd = cfg.Operations.Srch
 	case "update":
-		return e.sendCommand(
-			cname,
-			cfg.Image.Installer.Operations.Upd,
-			cfg.Image.Installer.ArgModifier["update"],
-			pman,
-			attach), nil
-
+		baseCmd = cfg.Operations.Upd
 	case "upgrade":
-		return e.sendCommand(
-			cname,
-			cfg.Image.Installer.Operations.Dup,
-			cfg.Image.Installer.ArgModifier["upgrade"],
-			pman,
-			attach), nil
+		baseCmd = cfg.Operations.Dup
+
+	// Throw an error if the operation is not supported
+	default:
+		return "", glg.Errorf("couldn't find the key '%s' on the list of supported operations", e.Type)
 	}
 
-	return &exec.Cmd{}, glg.Errorf("couldn't find the key '%s' on the list of supported operations", e.Type)
+	flags := strings.Join(e.Flags, " ")
+	packages := processPackages(e.Packages, cfg.ArgModifier[e.Type])
+	modifBase := strings.Replace(baseCmd, "{args}", fmt.Sprintf("%s %s", flags, packages), 1)
+	if e.AutoInstall {
+		modifBase = strings.Replace(modifBase, "{-y}", "-y", 1)
+	} else {
+		modifBase = strings.Replace(modifBase, "{-y}", "", 1)
+	}
+
+	return modifBase, nil
 }
 
 // Runs a podman command with the config's pkgmanager settings.
 //
 // Returns an error so we can know if something failed or the user
 // did a Ctrl+C and stopped the transaction. Either way, packages failed to install.
-func (e *operation) sendCommand(cname, base string, argModifier string, pman podman.Podman, attach podman.Attach) *exec.Cmd {
-	packages := processPackages(e.Packages, argModifier)
-	flags := strings.Join(e.Flags, " ")
-	modifBase := strings.Replace(base, "{args}", fmt.Sprintf("%s %s", packages, flags), 1)
-	if e.AutoInstall {
-		modifBase = strings.Replace(modifBase, "{-y}", "-y", 1)
-	} else {
-		modifBase = strings.Replace(modifBase, "{-y}", "", 1)
-	}
-	arguments := []string{cname, modifBase}
+func (e *operation) sendCommand(cname, base string, pman podman.Podman, attach podman.Attach) *exec.Cmd {
+
+	arguments := []string{cname, base}
 
 	return pman.Exec(arguments, true, true, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
 }

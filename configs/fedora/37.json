@@ -1,9 +1,7 @@
 {
     "image": {
         "uri": "fedora:37",
-        "on-creation": [
-            "dnf upgrade -y"
-        ],
+        "on-creation": [],
         "on-finish": [],
         "pkg-manager": {
             "operations": {

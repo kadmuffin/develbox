@@ -154,8 +154,11 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		glg.Fatalf("Something went wrong with creating your container. %s", err)
 	}
 
+	opert := pkgm.NewOperation("update", []string{}, []string{}, true)
+	opert.Process(&cfg, false)
+
 	if len(cfg.Packages) > 0 {
-		opert := pkgm.NewOperation("add", append(cfg.Packages, cfg.DevPackages...), []string{}, true)
+		opert = pkgm.NewOperation("add", append(cfg.Packages, cfg.DevPackages...), []string{}, true)
 
 		cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
 		err = cmd.Run()

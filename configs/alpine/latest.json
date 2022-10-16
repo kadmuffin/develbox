@@ -1,9 +1,7 @@
 {
 	"image": {
 		"uri": "alpine:latest",
-		"on-creation": [
-			"apk update"
-		],
+		"on-creation": [],
 		"on-finish": [],
 		"pkg-manager": {
 			"operations": {

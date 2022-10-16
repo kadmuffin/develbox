@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kadmuffin/develbox/cmd/dockerfile"
 	"github.com/kadmuffin/develbox/cmd/pkg"
 	"github.com/kadmuffin/develbox/cmd/state"
 	"github.com/kadmuffin/develbox/pkg/config"
@@ -55,6 +56,7 @@ func Execute() {
 		rootCli.AddCommand(pkg.Update)
 		rootCli.AddCommand(pkg.Upgrade)
 		rootCli.AddCommand(pkg.Search)
+		rootCli.AddCommand(dockerfile.Build)
 	}
 
 	if !podman.InsideContainer() {

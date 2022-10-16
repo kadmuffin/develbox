@@ -1,9 +1,7 @@
 {
     "image": {
         "uri": "archlinux:latest",
-        "on-creation": [
-            "pacman -Syu"
-        ],
+        "on-creation": [],
         "on-finish": [],
         "pkg-manager": {
             "operations": {
