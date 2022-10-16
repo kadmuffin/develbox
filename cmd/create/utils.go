@@ -19,6 +19,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sort"
 
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kpango/glg"
@@ -52,9 +53,11 @@ func downloadConfig(argum string) config.Struct {
 
 // Returns the keys of a map as a slice
 func getKeys(data map[string][]string) []string {
-	keys := make([]string, 0, len(data))
+	keys := []string{}
 	for k := range data {
 		keys = append(keys, k)
 	}
+
+	sort.Strings(keys)
 	return keys
 }

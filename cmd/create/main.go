@@ -22,6 +22,7 @@ import (
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/container"
 	"github.com/kpango/glg"
+	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/spf13/cobra"
 )
 
@@ -66,6 +67,13 @@ var (
 
 				fmt.Println("Config file created!")
 
+				if config.FileExists(".git") {
+					err = setupGitIgnore()
+					if err != nil {
+						glg.Error(err)
+					}
+				}
+
 				if !promptCont() {
 					fmt.Println("Run again the following command create when you're ready to create the container:")
 					fmt.Println("develbox create")
@@ -100,4 +108,32 @@ func checkDocker(cfg *config.Struct) {
 			glg.Warn("Couldn't find podman nor docker on PATH!")
 		}
 	}
+}
+
+func setupGitIgnore() error {
+	gitign, _ := ignore.CompileIgnoreFile(".gitignore")
+
+	matches := (gitign.MatchesPath(".develbox/home/") || gitign.MatchesPath(".develbox/"))
+
+	if !matches && promptGitignore() {
+		return writeGitIgnore()
+	}
+	return nil
+}
+
+func writeGitIgnore() error {
+	toIgnore := "\n.develbox/home\n"
+	if !config.FileExists(".gitignore") {
+		os.Create(".gitignore")
+		toIgnore = ".develbox/home\n"
+	}
+	f, err := os.OpenFile(".gitignore", os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if _, err = f.WriteString(toIgnore); err != nil {
+		return err
+	}
+	return nil
 }

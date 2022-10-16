@@ -122,3 +122,19 @@ func promptName(cfg *config.Struct) {
 		cfg.Podman.Container.Name = result
 	}
 }
+
+// Prompt to add .develbox/home to .gitignore
+// Default answer is yes
+func promptGitignore() bool {
+	prompt := promptui.Prompt{
+		Label:     "Add .develbox/home to .gitignore",
+		IsConfirm: true,
+		Default:   "y",
+	}
+	result, err := prompt.Run()
+	if err != nil {
+		glg.Fatalf("Prompt failed %v\n", err)
+	}
+
+	return result == "y"
+}

@@ -21,7 +21,7 @@ import (
 // Prompt for no/yes if the user wants to create the container now
 func promptCont() bool {
 	prompt := promptui.Prompt{
-		Label:     "Create container now?",
+		Label:     "Create container now",
 		IsConfirm: true,
 	}
 

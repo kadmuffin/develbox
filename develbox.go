@@ -24,7 +24,7 @@ import (
 
 func main() {
 	debug := os.Getenv("DEVELBOX_DEBUG")
-	glg.Get().SetLevel(glg.ERR)
+	glg.Get().SetLevel(glg.WARN)
 
 	value, err := strconv.ParseBool(debug)
 	if err == nil && value {
