@@ -23,7 +23,6 @@ func promptCont() bool {
 	prompt := promptui.Prompt{
 		Label:     "Create container now",
 		IsConfirm: true,
-		Default:   "y",
 	}
 
 	result, _ := prompt.Run()
