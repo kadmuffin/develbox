@@ -18,6 +18,7 @@ import (
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/pkgm"
 	"github.com/kadmuffin/develbox/pkg/podman"
+	"github.com/kpango/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -31,21 +32,26 @@ var (
 		To actually update packages try using upgrade instead.
 		`,
 		DisableFlagParsing: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			packages, flags := pkgm.ParseArguments(args)
 			opertn := pkgm.NewOperation("update", *packages, *flags, false)
 
 			cfg, err := config.Read()
 			if err != nil {
-				return err
+				glg.Error(err)
+				return
 			}
 			pman := podman.New(cfg.Podman.Path)
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 			opertn.Process(&cfg, false)
 			if err != nil {
-				return err
+				glg.Error(err)
+				return
 			}
-			return config.Write(&cfg)
+			err = config.Write(&cfg)
+			if err != nil {
+				glg.Error(err)
+			}
 		},
 	}
 )

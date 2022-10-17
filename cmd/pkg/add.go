@@ -18,6 +18,7 @@ import (
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/pkgm"
 	"github.com/kadmuffin/develbox/pkg/podman"
+	"github.com/kpango/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -28,22 +29,27 @@ var (
 		Short:              "Installs packages into the container",
 		Long:               "Installs packages using the package manager defined in the config.",
 		DisableFlagParsing: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			packages, flags := pkgm.ParseArguments(args)
 			parsedFlags, devInstall := parseFlags(flags)
 			opertn := pkgm.NewOperation("add", *packages, *parsedFlags, false)
 
 			cfg, err := config.Read()
 			if err != nil {
-				return err
+				glg.Error(err)
+				return
 			}
 			pman := podman.New(cfg.Podman.Path)
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 			err = opertn.Process(&cfg, devInstall)
 			if err != nil {
-				return err
+				glg.Error(err)
+				return
 			}
-			return config.Write(&cfg)
+			err = config.Write(&cfg)
+			if err != nil {
+				glg.Error(err)
+			}
 		},
 	}
 )
