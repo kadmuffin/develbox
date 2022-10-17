@@ -67,7 +67,7 @@ var (
 
 				fmt.Println("Config file created!")
 
-				if config.FileExists(".git") {
+				if config.FileExists(".git") || config.FileExists(".gitignore") {
 					err = setupGitIgnore()
 					if err != nil {
 						glg.Error(err)
