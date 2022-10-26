@@ -15,7 +15,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/kadmuffin/develbox/pkg/config"
@@ -44,54 +43,65 @@ var (
 			}
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 
-			// Remove socket file, just in case
-			os.Remove(".develbox/home/.develbox.sock")
-
-			// Create a socket to communicate with the container
-			s := socket.New(".develbox/home/.develbox.sock")
-
-			if !s.Exists() {
-				glg.Debug("Socket doesn't exist, creating...")
-				if err := s.Create(); err != nil {
-					glg.Fatal(err)
-				}
-			}
-
-			defer s.Close()
-
-			for {
-				s.Listen(func() {
-					defer s.CloseConnection()
-
-					// Use socket as tty routing so that
-					// inside the container we can pass the tty to the host
-					// and run a command with that tty.
-					operation := pkgm.Operation{}
-					err = s.ReceiveJSON(&operation)
-					if err != nil {
-						glg.Fatal(err)
-					}
-
-					fmt.Println("Received operation: ", operation)
-					command, err := operation.ProcessCmd(&cfg, podman.Attach{})
-					if err != nil {
-						glg.Fatal(err)
-					}
-
-					reader, _ := s.Reader()
-					writer, _ := s.Writer()
-					errWriter, _ := s.Writer()
-
-					command.Stdin = reader
-					command.Stdout = writer
-					command.Stderr = errWriter
-
-					fmt.Println("Running command: ", command)
-					command.Run()
-
-					glg.Debug("Command finished")
-				})
-			}
+			defer os.Remove(".develbox/home/.develbox.sock")
+			createSocket(&cfg)
 		},
 	}
 )
+
+func createSocket(cfg *config.Struct) {
+	// Remove socket file, just in case
+	os.Remove(".develbox/home/.develbox.sock")
+
+	// Create a socket to communicate with the container
+	s := socket.New(".develbox/home/.develbox.sock")
+
+	if !s.Exists() {
+		glg.Debug("Socket doesn't exist, creating...")
+		if err := s.Create(); err != nil {
+			glg.Fatal(err)
+		}
+	}
+
+	defer s.Close()
+
+	for {
+		glg.Debug("Waiting for requests...")
+		s.Listen(func() {
+			defer s.CloseConnection()
+
+			// Use socket as tty routing so that
+			// inside the container we can pass the tty to the host
+			// and run a command with that tty.
+			operation := pkgm.Operation{}
+			err := s.ReceiveJSON(&operation)
+			if err != nil {
+				glg.Fatal(err)
+			}
+
+			// Print the operation as JSON text
+			glg.Debug(operation.ToJSON())
+			command, err := operation.ProcessCmd(cfg, podman.Attach{})
+			if err != nil {
+				glg.Fatal(err)
+			}
+
+			reader, _ := s.Reader()
+			writer, _ := s.Writer()
+			errWriter, _ := s.Writer()
+
+			command.Stdin = reader
+			command.Stdout = writer
+			command.Stderr = errWriter
+
+			glg.Debug("Running command: ", command)
+			err = command.Run()
+			if err == nil {
+				operation.UpdateConfig(cfg)
+				config.Write(cfg)
+			}
+
+			glg.Debug("Command finished with error: %v\n", err)
+		})
+	}
+}

@@ -188,3 +188,18 @@ func Read(data []byte) (Operation, error) {
 	err := json.Unmarshal(data, &opertn)
 	return opertn, err
 }
+
+// Returns a string representation of the operation
+func (e *Operation) String() string {
+	return fmt.Sprintf("Type: %s, Packages: %s, Flags: %s, AutoInstall: %t, DevInstall: %t, UserOperation: %t", e.Type, e.Packages, e.Flags, e.AutoInstall, e.DevInstall, e.UserOperation)
+}
+
+// Converts the operation to a JSON string
+func (e *Operation) ToJSON() string {
+	data, err := json.Marshal(e)
+	if err != nil {
+		return ""
+	}
+
+	return string(data)
+}

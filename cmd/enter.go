@@ -15,6 +15,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/container"
 	"github.com/kadmuffin/develbox/pkg/podman"
@@ -43,7 +45,12 @@ var (
 				glg.Fatal("Container does not exist")
 			}
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-			return container.Enter(cfg, root)
+			if experimental {
+				go createSocket(&cfg)
+			}
+			defer os.Remove(".develbox/home/.develbox.sock")
+			err = container.Enter(cfg, root)
+			return err
 		},
 	}
 )

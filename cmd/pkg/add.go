@@ -33,7 +33,7 @@ var (
 			packages, flags := pkgm.ParseArguments(args)
 			parsedFlags := parseFlags(flags)
 
-			if parsedFlags.ShowHelp {
+			if parsedFlags.ShowHelp || len(*packages)+len(parsedFlags.All) == 0 {
 				cmd.Help()
 				return
 			}
