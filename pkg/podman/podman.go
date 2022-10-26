@@ -195,7 +195,7 @@ func (e *Podman) Version() ([]int64, error) {
 	if err != nil {
 		return []int64{}, err
 	}
-	regex, err := regexp.Compile("([0-9]+)\\.([0-9]+)\\.([0-9]+)([0-9a-zA-z-\\.]+)*")
+	regex, _ := regexp.Compile(`([0-9]+)\.([0-9]+)\.([0-9]+)([0-9a-zA-z-\.]+)*`)
 	parsed := regex.FindStringSubmatch(string(data))
 
 	glg.Debug(parsed, string(data))

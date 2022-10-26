@@ -31,8 +31,15 @@ var (
 		DisableFlagParsing: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			packages, flags := pkgm.ParseArguments(args)
-			parsedFlags, devInstall := parseFlags(flags)
-			opertn := pkgm.NewOperation("add", *packages, *parsedFlags, false)
+			parsedFlags := parseFlags(flags)
+
+			if parsedFlags.ShowHelp {
+				cmd.Help()
+				return
+			}
+
+			opertn := pkgm.NewOperation("add", *packages, parsedFlags.All, false)
+			opertn.UserOperation = parsedFlags.UserOpert
 
 			cfg, err := config.Read()
 			if err != nil {
@@ -40,8 +47,12 @@ var (
 				return
 			}
 			pman := podman.New(cfg.Podman.Path)
+			if !pman.Exists(cfg.Podman.Container.Name) {
+				glg.Fatal("Container does not exist")
+			}
+
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-			err = opertn.Process(&cfg, devInstall)
+			err = opertn.Process(&cfg, parsedFlags.DevPkg)
 			if err != nil {
 				glg.Error(err)
 				return
@@ -54,19 +65,8 @@ var (
 	}
 )
 
-func parseFlags(flags *[]string) (*[]string, bool) {
-	var devInstall bool
-	var parsedFlags []string
-	for _, flag := range *flags {
-		if flag == "--dev" || flag == "-D" {
-			devInstall = true
-			continue
-		}
-		parsedFlags = append(parsedFlags, flag)
-	}
-	return &parsedFlags, devInstall
-}
-
 func init() {
 	Add.Flags().BoolP("dev", "D", false, "Install packages as development dependencies")
+	Add.Flags().BoolP("user", "U", false, "Install packages as user instead of root.")
+	Add.Flags().BoolP("pkg-help", "p", false, "Show the package manager help for this command.")
 }

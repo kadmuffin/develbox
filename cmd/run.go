@@ -17,6 +17,7 @@ package cmd
 import (
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/podman"
+	"github.com/kpango/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -30,6 +31,9 @@ var (
 				return err
 			}
 			pman := podman.New(cfg.Podman.Path)
+			if !pman.Exists(cfg.Podman.Container.Name) {
+				glg.Fatal("Container does not exist")
+			}
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 
 			params := []string{cfg.Podman.Container.Name}

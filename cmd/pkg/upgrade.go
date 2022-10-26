@@ -31,7 +31,15 @@ var (
 		DisableFlagParsing: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			packages, flags := pkgm.ParseArguments(args)
-			opertn := pkgm.NewOperation("upgrade", *packages, *flags, false)
+			parsedFlags := parseFlags(flags)
+
+			if parsedFlags.ShowHelp {
+				cmd.Help()
+				return
+			}
+
+			opertn := pkgm.NewOperation("upgrade", *packages, parsedFlags.All, false)
+			opertn.UserOperation = parsedFlags.UserOpert
 
 			cfg, err := config.Read()
 			if err != nil {
@@ -39,6 +47,10 @@ var (
 				return
 			}
 			pman := podman.New(cfg.Podman.Path)
+			if !pman.Exists(cfg.Podman.Container.Name) {
+				glg.Fatal("Container does not exist")
+			}
+
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 			opertn.Process(&cfg, false)
 			if err != nil {
@@ -52,3 +64,9 @@ var (
 		},
 	}
 )
+
+func init() {
+	Upgrade.Flags().BoolP("user", "U", false, "Install packages as user instead of root.")
+	Upgrade.Flags().BoolP("pkg-help", "p", false, "Show the package manager help for this command.")
+
+}

@@ -17,6 +17,7 @@ package state
 import (
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/podman"
+	"github.com/kpango/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -25,13 +26,21 @@ var (
 		Use:     "stop",
 		Aliases: []string{"down"},
 		Short:   "Stops the container",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			cfg, err := config.Read()
 			if err != nil {
-				return err
+				glg.Fatal(err)
 			}
 			pman := podman.New(cfg.Podman.Path)
-			return pman.Stop([]string{cfg.Podman.Container.Name}, podman.Attach{})
+
+			if !pman.Exists(cfg.Podman.Container.Name) {
+				glg.Fatal("Container does not exist")
+			}
+
+			err = pman.Stop([]string{cfg.Podman.Container.Name}, podman.Attach{})
+			if err != nil {
+				glg.Fatal(err)
+			}
 		},
 	}
 )
