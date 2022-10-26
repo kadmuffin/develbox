@@ -67,6 +67,13 @@ func (e *operation) Process(cfg *config.Struct, devAdd bool) error {
 		devPkgsP = &cfg.UserPkgs.DevPackages
 	}
 
+	if pkgsP == nil {
+		*pkgsP = []string{}
+	}
+	if devPkgsP == nil {
+		*devPkgsP = []string{}
+	}
+
 	switch e.Type {
 	case "add":
 		*pkgsP = RemoveDuplicates(&e.Packages, pkgsP)
