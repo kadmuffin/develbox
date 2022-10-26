@@ -41,7 +41,7 @@ type operation struct {
 //
 // Accepted types: ("add", "del", "update", "upgrade", "search")
 func NewOperation(opType string, packages []string, flags []string, autoInstall bool) operation {
-	return operation{Type: opType, Packages: packages, Flags: flags, AutoInstall: autoInstall}
+	return operation{Type: opType, Packages: packages, Flags: flags, AutoInstall: autoInstall, UserOperation: false}
 }
 
 // Processes the transaction and updates the config reference.
@@ -145,7 +145,7 @@ func (e *operation) sendCommand(cname, base string, pman podman.Podman, attach p
 
 	arguments := []string{cname, base}
 
-	return pman.Exec(arguments, true, e.UserOperation, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
+	return pman.Exec(arguments, true, !e.UserOperation, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
 }
 
 // writes a JSON formatted data into a file.
