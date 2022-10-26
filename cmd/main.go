@@ -48,14 +48,16 @@ func Execute() {
 		glg.Fatal("Develbox doesn't currently support being ran as root.")
 	}
 
-	if !podman.InsideContainer() {
-		// Package manager operations
-		rootCli.AddCommand(pkg.Add)
-		rootCli.AddCommand(pkg.Del)
-		rootCli.AddCommand(pkg.Update)
-		rootCli.AddCommand(pkg.Upgrade)
-		rootCli.AddCommand(pkg.Search)
+	// Package manager operations
+	rootCli.AddCommand(pkg.Add)
+	rootCli.AddCommand(pkg.Del)
+	rootCli.AddCommand(pkg.Update)
+	rootCli.AddCommand(pkg.Upgrade)
+	rootCli.AddCommand(pkg.Search)
 
+	if !podman.InsideContainer() {
+
+		rootCli.AddCommand(Socket)
 		rootCli.AddCommand(Attach)
 		rootCli.AddCommand(Enter)
 		rootCli.AddCommand(create.Create)

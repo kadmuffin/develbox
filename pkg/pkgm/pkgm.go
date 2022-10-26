@@ -27,11 +27,12 @@ import (
 )
 
 // A struct that is used to install/delete packages.
-type operation struct {
+type Operation struct {
 	Type          string   `json:"operation"`
 	Packages      []string `json:"packages"`
 	Flags         []string `json:"flags"`
 	AutoInstall   bool     `json:"auto-install"`
+	DevInstall    bool     `json:"dev-install"`
 	UserOperation bool     `json:"run-as-user"`
 }
 
@@ -40,26 +41,12 @@ type operation struct {
 // After creating a operation, run yourOperation.Process() to install/delete/etc
 //
 // Accepted types: ("add", "del", "update", "upgrade", "search")
-func NewOperation(opType string, packages []string, flags []string, autoInstall bool) operation {
-	return operation{Type: opType, Packages: packages, Flags: flags, AutoInstall: autoInstall, UserOperation: false}
+func NewOperation(opType string, packages []string, flags []string, autoInstall bool) Operation {
+	return Operation{Type: opType, Packages: packages, Flags: flags, AutoInstall: autoInstall, UserOperation: false}
 }
 
-// Processes the transaction and updates the config reference.
-//
-// Returns an error in case of failure.
-// Wrapper around ProcessCmd() that updates
-// the config reference.
-func (e *operation) Process(cfg *config.Struct, devAdd bool) error {
-	cmd, err := e.ProcessCmd(cfg, podman.Attach{
-		Stdin:     true,
-		Stdout:    true,
-		Stderr:    true,
-		PseudoTTY: true,
-	})
-	if err != nil {
-		return err
-	}
-
+// Updates the config file with the new packages
+func (e *Operation) UpdateConfig(cfg *config.Struct) {
 	pkgsP := &cfg.Packages
 	devPkgsP := &cfg.DevPackages
 	if e.UserOperation {
@@ -79,7 +66,7 @@ func (e *operation) Process(cfg *config.Struct, devAdd bool) error {
 		*pkgsP = RemoveDuplicates(&e.Packages, pkgsP)
 		*devPkgsP = RemoveDuplicates(&e.Packages, devPkgsP)
 
-		switch devAdd {
+		switch e.DevInstall {
 		case true:
 			*devPkgsP = append(*devPkgsP, e.Packages...)
 		case false:
@@ -90,13 +77,33 @@ func (e *operation) Process(cfg *config.Struct, devAdd bool) error {
 		*pkgsP = RemoveDuplicates(&e.Packages, pkgsP)
 		*devPkgsP = RemoveDuplicates(&e.Packages, devPkgsP)
 	}
+}
+
+// Processes the transaction and updates the config reference.
+//
+// Returns an error in case of failure.
+// Wrapper around ProcessCmd() that updates
+// the config reference.
+func (e *Operation) Process(cfg *config.Struct) error {
+	cmd, err := e.ProcessCmd(cfg, podman.Attach{
+		Stdin:     true,
+		Stdout:    true,
+		Stderr:    true,
+		PseudoTTY: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	e.UpdateConfig(cfg)
+
 	return cmd.Run()
 }
 
 // Processes the transaction and returns a command
 //
 // Config updates have to be handle separately
-func (e *operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.Cmd, error) {
+func (e *Operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.Cmd, error) {
 	pman := podman.New(cfg.Podman.Path)
 	cname := cfg.Podman.Container.Name
 	baseCmd, err := e.StringCommand(&cfg.Image.Installer)
@@ -116,7 +123,7 @@ func (e *operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.
 // the container.
 //
 // For example: "apt install -y vim"
-func (e *operation) StringCommand(cfg *config.Installer) (string, error) {
+func (e *Operation) StringCommand(cfg *config.Installer) (string, error) {
 	var baseCmd string
 
 	switch e.Type {
@@ -155,7 +162,7 @@ func (e *operation) StringCommand(cfg *config.Installer) (string, error) {
 //
 // Returns an error so we can know if something failed or the user
 // did a Ctrl+C and stopped the transaction. Either way, packages failed to install.
-func (e *operation) sendCommand(cname, base string, pman podman.Podman, attach podman.Attach) *exec.Cmd {
+func (e *Operation) sendCommand(cname, base string, pman podman.Podman, attach podman.Attach) *exec.Cmd {
 
 	arguments := []string{cname, base}
 
@@ -165,7 +172,7 @@ func (e *operation) sendCommand(cname, base string, pman podman.Podman, attach p
 // writes a JSON formatted data into a file.
 //
 // In this case, it's used to write into the pipe.
-func (e *operation) Write(path string, perm os.FileMode) error {
+func (e *Operation) Write(path string, perm os.FileMode) error {
 	data, err := json.Marshal(e)
 	if err != nil {
 		return err
@@ -176,8 +183,8 @@ func (e *operation) Write(path string, perm os.FileMode) error {
 
 // Parses a bytes list and returns aan operation
 // and an error.
-func Read(data []byte) (operation, error) {
-	opertn := operation{}
+func Read(data []byte) (Operation, error) {
+	opertn := Operation{}
 	err := json.Unmarshal(data, &opertn)
 	return opertn, err
 }

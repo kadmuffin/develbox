@@ -17,4 +17,5 @@ require (
 	github.com/kpango/fastime v1.1.4 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/sys v0.0.0-20221013171732-95e765b1cc43 // indirect
+	golang.org/x/term v0.1.0 // indirect
 )

@@ -63,3 +63,19 @@ func (e *Pipe) Read() ([]byte, error) {
 func (e *Pipe) Write(data []byte) error {
 	return os.WriteFile(e.path, data, 0666)
 }
+
+// Returns a writer to the pipe file.
+func (e *Pipe) Writer() (*os.File, error) {
+	return os.OpenFile(e.path, os.O_WRONLY, 0666)
+}
+
+// Returns a reader to the pipe file.
+func (e *Pipe) Reader() (*os.File, error) {
+	return os.OpenFile(e.path, os.O_RDONLY, 0666)
+}
+
+// Wrapper around os.stat() to check if the pipe file exists.
+func (e *Pipe) Exists() bool {
+	_, err := os.Stat(e.path)
+	return !os.IsNotExist(err)
+}
