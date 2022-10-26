@@ -60,21 +60,28 @@ func (e *operation) Process(cfg *config.Struct, devAdd bool) error {
 		return err
 	}
 
+	pkgsP := &cfg.Packages
+	devPkgsP := &cfg.DevPackages
+	if e.UserOperation {
+		pkgsP = &cfg.UserPkgs.Packages
+		devPkgsP = &cfg.UserPkgs.DevPackages
+	}
+
 	switch e.Type {
 	case "add":
-		cfg.Packages = RemoveDuplicates(&e.Packages, &cfg.Packages)
-		cfg.DevPackages = RemoveDuplicates(&e.Packages, &cfg.DevPackages)
+		*pkgsP = RemoveDuplicates(&e.Packages, pkgsP)
+		*devPkgsP = RemoveDuplicates(&e.Packages, devPkgsP)
 
 		switch devAdd {
 		case true:
-			cfg.DevPackages = append(cfg.DevPackages, e.Packages...)
+			*devPkgsP = append(*devPkgsP, e.Packages...)
 		case false:
-			cfg.Packages = append(cfg.Packages, e.Packages...)
+			*pkgsP = append(*pkgsP, e.Packages...)
 		}
 
 	case "del":
-		cfg.Packages = RemoveDuplicates(&e.Packages, &cfg.Packages)
-		cfg.DevPackages = RemoveDuplicates(&e.Packages, &cfg.DevPackages)
+		*pkgsP = RemoveDuplicates(&e.Packages, pkgsP)
+		*devPkgsP = RemoveDuplicates(&e.Packages, devPkgsP)
 	}
 	return cmd.Run()
 }

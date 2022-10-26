@@ -175,14 +175,11 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	opert.Process(&cfg, false)
 
 	if len(cfg.Packages)+len(cfg.DevPackages) > 0 {
-		opert = pkgm.NewOperation("add", append(cfg.Packages, cfg.DevPackages...), []string{}, true)
+		installPkgs(pman, cfg, append(cfg.Packages, cfg.DevPackages...), true)
+	}
 
-		cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
-		err = cmd.Run()
-		if err != nil {
-			pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
-			glg.Fatalf("Something went wrong while installing the specified packages. %s", err)
-		}
+	if len(cfg.UserPkgs.Packages)+len(cfg.UserPkgs.DevPackages) > 0 && cfg.Podman.Rootless {
+		installPkgs(pman, cfg, append(cfg.UserPkgs.Packages, cfg.UserPkgs.DevPackages...), false)
 	}
 
 	err = RunCommandList(cfg.Podman.Container.Name,
@@ -197,6 +194,17 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	if err != nil {
 		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
 		glg.Fatalf("Something went wrong with finishing setting up your container. %s", err)
+	}
+}
+
+func installPkgs(pman *podman.Podman, cfg config.Struct, pkgs []string, root bool) {
+	opert := pkgm.NewOperation("add", pkgs, []string{}, true)
+	opert.UserOperation = !root
+	cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
+	err := cmd.Run()
+	if err != nil {
+		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
+		glg.Fatalf("Something went wrong while installing the specified packages. %s", err)
 	}
 }
 

@@ -66,12 +66,18 @@ type Podman struct {
 	Container Container `json:"container"`
 }
 
+type UserPkgs struct {
+	Packages    []string `default:"[]" json:"packages"`
+	DevPackages []string `default:"[]" json:"devpackages"`
+}
+
 type Struct struct {
 	Image       Image             `json:"image"`
 	Podman      Podman            `json:"podman"`
 	Commands    map[string]string `default:"{}" json:"commands"`
 	Packages    []string          `default:"[]" json:"packages"`
 	DevPackages []string          `default:"[]" json:"devpackages"`
+	UserPkgs    UserPkgs          `json:"userpkgs"`
 }
 
 func SetName(cfg *Struct) {
