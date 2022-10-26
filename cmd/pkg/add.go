@@ -33,26 +33,29 @@ var (
 			packages, flags := pkgm.ParseArguments(args)
 			parsedFlags := parseFlags(flags)
 
-			if parsedFlags.ShowHelp {
+			if parsedFlags.ShowHelp || len(*packages)+len(parsedFlags.All) == 0 {
 				cmd.Help()
 				return
 			}
 
 			opertn := pkgm.NewOperation("add", *packages, parsedFlags.All, false)
 			opertn.UserOperation = parsedFlags.UserOpert
+			opertn.DevInstall = parsedFlags.DevPkg
 
 			cfg, err := config.Read()
 			if err != nil {
 				glg.Error(err)
 				return
 			}
-			pman := podman.New(cfg.Podman.Path)
-			if !pman.Exists(cfg.Podman.Container.Name) {
-				glg.Fatal("Container does not exist")
+
+			StartContainer(&cfg)
+
+			if podman.InsideContainer() {
+				SendOperation(opertn)
+				return
 			}
 
-			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-			err = opertn.Process(&cfg, parsedFlags.DevPkg)
+			err = opertn.Process(&cfg)
 			if err != nil {
 				glg.Error(err)
 				return

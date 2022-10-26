@@ -15,19 +15,23 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/kadmuffin/develbox/cmd/create"
 	"github.com/kadmuffin/develbox/cmd/dockerfile"
 	"github.com/kadmuffin/develbox/cmd/pkg"
 	"github.com/kadmuffin/develbox/cmd/state"
+	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
 	"github.com/spf13/cobra"
 )
 
 var (
-	rootCli = &cobra.Command{
+	experimental bool
+	rootCli      = &cobra.Command{
 		Use:     "develbox",
 		Version: "0.1.2",
 		Short:   "Develbox - CLI tool useful for creating dev environments.",
@@ -48,14 +52,21 @@ func Execute() {
 		glg.Fatal("Develbox doesn't currently support being ran as root.")
 	}
 
-	if !podman.InsideContainer() {
-		// Package manager operations
+	// Package manager operations
+	if podman.InsideContainer() && config.FileExists(fmt.Sprintf("/home/%s/.develbox.sock", os.Getenv("USER"))) {
 		rootCli.AddCommand(pkg.Add)
 		rootCli.AddCommand(pkg.Del)
 		rootCli.AddCommand(pkg.Update)
 		rootCli.AddCommand(pkg.Upgrade)
 		rootCli.AddCommand(pkg.Search)
+	}
 
+	if !podman.InsideContainer() {
+		experimental, _ = strconv.ParseBool(os.Getenv("DEVELBOX_EXPERIMENTAL"))
+
+		if experimental {
+			rootCli.AddCommand(Socket)
+		}
 		rootCli.AddCommand(Attach)
 		rootCli.AddCommand(Enter)
 		rootCli.AddCommand(create.Create)

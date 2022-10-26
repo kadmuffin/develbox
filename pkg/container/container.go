@@ -168,7 +168,8 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	}
 
 	opert := pkgm.NewOperation("update", []string{}, []string{}, true)
-	opert.Process(&cfg, false)
+	opert.DevInstall = true
+	opert.Process(&cfg)
 
 	if len(cfg.Packages)+len(cfg.DevPackages) > 0 {
 		installPkgs(pman, cfg, append(cfg.Packages, cfg.DevPackages...), true)
