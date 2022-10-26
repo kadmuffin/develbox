@@ -29,6 +29,7 @@ var (
 		Short:              "Executes a program inside the container",
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceErrors = true
 			cfg, err := config.Read()
 			if err != nil {
 				return err
@@ -41,7 +42,7 @@ var (
 
 			params := []string{cfg.Podman.Container.Name}
 			params = append(params, strings.Join(args, " "))
-			command := pman.Exec(params, cfg.Image.EnvVars, false, false,
+			command := pman.Exec(params, cfg.Image.EnvVars, true, false,
 				podman.Attach{
 					Stdin:     true,
 					Stdout:    true,

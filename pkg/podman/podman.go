@@ -30,9 +30,13 @@ type Podman struct {
 }
 
 type Attach struct {
-	Stdin     bool
-	Stdout    bool
-	Stderr    bool
+	// If true, the container's Stdin will be attached to the current process.
+	Stdin bool
+	// If true, the container's Stdout will be attached to the current process.
+	Stdout bool
+	// If true, the container's Stderr will be attached to the current process.
+	Stderr bool
+	// If true, allocates a pseudo-TTY for the container.
 	PseudoTTY bool
 }
 
