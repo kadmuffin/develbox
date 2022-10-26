@@ -5,9 +5,9 @@ go 1.18
 require (
 	github.com/creasty/defaults v1.6.0
 	github.com/kpango/glg v1.6.13
+	github.com/manifoldco/promptui v0.9.0
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/spf13/cobra v1.6.0
-	github.com/manifoldco/promptui v0.9.0
 )
 
 require (

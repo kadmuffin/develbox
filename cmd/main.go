@@ -29,7 +29,7 @@ import (
 var (
 	rootCli = &cobra.Command{
 		Use:     "develbox",
-		Version: "0.1.0",
+		Version: "0.1.2",
 		Short:   "Develbox - CLI tool useful for creating dev environments.",
 		Long: `Develbox - A CLI tool that manages containerized dev environments.
 
