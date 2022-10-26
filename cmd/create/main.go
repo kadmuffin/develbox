@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/container"
@@ -48,9 +49,10 @@ var (
 				cfg := config.Struct{}
 
 				if len(args) == 0 {
-					cfg = promptConfig()
+					targetUrl := strings.ReplaceAll(downloadUrl, "$$tag$$", cmd.Root().Version)
+					cfg = promptConfig(targetUrl)
 				} else {
-					cfg = downloadConfig(args[0])
+					cfg = downloadConfig(args[0], strings.ReplaceAll(downloadUrl, "$$tag$$", "main"))
 				}
 
 				checkDocker(&cfg)
@@ -94,7 +96,7 @@ var (
 func init() {
 	Create.Flags().BoolVarP(&createCfg, "config", "c", false, "Use to create a new config file")
 	Create.Flags().BoolVarP(&forceReplace, "force", "f", false, "Use to force the creation of a container/config")
-	Create.Flags().StringVarP(&downloadUrl, "source", "s", "https://raw.githubusercontent.com/kadmuffin/develbox/main/configs", "A base path from where to get the configs.")
+	Create.Flags().StringVarP(&downloadUrl, "source", "s", "https://raw.githubusercontent.com/kadmuffin/develbox/$$tag$$/configs", "A base path from where to get the configs.")
 }
 
 func checkDocker(cfg *config.Struct) {

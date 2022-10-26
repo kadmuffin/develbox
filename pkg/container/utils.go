@@ -80,7 +80,7 @@ func processVolumes(cfg config.Struct) string {
 // Loops through the commands list and runs each one separately
 func RunCommandList(name string, commands []string, pman *podman.Podman, root bool, attach podman.Attach) error {
 	for _, command := range commands {
-		err := pman.Exec([]string{name, command}, true, root, attach).Run()
+		err := pman.Exec([]string{name, podman.ReplaceEnvVars(command)}, map[string]string{}, true, root, attach).Run()
 		if err != nil {
 			return err
 		}

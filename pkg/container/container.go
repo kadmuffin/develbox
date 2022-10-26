@@ -109,10 +109,6 @@ func Create(cfg config.Struct, deleteOld bool) {
 		args = append(args, getEnvVars(cfg.Podman.Container.Binds.Vars)...)
 	}
 
-	if len(cfg.Image.EnvVars) > 0 {
-		args = append(args, setEnvVars(cfg.Image.EnvVars)...)
-	}
-
 	// Mount configs from host
 	args = append(args, "-v=/etc/localtime:/etc/localtime:ro")
 	args = append(args, "-v=/etc/resolv.conf:/etc/resolv.conf:ro")
@@ -132,7 +128,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 	// Only used if the current podman version doesn't
 	// support --passwd-entry
 	if createEtcPwd {
-		cmd := pman.Exec([]string{cfg.Podman.Container.Name, fmt.Sprintf("echo '%s:*:%d:0:develbox_container:/home/%s:/bin/sh' >> /etc/passwd", user, os.Getuid(), user)}, true, true, podman.Attach{Stderr: true})
+		cmd := pman.Exec([]string{cfg.Podman.Container.Name, fmt.Sprintf("echo '%s:*:%d:0:develbox_container:/home/%s:/bin/sh' >> /etc/passwd", user, os.Getuid(), user)}, map[string]string{}, true, true, podman.Attach{Stderr: true})
 		glg.Debugf("Running command: %s", cmd.String())
 		err = cmd.Run()
 
@@ -216,7 +212,7 @@ func Enter(cfg config.Struct, root bool) error {
 	//pipe := pipes.New(".develbox/home/.develbox")
 	//pipe.Create()
 
-	cmd := pman.Exec([]string{cfg.Podman.Container.Name, cfg.Podman.Container.Shell}, false, root,
+	cmd := pman.Exec([]string{cfg.Podman.Container.Name, cfg.Podman.Container.Shell}, cfg.Image.EnvVars, false, root,
 		podman.Attach{
 			Stdin:     true,
 			Stdout:    true,

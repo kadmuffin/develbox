@@ -32,9 +32,11 @@ var (
 		
 		To install packages inside the container use the develbox`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceUsage = true
+
 			cfg, err := config.Read()
 			if err != nil {
-				return err
+				glg.Failf("Can't read config: %s", err)
 			}
 			pman := podman.New(cfg.Podman.Path)
 			if !pman.Exists(cfg.Podman.Container.Name) {

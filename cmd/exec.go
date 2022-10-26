@@ -41,7 +41,7 @@ var (
 
 			params := []string{cfg.Podman.Container.Name}
 			params = append(params, strings.Join(args, " "))
-			command := pman.Exec(params, false, false,
+			command := pman.Exec(params, cfg.Image.EnvVars, false, false,
 				podman.Attach{
 					Stdin:     true,
 					Stdout:    true,

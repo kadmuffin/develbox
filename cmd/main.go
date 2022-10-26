@@ -56,6 +56,7 @@ func Execute() {
 		rootCli.AddCommand(pkg.Upgrade)
 		rootCli.AddCommand(pkg.Search)
 
+		rootCli.AddCommand(Attach)
 		rootCli.AddCommand(Enter)
 		rootCli.AddCommand(create.Create)
 		rootCli.AddCommand(Exec)

@@ -79,7 +79,7 @@ func (e *Podman) Create(args []string, attach Attach) *exec.Cmd {
 
 // Executes a command inside a running container and
 // attaches (Stdin, Stdout) if "attach" is true.
-func (e *Podman) Exec(args []string, sh bool, root bool, attach Attach) *exec.Cmd {
+func (e *Podman) Exec(args []string, envVars map[string]string, sh bool, root bool, attach Attach) *exec.Cmd {
 	uid := os.Getuid()
 	params := []string{"exec", "-i"}
 
@@ -89,6 +89,10 @@ func (e *Podman) Exec(args []string, sh bool, root bool, attach Attach) *exec.Cm
 
 	if attach == *new(Attach) {
 		params = append(params, "-d")
+	}
+
+	for k, v := range envVars {
+		params = append(params, "-e", fmt.Sprintf("%s=%s", k, ReplaceEnvVars(v)))
 	}
 
 	if root {
@@ -223,6 +227,16 @@ func (e *Podman) Build(path string, tag string, attach Attach) *exec.Cmd {
 	params = append(params, tag)
 
 	glg.Debugf("Running build using the following arguments:\n  - %s", params)
+
+	return e.cmd(params, attach)
+}
+
+// Attaches to the podman container
+func (e *Podman) Attach(args []string, attach Attach) *exec.Cmd {
+	params := []string{"attach"}
+	params = append(params, args...)
+
+	glg.Debugf("Running attach using the following arguments:\n  - %s", params)
 
 	return e.cmd(params, attach)
 }

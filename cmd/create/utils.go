@@ -25,8 +25,8 @@ import (
 	"github.com/kpango/glg"
 )
 
-func downloadConfig(argum string) config.Struct {
-	resp, err := http.Get(fmt.Sprintf("%s/%s.json", downloadUrl, argum))
+func downloadConfig(argum string, url string) config.Struct {
+	resp, err := http.Get(fmt.Sprintf("%s/%s.json", url, argum))
 
 	if err != nil {
 		glg.Fatal(err)

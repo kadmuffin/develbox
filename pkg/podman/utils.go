@@ -14,7 +14,12 @@
 
 package podman
 
-import "github.com/kadmuffin/develbox/pkg/config"
+import (
+	"os"
+	"strings"
+
+	"github.com/kadmuffin/develbox/pkg/config"
+)
 
 // Checks if we are inside a container
 //
@@ -22,4 +27,18 @@ import "github.com/kadmuffin/develbox/pkg/config"
 // or .dockerenv (docker)
 func InsideContainer() bool {
 	return config.FileExists("/run/.containerenv") || config.FileExists("/.dockerenv")
+}
+
+// Replaces the following instances:
+//
+// $USER -> os.Getenv("USER")
+//
+// $HOME -> /home/$USER
+//
+// $PWD -> os.Getwd()
+func ReplaceEnvVars(s string) string {
+	s = strings.ReplaceAll(s, "$$USER", os.Getenv("USER"))
+	s = strings.ReplaceAll(s, "$$HOME", "/home/"+os.Getenv("USER"))
+	s = strings.ReplaceAll(s, "$$PWD", os.Getenv("PWD"))
+	return s
 }

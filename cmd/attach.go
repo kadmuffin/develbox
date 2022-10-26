@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//	http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,35 +22,26 @@ import (
 )
 
 var (
-	Run = &cobra.Command{
-		Use:   "run",
-		Short: "Runs the command defined in the config file",
+	Attach = &cobra.Command{
+		Use:   "attach",
+		Short: "Attaches directly to the container",
+		Long:  `Attaches directly to the container. This is useful for debugging`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
 
 			cfg, err := config.Read()
 			if err != nil {
-				return err
+				glg.Fatalf("Can't read config: %s", err)
 			}
-
 			pman := podman.New(cfg.Podman.Path)
 			if !pman.Exists(cfg.Podman.Container.Name) {
 				glg.Fatal("Container does not exist")
 			}
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-
-			params := []string{cfg.Podman.Container.Name}
-			params = append(params, cfg.Commands[args[0]])
-
-			command := pman.Exec(params, cfg.Image.EnvVars, true, false,
-				podman.Attach{
-					Stdin:     true,
-					Stdout:    true,
-					Stderr:    true,
-					PseudoTTY: true,
-				})
-
-			return command.Run()
+			return pman.Attach([]string{cfg.Podman.Container.Name}, podman.Attach{Stdin: true, Stdout: true, Stderr: true}).Run()
 		},
 	}
 )
+
+func init() {
+}

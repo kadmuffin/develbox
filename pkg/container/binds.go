@@ -57,17 +57,6 @@ func getEnvVars(vars []string) []string {
 	return result
 }
 
-// Sets a lists of env variables to the container
-func setEnvVars(vars map[string]string) []string {
-	args := []string{}
-
-	for key, value := range vars {
-		args = append(args, "-e", fmt.Sprintf("%s=%s", key, value))
-	}
-
-	return args
-}
-
 // Mounts the directory used by xorg and adds user with xhost
 func mountXOrg() string {
 	if !config.FileExists("/tmp/.X11-unix") {

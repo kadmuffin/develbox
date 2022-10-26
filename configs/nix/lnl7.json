@@ -1,0 +1,49 @@
+{
+    "image": {
+        "uri": "docker.io/lnl7/nix:latest",
+        "on-creation": [
+            "nix-channel --update",
+            "nix-env -i gnused",
+            "sed -i 's/sandbox = false/sandbox = true/g' /etc/nix/nix.conf"
+        ],
+        "on-finish": [],
+        "pkg-manager": {
+            "operations": {
+                "add": "nix-env -iA {args}",
+                "del": "nix-env -e {args}",
+                "update": "nix-channel --update {args}",
+                "upgrade": "nix-env -u {args}",
+                "search": "nix-env -qaP {args}"
+            },
+            "args-modifier": {
+                "add": "nixpkgs.{package}"
+            }
+        },
+        "env-vars": {}
+    },
+    "podman": {
+        "path": "podman",
+        "rootless": true,
+        "create-deletion": false,
+        "container": {
+            "name": "",
+            "arguments": [],
+            "work-dir": "/code",
+            "shell": "/root/.nix-profile/bin/fish",
+            "root-user": false,
+            "privileged": true,
+            "binds": {
+                "xorg": true,
+                "/dev": true,
+                "env-vars": []
+            },
+            "ports": [],
+            "mounts": []
+        }
+    },
+    "commands": {},
+    "packages": [],
+    "devpackages": [
+        "fish"
+    ]
+}

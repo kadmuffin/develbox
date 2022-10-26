@@ -152,7 +152,7 @@ func (e *operation) sendCommand(cname, base string, pman podman.Podman, attach p
 
 	arguments := []string{cname, base}
 
-	return pman.Exec(arguments, true, !e.UserOperation, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
+	return pman.Exec(arguments, map[string]string{}, true, !e.UserOperation, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
 }
 
 // writes a JSON formatted data into a file.
