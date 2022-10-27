@@ -53,7 +53,7 @@ func Execute() {
 	}
 
 	// Package manager operations
-	if podman.InsideContainer() && config.FileExists(fmt.Sprintf("/home/%s/.develbox.sock", os.Getenv("USER"))) {
+	if !podman.InsideContainer() || config.FileExists(fmt.Sprintf("/home/%s/.develbox.sock", os.Getenv("USER"))) {
 		rootCli.AddCommand(pkg.Add)
 		rootCli.AddCommand(pkg.Del)
 		rootCli.AddCommand(pkg.Update)
