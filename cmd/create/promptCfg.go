@@ -51,7 +51,7 @@ var avaliableCfgs = map[string][]string{
 }
 
 // Create a prompt that asks to choose a distro and version
-func promptConfig(versionTag string) config.Struct {
+func promptConfig(url string) config.Struct {
 	prompt := promptui.Select{
 		Label: "Choose a distro",
 		Items: getKeys(avaliableCfgs),
@@ -70,7 +70,7 @@ func promptConfig(versionTag string) config.Struct {
 		glg.Fatalf("Prompt failed %v\n", err)
 	}
 
-	return downloadConfig(fmt.Sprintf("%s/%s", distro, version), downloadUrl)
+	return downloadConfig(fmt.Sprintf("%s/%s", distro, version), url)
 }
 
 // Prompts the user for ports to publish

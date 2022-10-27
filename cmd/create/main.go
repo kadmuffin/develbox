@@ -49,7 +49,8 @@ var (
 				cfg := config.Struct{}
 
 				if len(args) == 0 {
-					targetUrl := strings.ReplaceAll(downloadUrl, "$$tag$$", cmd.Root().Version)
+					targetUrl := strings.ReplaceAll(downloadUrl, "$$tag$$", "v"+cmd.Root().Version)
+					fmt.Println(targetUrl)
 					cfg = promptConfig(targetUrl)
 				} else {
 					cfg = downloadConfig(args[0], strings.ReplaceAll(downloadUrl, "$$tag$$", "main"))
