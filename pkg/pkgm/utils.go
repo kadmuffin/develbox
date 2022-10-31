@@ -26,7 +26,7 @@ func ParseArguments(arguments []string) (*[]string, *[]string) {
 	packages := []string{}
 	flags := []string{}
 	for _, arg := range arguments {
-		if string(arg[0]) == "-" {
+		if strings.HasPrefix(arg, "-") {
 			flags = append(flags, arg)
 			continue
 		}
