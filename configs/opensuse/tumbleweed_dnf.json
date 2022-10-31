@@ -3,7 +3,7 @@
         "uri": "opensuse/tumbleweed",
         "on-creation": [
             "zypper -n refresh",
-            "zypper -n in dnf libdnf-repo-config-zyp"
+            "zypper -n in dnf libdnf-repo-config-zypp"
         ],
         "on-finish": [],
         "pkg-manager": {
