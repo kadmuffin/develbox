@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
@@ -149,10 +150,16 @@ func (e *Operation) StringCommand(cfg *config.Installer) (string, error) {
 	}
 	packages := processPackages(e.Packages, cfg.ArgModifier[e.Type])
 	modifBase := strings.Replace(baseCmd, "{args}", fmt.Sprintf("%s%s", flags, packages), 1)
+	regex := regexp.MustCompile(`\{(.*)\}`)
+
+	// Anything that is inside {} will be replaced
+	// at this point.
+	// If auto install is true, we will remove the brackets
+	// else, we just replace them.
 	if e.AutoInstall {
-		modifBase = strings.Replace(modifBase, "{-y}", "-y", 1)
+		modifBase = regex.ReplaceAllString(modifBase, "$1")
 	} else {
-		modifBase = strings.Replace(modifBase, "{-y}", "", 1)
+		modifBase = regex.ReplaceAllString(modifBase, "")
 	}
 
 	return modifBase, nil

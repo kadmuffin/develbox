@@ -5,10 +5,10 @@
         "on-finish": [],
         "pkg-manager": {
             "operations": {
-                "add": "zypper install {args} {-y}",
+                "add": "zypper install {args} {--non-interactive}",
                 "del": "zypper remove {args}",
-                "update": "zypper refresh {args}",
-                "upgrade": "zypper dup {args}",
+                "update": "zypper refresh {args} {--non-interactive}",
+                "upgrade": "zypper dup {args} {--non-interactive}",
                 "search": "zypper search {args}"
             },
             "args-modifier": {}

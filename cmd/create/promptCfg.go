@@ -132,10 +132,7 @@ func promptGitignore() bool {
 		IsConfirm: true,
 		Default:   "y",
 	}
-	result, err := prompt.Run()
-	if err != nil {
-		glg.Fatalf("Prompt failed %v\n", err)
-	}
+	result, _ := prompt.Run()
 
 	return result == "y"
 }
