@@ -33,7 +33,7 @@ var (
 	experimental bool
 	rootCli      = &cobra.Command{
 		Use:     "develbox",
-		Version: "0.2.2",
+		Version: "0.2.3",
 		Short:   "Develbox - CLI tool useful for creating dev environments.",
 		Long: `Develbox - A CLI tool that manages containerized dev environments.
 
