@@ -43,6 +43,7 @@ var avaliableCfgs = map[string][]string{
 	},
 	"opensuse": {
 		"tumbleweed",
+		"tumbleweed_dnf",
 	},
 	"nix": {
 		"unstable",

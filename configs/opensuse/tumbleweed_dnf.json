@@ -1,15 +1,18 @@
 {
     "image": {
         "uri": "opensuse/tumbleweed",
-        "on-creation": [],
+        "on-creation": [
+            "zypper -n refresh",
+            "zypper -n in dnf libdnf-repo-config-zyp"
+        ],
         "on-finish": [],
         "pkg-manager": {
             "operations": {
-                "add": "zypper -n install {args}",
-                "del": "zypper -n remove {args}",
-                "update": "zypper -n refresh {args}",
-                "upgrade": "zypper -n dup {args}",
-                "search": "zypper -n search {args}"
+                "add": "dnf install {args} {-y}",
+                "del": "dnf remove {args}",
+                "update": "dnf refresh {args}",
+                "upgrade": "dnf dup {args}",
+                "search": "dnf search {args}"
             },
             "args-modifier": {}
         },
