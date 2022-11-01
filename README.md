@@ -1,6 +1,6 @@
 # Develbox
 
-A tool to create project-specific containers using Podman and Go.
+A tool to create dev containers using Podman and Go. In other words, like JetPack's Devbox but worse.
 
 ## Why this exists
 
