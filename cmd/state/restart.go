@@ -22,10 +22,10 @@ import (
 )
 
 var (
-	Trash = &cobra.Command{
-		Use:   "trash",
-		Aliases: []string{"rm"},
-		Short: "Deletes the container",
+	Restart = &cobra.Command{
+		Use:     "restart",
+		Aliases: []string{"reset"},
+		Short:   "Restarts the container",
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg, err := config.Read()
 			if err != nil {
@@ -37,7 +37,11 @@ var (
 				glg.Fatal("Container does not exist")
 			}
 
-			err = pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
+			err = pman.Stop([]string{cfg.Podman.Container.Name}, podman.Attach{})
+			if err != nil {
+				glg.Fatal(err)
+			}
+			err = pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 			if err != nil {
 				glg.Fatal(err)
 			}

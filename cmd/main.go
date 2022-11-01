@@ -74,6 +74,7 @@ func Execute() {
 		rootCli.AddCommand(Run)
 		rootCli.AddCommand(state.Start)
 		rootCli.AddCommand(state.Stop)
+		rootCli.AddCommand(state.Restart)
 		rootCli.AddCommand(state.Trash)
 	}
 	rootCli.AddCommand(Version)
