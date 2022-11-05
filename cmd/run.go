@@ -15,6 +15,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
@@ -25,6 +27,9 @@ var (
 	Run = &cobra.Command{
 		Use:   "run",
 		Short: "Runs the command defined in the config file",
+		Long: `Runs the command defined in the config file.
+		
+		Any command that is prefixed with a # inside the config will run as root.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
 
@@ -39,18 +44,50 @@ var (
 			}
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 
-			params := []string{cfg.Podman.Container.Name}
-			params = append(params, cfg.Commands[args[0]])
+			if _, ok := cfg.Commands[args[0]]; !ok {
+				glg.Fatal("Command does not exist")
+			}
+			runArg := cfg.Commands[args[0]]
 
-			command := pman.Exec(params, cfg.Image.EnvVars, true, false,
-				podman.Attach{
-					Stdin:     true,
-					Stdout:    true,
-					Stderr:    true,
-					PseudoTTY: true,
-				})
+			// Detect if command is a string or an array of strings, and if it is prefixed with a #.
+			// Here so we can know if we need to run the command as root or not.
+			if _, ok := runArg.(string); ok {
+				rootOpert := strings.HasPrefix(runArg.(string), "#")
+				runArg = strings.TrimPrefix(runArg.(string), "#")
 
-			return command.Run()
+				params := []string{cfg.Podman.Container.Name, runArg.(string)}
+
+				return pman.Exec(params, cfg.Image.EnvVars, true, rootOpert,
+					podman.Attach{
+						Stdin:     true,
+						Stdout:    true,
+						Stderr:    true,
+						PseudoTTY: true,
+					}).Run()
+			}
+			if _, ok := runArg.([]interface{}); ok {
+				return runCommandList(pman, cfg, runArg.([]interface{}))
+			}
+
+			return glg.Errorf("\"%s\" uses an unsupported type, expected string or string array.", args[0])
 		},
 	}
 )
+
+func runCommandList(pman podman.Podman, cfg config.Struct, runArg []interface{}) error {
+	for _, v := range runArg {
+		rootOpert := strings.HasPrefix(v.(string), "#")
+		newArg := strings.TrimPrefix(v.(string), "#")
+
+		params := []string{cfg.Podman.Container.Name, newArg}
+
+		return pman.Exec(params, cfg.Image.EnvVars, true, rootOpert,
+			podman.Attach{
+				Stdin:     true,
+				Stdout:    true,
+				Stderr:    true,
+				PseudoTTY: true,
+			}).Run()
+	}
+	return nil
+}

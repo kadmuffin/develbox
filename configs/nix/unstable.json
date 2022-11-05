@@ -4,7 +4,8 @@
         "on-creation": [
             "nix-channel --update",
 			"nix-env -i gnused",
-			"sed -i 's/sandbox = false/sandbox = true/g' /etc/nix/nix.conf"
+			"sed -i 's/sandbox = false/sandbox = true/g' /etc/nix/nix.conf",
+            "echo 'extra-experimental-features = nix-command flakes' >> /etc/nix/nix.conf"
         ],
         "on-finish": [],
         "pkg-manager": {

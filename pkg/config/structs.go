@@ -72,12 +72,15 @@ type UserPkgs struct {
 }
 
 type Struct struct {
-	Image       Image             `json:"image"`
-	Podman      Podman            `json:"podman"`
-	Commands    map[string]string `default:"{}" json:"commands"`
-	Packages    []string          `default:"[]" json:"packages"`
-	DevPackages []string          `default:"[]" json:"devpackages"`
-	UserPkgs    UserPkgs          `json:"userpkgs"`
+	Image  Image  `json:"image"`
+	Podman Podman `json:"podman"`
+
+	// Using interface so we can support string and []string
+	Commands map[string]interface{} `default:"{}" json:"commands"`
+
+	Packages    []string `default:"[]" json:"packages"`
+	DevPackages []string `default:"[]" json:"devpackages"`
+	UserPkgs    UserPkgs `json:"userpkgs"`
 }
 
 func SetName(cfg *Struct) {
