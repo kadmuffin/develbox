@@ -25,8 +25,11 @@ import (
 
 var (
 	Exec = &cobra.Command{
-		Use:                "exec",
-		Short:              "Executes a program inside the container",
+		Use:   "exec",
+		Short: "Executes a program inside the container",
+		Long: `Executes a program inside the container.
+		
+		Run with "#" or "!" prefix to run command as root.`,
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
