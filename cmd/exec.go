@@ -40,9 +40,15 @@ var (
 			}
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 
-			params := []string{cfg.Podman.Container.Name}
-			params = append(params, strings.Join(args, " "))
-			command := pman.Exec(params, cfg.Image.EnvVars, true, false,
+			var rootOpert bool
+			joinedArgs := strings.Join(args, " ")
+			if strings.HasPrefix(joinedArgs, "#") {
+				rootOpert = true
+				joinedArgs = strings.TrimPrefix(joinedArgs, "#")
+			}
+
+			params := []string{cfg.Podman.Container.Name, joinedArgs}
+			command := pman.Exec(params, cfg.Image.EnvVars, true, rootOpert,
 				podman.Attach{
 					Stdin:     true,
 					Stdout:    true,
