@@ -29,7 +29,7 @@ var (
 		Short:              "Executes a program inside the container",
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.SilenceErrors = true
+			cmd.SilenceUsage = true
 			cfg, err := config.Read()
 			if err != nil {
 				return err
