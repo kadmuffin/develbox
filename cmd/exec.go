@@ -46,6 +46,10 @@ var (
 				rootOpert = true
 				joinedArgs = strings.TrimPrefix(joinedArgs, "#")
 			}
+			if strings.HasPrefix(joinedArgs, "!") {
+				rootOpert = true
+				joinedArgs = strings.TrimPrefix(joinedArgs, "!")
+			}
 
 			params := []string{cfg.Podman.Container.Name, joinedArgs}
 			command := pman.Exec(params, cfg.Image.EnvVars, true, rootOpert,
