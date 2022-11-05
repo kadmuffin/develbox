@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
@@ -24,70 +25,116 @@ import (
 )
 
 var (
-	Run = &cobra.Command{
+	cfg  config.Struct
+	pman podman.Podman
+	Run  = &cobra.Command{
 		Use:   "run",
 		Short: "Runs the command defined in the config file",
 		Long: `Runs the command defined in the config file.
 		
-		Any command that is prefixed with a # inside the config will run as root.`,
+		Any command that is prefixed with a # inside the config will run as root. Call other commands using the "!" prefix.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
 
-			cfg, err := config.Read()
+			var err error
+			cfg, err = config.Read()
 			if err != nil {
 				return err
 			}
 
-			pman := podman.New(cfg.Podman.Path)
+			pman = podman.New(cfg.Podman.Path)
 			if !pman.Exists(cfg.Podman.Container.Name) {
 				glg.Fatal("Container does not exist")
 			}
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
 
-			if _, ok := cfg.Commands[args[0]]; !ok {
-				glg.Fatal("Command does not exist")
-			}
-			runArg := cfg.Commands[args[0]]
-
-			// Detect if command is a string or an array of strings, and if it is prefixed with a #.
-			// Here so we can know if we need to run the command as root or not.
-			if _, ok := runArg.(string); ok {
-				rootOpert := strings.HasPrefix(runArg.(string), "#")
-				runArg = strings.TrimPrefix(runArg.(string), "#")
-
-				params := []string{cfg.Podman.Container.Name, runArg.(string)}
-
-				return pman.Exec(params, cfg.Image.EnvVars, true, rootOpert,
-					podman.Attach{
-						Stdin:     true,
-						Stdout:    true,
-						Stderr:    true,
-						PseudoTTY: true,
-					}).Run()
-			}
-			if _, ok := runArg.([]interface{}); ok {
-				return runCommandList(pman, cfg, runArg.([]interface{}))
+			name := strings.Join(args, " ")
+			if _, ok := cfg.Commands[name]; !ok {
+				return glg.Errorf("Command '%s' does not exist")
 			}
 
-			return glg.Errorf("\"%s\" uses an unsupported type, expected string or string array.", args[0])
+			runArgs, err := getAllAsArray(name, "")
+			if err != nil {
+				return err
+			}
+
+			return runCommandList(runArgs)
 		},
 	}
 )
 
-func runCommandList(pman podman.Podman, cfg config.Struct, runArg []interface{}) error {
-	for _, v := range runArg {
-		rootOpert := strings.HasPrefix(v.(string), "#")
-		newArg := strings.TrimPrefix(v.(string), "#")
+// getAllAsArray takes a name and returns an array of strings.
+//
+// The resulting array will contain all the commands inside that name.
+//
+// If the name is prefixed with "!", it will recursively call itself
+// to get the full command tree.
+func getAllAsArray(name string, from string) ([]string, error) {
+	if _, ok := cfg.Commands[name]; !ok {
+		return []string{}, glg.Errorf("[%s] Command '%s' does not exist", from, name)
+	}
+	cmds := cfg.Commands[name]
+	result := []string{}
+
+	if _, ok := cmds.(string); ok {
+		if strings.HasPrefix(cmds.(string), "!") {
+			return parseRecursion(cmds.(string), name, from)
+		}
+		result = append(result, cmds.(string))
+		return result, nil
+	}
+	if _, ok := cmds.([]interface{}); ok {
+		for _, v := range cmds.([]interface{}) {
+			if strings.HasPrefix(v.(string), "!") {
+				newCmds, err := parseRecursion(v.(string), name, from)
+
+				if err != nil {
+					return []string{}, err
+				}
+
+				result = append(result, newCmds...)
+				continue
+			}
+			result = append(result, v.(string))
+		}
+		return result, nil
+	}
+
+	return result, glg.Errorf("'%s' uses an unsupported type, expected string or list of strings.", name)
+}
+
+// runCommandList takes a list of commands and runs them.
+// If a command is prefixed with "#", it will run as root.
+func runCommandList(runArgs []string) error {
+	for _, v := range runArgs {
+		rootOpert := strings.HasPrefix(v, "#")
+		newArg := strings.TrimPrefix(v, "#")
 
 		params := []string{cfg.Podman.Container.Name, newArg}
 
-		return pman.Exec(params, cfg.Image.EnvVars, true, rootOpert,
+		err := pman.Exec(params, cfg.Image.EnvVars, true, rootOpert,
 			podman.Attach{
 				Stdin:     true,
 				Stdout:    true,
 				Stderr:    true,
 				PseudoTTY: true,
 			}).Run()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+// This is used to parse the recursion of commands.
+// It also stops the recursion if it detects a loop.
+func parseRecursion(v, name, from string) ([]string, error) {
+	parsedName := strings.TrimPrefix(v, "!")
+	if parsedName == name || strings.Contains(from, parsedName) {
+		return []string{}, glg.Errorf("Recursive command '%s' stopped", name)
+	}
+
+	// We pass from where we came from and the name of the command we are parsing.
+	// It's also useful for debugging loops when one happens.
+	return getAllAsArray(parsedName, fmt.Sprintf("%s,%s", from, name))
 }
