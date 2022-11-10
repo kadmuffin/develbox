@@ -86,6 +86,12 @@ type Struct struct {
 	Packages    []string `default:"[]" json:"packages"`
 	DevPackages []string `default:"[]" json:"devpackages"`
 	UserPkgs    UserPkgs `json:"userpkgs"`
+
+	// This is a map of tag:container_path
+	// For example, for nix, you can use
+	// the nix tag (which will create a global folder called nix)
+	// and then use it in the container as /nix
+	SharedFolders map[string]string `default:"{}" json:"shared-folders"`
 }
 
 func SetName(cfg *Struct) {
