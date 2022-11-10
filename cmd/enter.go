@@ -49,7 +49,7 @@ var (
 				go createSocket(&cfg)
 			}
 			defer os.Remove(".develbox/home/.develbox.sock")
-			err = container.Enter(cfg, root)
+			err = container.InstallAndEnter(cfg, root)
 			return err
 		},
 	}

@@ -176,7 +176,12 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	}
 
 	if len(cfg.UserPkgs.Packages)+len(cfg.UserPkgs.DevPackages) > 0 && cfg.Podman.Rootless {
-		installPkgs(pman, cfg, append(cfg.UserPkgs.Packages, cfg.UserPkgs.DevPackages...), false)
+		err := installPkgs(pman, cfg, append(cfg.UserPkgs.Packages, cfg.UserPkgs.DevPackages...), false)
+
+		if err != nil {
+			pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
+			glg.Fatalf("Something went wrong while installing the specified packages. %s", err)
+		}
 	}
 
 	err = RunCommandList(cfg.Podman.Container.Name,
@@ -194,15 +199,11 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	}
 }
 
-func installPkgs(pman *podman.Podman, cfg config.Struct, pkgs []string, root bool) {
+func installPkgs(pman *podman.Podman, cfg config.Struct, pkgs []string, root bool) error {
 	opert := pkgm.NewOperation("add", pkgs, []string{}, true)
 	opert.UserOperation = !root
 	cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
-	err := cmd.Run()
-	if err != nil {
-		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
-		glg.Fatalf("Something went wrong while installing the specified packages. %s", err)
-	}
+	return cmd.Run()
 }
 
 // Runs a shell in the container
@@ -225,4 +226,27 @@ func Enter(cfg config.Struct, root bool) error {
 	err := cmd.Run()
 	//pipe.Remove()
 	return err
+}
+
+func InstallAndEnter(cfg config.Struct, root bool) error {
+	pman := podman.New(cfg.Podman.Path)
+	//pipe := pipes.New(".develbox/home/.develbox")
+	//pipe.Create()
+
+	err := installPkgs(&pman, cfg, cfg.Packages, true)
+	if err != nil {
+		glg.Error("Couldn't install packages.")
+	}
+
+	cmd := pman.Exec([]string{cfg.Podman.Container.Name, cfg.Podman.Container.Shell}, cfg.Image.EnvVars, false, root,
+		podman.Attach{
+			Stdin:     true,
+			Stdout:    true,
+			Stderr:    true,
+			PseudoTTY: true,
+		})
+
+	//go pkgPipe(&cfg, pipe)
+	return cmd.Run()
+	//pipe.Remove()
 }
