@@ -16,6 +16,8 @@ package create
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
@@ -136,4 +138,38 @@ func promptGitignore() bool {
 	result, _ := prompt.Run()
 
 	return result == "y"
+}
+
+// Asks the user if they want to use $EDITOR to open
+// the config file
+func promptEditConfig() {
+	prompt := promptui.Prompt{
+		Label:     "Edit config file",
+		IsConfirm: true,
+		Default:   "y",
+	}
+	result, _ := prompt.Run()
+
+	if result == "y" || result == "" {
+		editor := os.Getenv("EDITOR")
+		fmt.Printf("Opening config file in %s\n", editor)
+
+		if editor == "" {
+			// Check if at least vi is installed
+			_, err := exec.LookPath("vi")
+			if err != nil {
+				glg.Fatal("No editor set, please set $EDITOR or install vi")
+			}
+			editor = "vi"
+		}
+
+		cmd := exec.Command(editor, ".develbox/config.json")
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			glg.Error(err)
+		}
+	}
 }

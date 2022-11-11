@@ -70,6 +70,8 @@ var (
 
 				fmt.Println("Config file created!")
 
+				promptEditConfig()
+
 				if config.FileExists(".git") || config.FileExists(".gitignore") {
 					err = setupGitIgnore()
 					if err != nil {
