@@ -98,7 +98,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 	}
 
 	if len(cfg.Podman.Container.Mounts) > 0 {
-		args = append(args, processVolumes(cfg))
+		args = append(args, processMounts(cfg))
 	}
 	if len(cfg.Podman.Container.Ports) > 0 {
 		args = append(args, processPorts(cfg))
@@ -301,12 +301,12 @@ func bindSharedFolders(cfg config.Struct, args *[]string) {
 		tagPath := globalData.CreateAndGet(key)
 
 		if _, ok := value.(string); ok {
-			*args = append(*args, fmt.Sprintf("--volume=%s:%s", tagPath, value.(string)))
+			*args = append(*args, fmt.Sprintf("-v=%s:%s", tagPath, ReplaceEnvVars(value.(string))))
 		}
 
 		if _, ok := value.([]interface{}); ok {
 			for _, val := range value.([]interface{}) {
-				*args = append(*args, fmt.Sprintf("--volume=%s:%s", tagPath, val.(string)))
+				*args = append(*args, fmt.Sprintf("-v=%s:%s", tagPath, ReplaceEnvVars(val.(string))))
 			}
 		}
 
