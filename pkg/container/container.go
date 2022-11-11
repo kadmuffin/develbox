@@ -301,12 +301,15 @@ func bindSharedFolders(cfg config.Struct, args *[]string) {
 		tagPath := globalData.CreateAndGet(key)
 
 		if _, ok := value.(string); ok {
-			*args = append(*args, fmt.Sprintf("-v=%s:%s", tagPath, ReplaceEnvVars(value.(string))))
+			endPath := ReplaceEnvVars(value.(string))
+
+			*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, globalData.GetLastPathPart(endPath), endPath))
 		}
 
 		if _, ok := value.([]interface{}); ok {
 			for _, val := range value.([]interface{}) {
-				*args = append(*args, fmt.Sprintf("-v=%s:%s", tagPath, ReplaceEnvVars(val.(string))))
+				endPath := ReplaceEnvVars(val.(string))
+				*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, globalData.GetLastPathPart(endPath), endPath))
 			}
 		}
 
