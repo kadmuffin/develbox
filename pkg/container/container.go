@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Creates a container and runs the setupContainer function
 package container
 
 import (
@@ -19,6 +20,7 @@ import (
 	"os"
 
 	"github.com/kadmuffin/develbox/pkg/config"
+	globalData "github.com/kadmuffin/develbox/pkg/global"
 	"github.com/kadmuffin/develbox/pkg/pkgm"
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
@@ -77,6 +79,12 @@ func Create(cfg config.Struct, deleteOld bool) {
 		}
 
 	}
+
+	// Shares a global folder with the container.
+	// What this means is that we can mantain certain files
+	// between containers. Mainly, it's useful for
+	// cache files, like nix, npm, etc...
+	bindSharedFolders(cfg, &args)
 
 	// Mount gitconfig globably inside container
 	args = append(args, fmt.Sprintf("-v=/home/%s/.gitconfig:/etc/gitconfig:ro", user))
@@ -283,4 +291,25 @@ func InstallAndEnter(cfg config.Struct, root bool) error {
 	//go pkgPipe(&cfg, pipe)
 	return cmd.Run()
 	//pipe.Remove()
+}
+
+// Loops through the shared folders and
+// creates and binds them to the container.
+func bindSharedFolders(cfg config.Struct, args *[]string) {
+	for key, value := range cfg.Podman.Container.SharedFolders {
+
+		tagPath := globalData.CreateAndGet(key)
+
+		if _, ok := value.(string); ok {
+			*args = append(*args, fmt.Sprintf("--volume=%s:%s", tagPath, value.(string)))
+		}
+
+		if _, ok := value.([]interface{}); ok {
+			for _, val := range value.([]interface{}) {
+				*args = append(*args, fmt.Sprintf("--volume=%s:%s", tagPath, val.(string)))
+			}
+		}
+
+		glg.Fatalf("The shared folder value must be a string or a list of strings. Got %d", value)
+	}
 }
