@@ -297,20 +297,32 @@ func InstallAndEnter(cfg config.Struct, root bool) error {
 // creates and binds them to the container.
 func bindSharedFolders(cfg config.Struct, args *[]string) {
 	for key, value := range cfg.Podman.Container.SharedFolders {
-
 		tagPath := globalData.CreateAndGet(key)
 
 		if _, ok := value.(string); ok {
 			endPath := ReplaceEnvVars(value.(string))
+			hashedPath, err := globalData.HashPathAndCreate(endPath, key)
 
-			*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, globalData.GetLastPathPart(endPath), endPath))
+			if err != nil {
+				glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
+			}
+
+			*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, hashedPath, endPath))
+			continue
 		}
 
 		if _, ok := value.([]interface{}); ok {
 			for _, val := range value.([]interface{}) {
 				endPath := ReplaceEnvVars(val.(string))
-				*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, globalData.GetLastPathPart(endPath), endPath))
+				hashedPath, err := globalData.HashPathAndCreate(endPath, key)
+
+				if err != nil {
+					glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
+				}
+
+				*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, hashedPath, endPath))
 			}
+			continue
 		}
 
 		glg.Fatalf("The shared folder value must be a string or a list of strings. Got %d", value)

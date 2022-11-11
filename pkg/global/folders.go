@@ -15,6 +15,7 @@
 package global
 
 import (
+	"fmt"
 	"os"
 	"regexp"
 
@@ -46,4 +47,12 @@ func GetTaggedFolder(tag string) string {
 func CreateAndGet(tag string) string {
 	CreateTaggedFolder(tag)
 	return GetTaggedFolder(tag)
+}
+
+// Wrapper around HashPath that creates the folder if it doesn't exist
+// inside the shared folder
+func HashPathAndCreate(path string, tag string) (string, error) {
+	hashPath := HashPath(path)
+	err := CreateFolder(fmt.Sprintf("%s/%s", GetTaggedFolder(tag), hashPath))
+	return hashPath, err
 }

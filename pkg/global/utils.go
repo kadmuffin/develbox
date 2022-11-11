@@ -17,6 +17,8 @@ package global
 import (
 	"os"
 	"strings"
+
+	"github.com/kadmuffin/develbox/pkg/config"
 )
 
 // Get XDG_DATA_HOME, if not set, use ~/.local/share and set it
@@ -60,4 +62,22 @@ func GetLastPathPart(path string) string {
 // Create a new folder at the given path
 func CreateFolder(path string) error {
 	return os.MkdirAll(path, 0755)
+}
+
+// Checks if a path is a folder or a file.
+// For doing this, it checks if the last part of the path
+// if it has a "/", it's a folder, otherwise it's a file
+func IsFolder(path string) bool {
+	return strings.HasSuffix(path, "/")
+}
+
+// Returns a hash of a path and
+// mantains the "/" at the end of the path
+// if it exists.
+func HashPath(path string) string {
+	hashPath := config.GetPathHash(path)
+	if IsFolder(path) {
+		hashPath += "/"
+	}
+	return hashPath
 }
