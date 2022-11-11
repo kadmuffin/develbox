@@ -56,3 +56,18 @@ func HashPathAndCreate(path string, tag string) (string, error) {
 	err := CreateFolder(fmt.Sprintf("%s/%s", GetTaggedFolder(tag), hashPath))
 	return hashPath, err
 }
+
+// Basicly the same as CreateFolder but
+// adds the shared folder path to the beginning
+// of the path and in case of a file,
+// it creates the folder for the file
+func CreateFile(path string, tag string) (string, error) {
+	if IsFolder(path) {
+		newPath := GetTaggedFolder(tag) + "/" + path
+		return newPath, CreateFolder(newPath)
+	}
+
+	newPath := GetTaggedFolder(tag) + "/" + GetPathBeforeLastPart(path)
+	// If it's a file, create the folder for it
+	return newPath, CreateFolder(newPath)
+}

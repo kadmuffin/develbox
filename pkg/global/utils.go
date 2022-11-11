@@ -59,6 +59,12 @@ func GetLastPathPart(path string) string {
 	return path[strings.LastIndex(path, "/")+1:]
 }
 
+// Get everything before the last part of a path
+// Example: /home/user/Downloads -> /home/user
+func GetPathBeforeLastPart(path string) string {
+	return path[:strings.LastIndex(path, "/")]
+}
+
 // Create a new folder at the given path
 func CreateFolder(path string) error {
 	return os.MkdirAll(path, 0755)

@@ -301,26 +301,26 @@ func bindSharedFolders(cfg config.Struct, args *[]string) {
 
 		if _, ok := value.(string); ok {
 			endPath := ReplaceEnvVars(value.(string))
-			hashedPath, err := globalData.HashPathAndCreate(endPath, key)
+			newPath, err := globalData.HashPathAndCreate(endPath, key)
 
 			if err != nil {
 				glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
 			}
 
-			*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, hashedPath, endPath))
+			*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, newPath, endPath))
 			continue
 		}
 
 		if _, ok := value.([]interface{}); ok {
 			for _, val := range value.([]interface{}) {
 				endPath := ReplaceEnvVars(val.(string))
-				hashedPath, err := globalData.HashPathAndCreate(endPath, key)
+				newPath, err := globalData.CreateFile(endPath, key)
 
 				if err != nil {
 					glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
 				}
 
-				*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, hashedPath, endPath))
+				*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, newPath, endPath))
 			}
 			continue
 		}
