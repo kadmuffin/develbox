@@ -16,6 +16,7 @@
 package podman
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -42,9 +43,9 @@ type Attach struct {
 }
 
 func New(path string) Podman {
-	glg.Debugf("Podman path set to '%s'.", path)
+	glg.Infof("Podman path set to '%s'.", path)
 	cmd := exec.Command(path, "--version")
-	glg.Debugf("Verifying that podman exists using '%s'.", cmd.String())
+	glg.Infof("Verifying that podman exists using '%s'.", cmd.String())
 
 	if err := cmd.Run(); err != nil {
 		glg.Fatalf("Can't access the podman executable: %s", err)
@@ -73,13 +74,11 @@ func (e *Podman) cmd(args []string, attach Attach) *exec.Cmd {
 
 // Creates a container using the arguments provided.
 func (e *Podman) Create(args []string, attach Attach) *exec.Cmd {
-	params := []string{"run", "-d", "-t", "--init"}
+	params := []string{"run", "-t", "--init"}
 	params = append(params, args...)
 
-	cmd := e.cmd(params, attach)
-	glg.Debugf("Creating container using the following command: %s", cmd.String())
+	return PrintCommandR("Creating container using the following command: %s", e.cmd(params, attach))
 
-	return cmd
 }
 
 // Executes a command inside a running container and
@@ -114,10 +113,7 @@ func (e *Podman) Exec(args []string, envVars map[string]string, sh bool, root bo
 
 	params = append(params, args[1:]...)
 
-	cmd := e.cmd(params, attach)
-	glg.Debugf("Executing command: %s", cmd.String())
-
-	return cmd
+	return PrintCommandR("Executing command: %s", e.cmd(params, attach))
 }
 
 // Returns a boolean that indicates if the container was found.
@@ -141,27 +137,23 @@ func (e *Podman) Start(args []string, attach Attach) error {
 	params := []string{"start"}
 	params = append(params, args...)
 
-	glg.Debugf("Starting container using the following arguments:\n  - %s", params)
-
-	return e.cmd(params, attach).Run()
+	return PrintCommandR("Starting container using the following arguments:\n  - %s", e.cmd(params, attach)).Run()
 }
 
 // Stops a container and returns an error in case of failure.
 //
-// In arguments, the first argument can should the
+// In arguments, the first argument has to be the
 // container's name/id if no flag are added before of the name.
 func (e *Podman) Stop(args []string, attach Attach) error {
 	params := []string{"stop"}
 	params = append(params, args...)
 
-	glg.Debugf("Stopping container using the following arguments:\n  - %s", params)
-
-	return e.cmd(params, attach).Run()
+	return PrintCommandR("Stopping container using the following arguments:\n  - %s", e.cmd(params, attach)).Run()
 }
 
 // Removes a container and returns an error in case of failure.
 //
-// In arguments, the first argument can should the
+// In arguments, the first argument has to be the
 // container's name/id if no flag are added before of the name.
 func (e *Podman) Remove(args []string, attach Attach) error {
 	e.Stop(args, attach)
@@ -169,9 +161,7 @@ func (e *Podman) Remove(args []string, attach Attach) error {
 	params := []string{"rm"}
 	params = append(params, args...)
 
-	glg.Debugf("Removing container using the following arguments:\n  - %s", params)
-
-	return e.cmd(params, attach).Run()
+	return PrintCommandR("Removing container using the following arguments:\n  - %s", e.cmd(params, attach)).Run()
 }
 
 // Copies files into the container
@@ -181,9 +171,7 @@ func (e *Podman) Copy(args []string, attach Attach) *exec.Cmd {
 	params := []string{"cp"}
 	params = append(params, args...)
 
-	glg.Debugf("Running copy using the following arguments:\n  - %s", params)
-
-	return e.cmd(params, attach)
+	return PrintCommandR("Running copy using the following arguments:\n  - %s", e.cmd(params, attach))
 }
 
 // Checks if the path contains the word "docker"
@@ -204,10 +192,17 @@ func (e *Podman) Version() ([]int64, error) {
 	if err != nil {
 		return []int64{}, err
 	}
-	regex, _ := regexp.Compile(`([0-9]+)\.([0-9]+)\.([0-9]+)([0-9a-zA-z-\.]+)*`)
+
+	regex, err := regexp.Compile(`([0-9]+)\.([0-9]+)\.([0-9]+)([0-9a-zA-z-\.]+)*`)
+	if err != nil {
+		return []int64{}, err
+	}
+
 	parsed := regex.FindStringSubmatch(string(data))
 
-	glg.Debug(parsed, string(data))
+	if parsed == nil {
+		return []int64{}, errors.New("unable to parse version")
+	}
 
 	major, err := strconv.ParseInt(parsed[1], 10, 0)
 	if err != nil {
@@ -223,6 +218,7 @@ func (e *Podman) Version() ([]int64, error) {
 	if err != nil {
 		return []int64{}, err
 	}
+
 	return []int64{major, minor, patch}, nil
 }
 
@@ -231,9 +227,7 @@ func (e *Podman) Build(path string, tag string, attach Attach) *exec.Cmd {
 	params := []string{"build"}
 	params = append(params, tag)
 
-	glg.Debugf("Running build using the following arguments:\n  - %s", params)
-
-	return e.cmd(params, attach)
+	return PrintCommandR("Running build using the following arguments:\n  - %s", e.cmd(params, attach))
 }
 
 // Attaches to the podman container
@@ -241,12 +235,21 @@ func (e *Podman) Attach(args []string, attach Attach) *exec.Cmd {
 	params := []string{"attach"}
 	params = append(params, args...)
 
-	glg.Debugf("Running attach using the following arguments:\n  - %s", params)
-
-	return e.cmd(params, attach)
+	return PrintCommandR("Running attach using the following arguments:\n  - %s", e.cmd(params, attach))
 }
 
 // Runs any podman subcommand (for example: ps)
 func (e *Podman) RawCommand(args []string, attach Attach) *exec.Cmd {
 	return e.cmd(args, attach)
+}
+
+// Checks if the container is running
+func (e *Podman) IsRunning(name string) bool {
+	params := []string{"container", "inspect", "-f", "'{{.State.Running}}'", name}
+	data, err := e.cmd(params, Attach{}).Output()
+	if err != nil {
+		return false
+	}
+
+	return strings.Contains(string(data), "true")
 }

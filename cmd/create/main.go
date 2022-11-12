@@ -88,6 +88,7 @@ var (
 
 			cfg, err := config.Read()
 			if err != nil {
+				glg.Error(err)
 				glg.Errorf("Failed to read .develbox/config.json! Try running 'develbox create -c --force' to create a new one.")
 				return
 			}

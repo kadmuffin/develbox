@@ -55,6 +55,11 @@ func Create(cfg config.Struct, deleteOld bool) {
 
 	args := []string{"--name", cfg.Podman.Container.Name}
 
+	debug := os.Getenv("DEVELBOX_DEBUG")
+	if debug != "true" && debug != "1" {
+		args = append(args, "-d")
+	}
+
 	glg.Debugf("rootless is set to: %t", cfg.Podman.Rootless)
 	if cfg.Podman.Rootless {
 
@@ -125,13 +130,22 @@ func Create(cfg config.Struct, deleteOld bool) {
 	// Mount the main folder and pass the image URI before the
 	// container is created.
 	args = append(args, mountWorkDir(cfg)...)
-	args = append(args, cfg.Image.URI)
+	args = append(args, cfg.Image.URI, "sh")
 	err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
+
+	if err == nil && !pman.IsRunning(cfg.Podman.Container.Name) {
+		glg.Warnf("Container '%s' is not running! Retrying again with container attached.", cfg.Podman.Container.Name)
+
+		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{})
+
+		// Remove the "-d" argument
+		args = append(args[:2], args[3:]...)
+		err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
+	}
 
 	if err != nil {
 		glg.Fatalf("Something went wrong while creating the container.")
 	}
-
 	// Adds the current user to /etc/passwd
 	// Only used if the current podman version doesn't
 	// support --passwd-entry
@@ -297,21 +311,16 @@ func InstallAndEnter(cfg config.Struct, root bool) error {
 // creates and binds them to the container.
 func bindSharedFolders(cfg config.Struct, args *[]string) {
 	for key, value := range cfg.Podman.Container.SharedFolders {
-		tagPath := globalData.CreateAndGet(key)
-
-		if _, ok := value.(string); ok {
+		switch value.(type) {
+		case string:
 			endPath := ReplaceEnvVars(value.(string))
-			newPath, err := globalData.HashPathAndCreate(endPath, key)
+			newPath, err := globalData.CreateFile(endPath, key)
 
 			if err != nil {
 				glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
 			}
-
-			*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, newPath, endPath))
-			continue
-		}
-
-		if _, ok := value.([]interface{}); ok {
+			*args = append(*args, "-v", fmt.Sprintf("%s:%s:rw,rshared", newPath, endPath))
+		case []interface{}:
 			for _, val := range value.([]interface{}) {
 				endPath := ReplaceEnvVars(val.(string))
 				newPath, err := globalData.CreateFile(endPath, key)
@@ -320,11 +329,10 @@ func bindSharedFolders(cfg config.Struct, args *[]string) {
 					glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
 				}
 
-				*args = append(*args, fmt.Sprintf("-v=%s/%s:%s", tagPath, newPath, endPath))
+				*args = append(*args, "-v", fmt.Sprintf("%s:%s:rw,rshared", newPath, endPath))
 			}
-			continue
+		default:
+			glg.Fatalf("The shared folder value must be a string or a list of strings. Got %d", value)
 		}
-
-		glg.Fatalf("The shared folder value must be a string or a list of strings. Got %d", value)
 	}
 }

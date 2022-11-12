@@ -16,6 +16,7 @@ package container
 
 import (
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -82,8 +83,7 @@ func processMounts(cfg config.Struct) string {
 // Loops through the commands list and runs each one separately
 func RunCommandList(name string, commands []string, pman *podman.Podman, root bool, attach podman.Attach) error {
 	for _, command := range commands {
-		err := pman.Exec([]string{name, podman.ReplaceEnvVars(command)}, map[string]string{}, true, root, attach).Run()
-		if err != nil {
+		if err := pman.Exec([]string{name, podman.ReplaceEnvVars(command)}, map[string]string{}, true, root, attach).Run(); err != nil {
 			return err
 		}
 	}
@@ -104,6 +104,12 @@ func contains(list []string, item string) bool {
 // If not set, it will return an empty string
 func ReplaceEnvVars(str string) string {
 	re := regexp.MustCompile(`\$(\w+)`)
+	// We'll replace any "~" with the home directory and join the path
+	if strings.Contains(str, "~/") {
+		str = filepath.Join(os.Getenv("HOME"), strings.Replace(str, "~/", "", 1))
+		glg.Debugf("Replaced ~ with $HOME path: %s", str)
+	}
+
 	return re.ReplaceAllStringFunc(str, func(s string) string {
 		envvar := os.Getenv(s[1:])
 		if envvar == "" {
@@ -111,4 +117,5 @@ func ReplaceEnvVars(str string) string {
 		}
 		return envvar
 	})
+
 }

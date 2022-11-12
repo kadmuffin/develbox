@@ -75,6 +75,7 @@ func Execute() {
 			rootCli.AddCommand(Socket)
 		}
 		rootCli.AddCommand(Attach)
+		rootCli.AddCommand(StateCmd)
 		rootCli.AddCommand(Enter)
 		rootCli.AddCommand(create.Create)
 		rootCli.AddCommand(Exec)

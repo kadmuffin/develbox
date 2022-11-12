@@ -17,6 +17,7 @@ package global
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 
 	"github.com/kpango/glg"
@@ -63,11 +64,13 @@ func HashPathAndCreate(path string, tag string) (string, error) {
 // it creates the folder for the file
 func CreateFile(path string, tag string) (string, error) {
 	if IsFolder(path) {
-		newPath := GetTaggedFolder(tag) + "/" + path
+		newPath := filepath.Join(GetTaggedFolder(tag), path)
+
 		return newPath, CreateFolder(newPath)
 	}
 
-	newPath := GetTaggedFolder(tag) + "/" + GetPathBeforeLastPart(path)
+	newPath := filepath.Join(GetTaggedFolder(tag), GetPathBeforeLastPart(path))
+
 	// If it's a file, create the folder for it
 	return newPath, CreateFolder(newPath)
 }
