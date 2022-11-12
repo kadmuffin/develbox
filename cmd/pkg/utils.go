@@ -175,19 +175,3 @@ func ReadStdinWithNewline(timeout int) io.Reader {
 	// Return the reader
 	return reader
 }
-
-// Is there a way so that we don't have to wait
-// because right now, the user waits, or the user enters
-// a newline, which is not ideal.
-// Ideally, the command should end without the user
-// having to do anything.
-// How do we solve this?
-// We could have a goroutine that waits for the user to
-// type something, and then we send the operation to the
-// socket server.
-// But, we also need to wait for the socket server to
-// finish the operation, and then we can close the
-// connection.
-// So, we need to have a way to wait for the socket server
-// to finish the operation, and then we can close the
-// connection.
