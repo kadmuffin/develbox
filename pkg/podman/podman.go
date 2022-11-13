@@ -126,7 +126,7 @@ func (e *Podman) Exists(name string) bool {
 	// Docker doesn't have an exists function, so this is
 	// the closest thing I could find.
 	if e.IsDocker() {
-		params = []string{"ps", "-a", "|", "grep", name}
+		params = []string{"inspect", name}
 	}
 
 	return e.cmd(params, Attach{}).Run() == nil

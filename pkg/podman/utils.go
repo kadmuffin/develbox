@@ -26,7 +26,13 @@ import (
 // To do this we check the /run directory for .containerenv (podman)
 // or .dockerenv (docker)
 func InsideContainer() bool {
-	return config.FileExists("/run/.containerenv") || config.FileExists("/.dockerenv")
+	inCtnr := config.FileExists("/run/.containerenv") || config.FileExists("/.dockerenv")
+
+	if os.Getenv("CODESPACES") == "true" {
+		inCtnr = false
+	}
+
+	return inCtnr
 }
 
 // Replaces the following instances:
