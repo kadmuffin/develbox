@@ -30,10 +30,10 @@ import (
 )
 
 var (
-	experimental bool
-	rootCli      = &cobra.Command{
+	socketExperiment bool
+	rootCli          = &cobra.Command{
 		Use:     "develbox",
-		Version: "0.3.0",
+		Version: "0.4.0",
 		Short:   "Develbox - CLI tool useful for creating dev environments.",
 		Long: `Develbox - A CLI tool that manages containerized dev environments.
 
@@ -48,7 +48,7 @@ Created so I don't have to expose my entire computer to random node modules.`,
 )
 
 func Execute() {
-	if os.Getuid() == 0 {
+	if os.Getuid() == 0 || podman.InsideContainer() {
 		glg.Fatal("Develbox doesn't currently support being ran as root.")
 	}
 
@@ -62,9 +62,16 @@ func Execute() {
 	}
 
 	if !podman.InsideContainer() {
-		experimental, _ = strconv.ParseBool(os.Getenv("DEVELBOX_EXPERIMENTAL"))
+		socketExperiment, _ = strconv.ParseBool(os.Getenv("DEVELBOX_EXPERIMENTAL"))
+		if config.ConfigExists() {
+			cfg, _ := config.Read()
 
-		if experimental {
+			if cfg.Podman.Container.Experiments.Socket {
+				socketExperiment = true
+			}
+		}
+
+		if socketExperiment {
 			rootCli.AddCommand(Socket)
 		}
 		rootCli.AddCommand(Attach)

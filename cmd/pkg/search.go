@@ -25,7 +25,7 @@ import (
 var (
 	Search = &cobra.Command{
 		Use:                "search",
-		Aliases:            []string{"srch"},
+		Aliases:            []string{"srch", "sh"},
 		Short:              "Search for packages using the pkg manager",
 		Long:               "Search for (all, usually) matching packages using the package manager defined in the config.",
 		DisableFlagParsing: true,

@@ -25,7 +25,7 @@ import (
 var (
 	Add = &cobra.Command{
 		Use:                "add",
-		SuggestFor:         []string{"install"},
+		Aliases:            []string{"install", "i", "in"},
 		Short:              "Installs packages into the container",
 		Long:               "Installs packages using the package manager defined in the config.",
 		DisableFlagParsing: true,

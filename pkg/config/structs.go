@@ -47,16 +47,21 @@ type Binds struct {
 	Vars []string `default:"[]" json:"env-vars"`
 }
 
+type Experiments struct {
+	Socket bool `default:"false" json:"sockets"`
+}
+
 type Container struct {
-	Name       string   `json:"name"`
-	Args       []string `default:"[\"--net=host\"]" json:"arguments"`
-	WorkDir    string   `default:"/code" json:"work-dir"`
-	Shell      string   `default:"/bin/sh" json:"shell"`
-	RootUser   bool     `json:"root-user"`
-	Privileged bool     `default:"true" json:"privileged"`
-	Binds      Binds    `json:"binds"`
-	Ports      []string `default:"[]" json:"ports"`
-	Mounts     []string `default:"[]" json:"mounts"`
+	Name        string      `json:"name"`
+	Args        []string    `default:"[\"--net=host\"]" json:"arguments"`
+	WorkDir     string      `default:"/code" json:"work-dir"`
+	Shell       string      `default:"/bin/sh" json:"shell"`
+	RootUser    bool        `json:"root-user"`
+	Privileged  bool        `default:"true" json:"privileged"`
+	Binds       Binds       `json:"binds"`
+	Ports       []string    `default:"[]" json:"ports"`
+	Mounts      []string    `default:"[]" json:"mounts"`
+	Experiments Experiments `json:"experiments"`
 }
 
 type Podman struct {

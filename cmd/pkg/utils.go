@@ -65,7 +65,7 @@ func parseFlags(flags *[]string) (result Flags) {
 // Sends an operation to the socket server
 func SendOperation(opertn pkgm.Operation) {
 
-	fmt.Println("[Experimental Feature] You may need to press enter to continue when the operation is done.")
+	fmt.Println("[Experimental Feature] You *will* need to press enter to continue when the operation is done.")
 
 	home := os.Getenv("HOME")
 
@@ -94,7 +94,7 @@ func SendOperation(opertn pkgm.Operation) {
 		io.Copy(os.Stderr, errReader)
 	}()
 
-	io.Copy(writer, os.Stdin)
+	io.Copy(writer, ReadStdinAndWarn(5))
 }
 
 // Starts the container, if we are not inside it.
@@ -141,14 +141,14 @@ func ReadStdin(timeout int) io.Reader {
 	return reader
 }
 
-// Does the same as ReadStdin, but the reader
-// gives \n when the timer expires
-func ReadStdinWithNewline(timeout int) io.Reader {
+// Does the same as ReadStdin, but it warns
+// the user that the operation is probably done
+func ReadStdinAndWarn(timeout int) io.Reader {
 	// Create a pipe to read from
 	reader, writer := io.Pipe()
 
 	// Create a timer to timeout the read
-	timer := time.NewTimer(time.Duration(timeout) * time.Second)
+	timerH := time.NewTimer(time.Duration(timeout) * time.Second)
 
 	// Create a goroutine to read from stdin
 	go func() {
@@ -163,12 +163,10 @@ func ReadStdinWithNewline(timeout int) io.Reader {
 
 	// Create a goroutine to wait for the timer
 	go func() {
-		// Wait for the timer to expire
-		<-timer.C
-		// Write a newline
-		writer.Write([]byte("\n"))
-		fmt.Println("Timeout reached! Operation may still be running on the background.")
-		// Close the writer
+		<-timerH.C
+
+		fmt.Println("You may want to press enter to continue.")
+
 		writer.Close()
 	}()
 

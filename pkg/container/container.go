@@ -171,6 +171,27 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	opert.DevInstall = true
 	opert.Process(&cfg)
 
+	var goInstalled bool
+
+	if cfg.Podman.Container.Experiments.Socket {
+		// Check if cfg.Packages or cfg.DevPackages contain go
+		if !contains(cfg.Packages, "go") && !contains(cfg.DevPackages, "go") {
+			fmt.Println("Installing Go for develbox experimental features")
+			opert := pkgm.NewOperation("add", []string{"go"}, []string{}, true)
+			cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{
+				Stdin:  true,
+				Stdout: true,
+				Stderr: true,
+			})
+
+			if cmd.Run() != nil {
+				glg.Warn("Couldn't install Go, some features may not work")
+			} else {
+				goInstalled = true
+			}
+		}
+	}
+
 	if len(cfg.Packages)+len(cfg.DevPackages) > 0 {
 		installPkgs(pman, cfg, append(cfg.Packages, cfg.DevPackages...), true)
 	}
@@ -181,6 +202,19 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		if err != nil {
 			pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
 			glg.Fatalf("Something went wrong while installing the specified packages. %s", err)
+		}
+	}
+
+	if cfg.Podman.Container.Experiments.Socket && goInstalled {
+		fmt.Println("Installing develbox inside the container")
+		err := RunCommandList(cfg.Podman.Container.Name, []string{"go install github.com/kadmuffin/develbox"}, pman, true, podman.Attach{
+			Stdin:  true,
+			Stdout: true,
+			Stderr: true,
+		})
+
+		if err != nil {
+			glg.Warnf("An error occurred and develbox wasn't installed. %s", err)
 		}
 	}
 

@@ -176,6 +176,21 @@ func (e *Operation) sendCommand(cname, base string, pman podman.Podman, attach p
 
 	arguments := []string{cname, base}
 
+	if podman.InsideContainer() && os.Getuid() == 0 {
+		if e.UserOperation {
+			glg.Warn("Running as root inside a container, but the operation is set to run as user. Ignoring the flag.")
+		}
+
+		arguments = strings.Split(base, " ")
+		// Because we are inside the container, and we
+		// are root, we can just run the command.
+		cmd := exec.Command(arguments[0], arguments[1:]...)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return cmd
+	}
+
 	return pman.Exec(arguments, map[string]string{}, true, !e.UserOperation, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
 }
 

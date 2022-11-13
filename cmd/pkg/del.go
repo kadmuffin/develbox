@@ -25,7 +25,7 @@ import (
 var (
 	Del = &cobra.Command{
 		Use:                "del",
-		SuggestFor:         []string{"delete", "remove"},
+		Aliases:            []string{"delete", "remove", "uni", "uninstall"},
 		Short:              "Deletes packages from the container",
 		Long:               "Deletes packages using the package manager defined in the config.",
 		DisableFlagParsing: true,

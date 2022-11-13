@@ -87,3 +87,13 @@ func RunCommandList(name string, commands []string, pman *podman.Podman, root bo
 	}
 	return nil
 }
+
+// Loops through a list to check if a string is inside it
+func contains(list []string, item string) bool {
+	for _, v := range list {
+		if v == item {
+			return true
+		}
+	}
+	return false
+}

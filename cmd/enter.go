@@ -45,7 +45,7 @@ var (
 				glg.Fatal("Container does not exist")
 			}
 			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
-			if experimental {
+			if socketExperiment && !root {
 				go createSocket(&cfg)
 			}
 			defer os.Remove(".develbox/home/.develbox.sock")
