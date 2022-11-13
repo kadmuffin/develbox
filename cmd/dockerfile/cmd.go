@@ -83,7 +83,13 @@ var (
 
 			// Mounts the current directory to the container's workspace
 			if includeFiles {
-				dckFile = append(dckFile, mountWorkspace(cfg.Podman.Container.WorkDir, gitignore)...)
+				dckIgnore := selectDck()
+				switch dckIgnore {
+				case true:
+					dckFile = append(dckFile, fmt.Sprintf("COPY . %s", cfg.Podman.Container.WorkDir))
+				case false:
+					dckFile = append(dckFile, mountWorkspace(cfg.Podman.Container.WorkDir, gitignore)...)
+				}
 			}
 
 			if command != "" {
