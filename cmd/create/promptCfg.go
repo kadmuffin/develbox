@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
@@ -112,6 +113,8 @@ func promptVolumes(cfg *config.Struct) {
 	}
 }
 
+var validName = regexp.MustCompile(`^[a-z0-9]+$`).MatchString
+
 // Prompts the user for the container name
 func promptName(cfg *config.Struct) {
 	prompt := promptui.Prompt{
@@ -120,6 +123,13 @@ func promptName(cfg *config.Struct) {
 	result, err := prompt.Run()
 	if err != nil {
 		glg.Fatalf("Prompt failed %v\n", err)
+	}
+
+	// Check if the name is valid
+	if result != "" && !validName(result) {
+		// Remprompt until a valid name is given
+		glg.Warn("Invalid name, only lowercase letters and numbers are allowed")
+		promptName(cfg)
 	}
 
 	if result != "" {
