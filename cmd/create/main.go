@@ -28,10 +28,14 @@ import (
 )
 
 var (
-	createCfg    bool
-	forceReplace bool
-	downloadUrl  string
-	Create       = &cobra.Command{
+	createCfg       bool
+	forceReplace    bool
+	downloadUrl     string
+	containerName   string
+	containerVolume string
+	containerPort   string
+
+	Create = &cobra.Command{
 		Use:        "create",
 		SuggestFor: []string{"config", "init"},
 		Short:      "Creates a new container/config for this project",
@@ -48,20 +52,47 @@ var (
 
 				cfg := config.Struct{}
 
-				if len(args) == 0 {
-					targetUrl := strings.ReplaceAll(downloadUrl, "$$tag$$", "v"+cmd.Root().Version)
-					fmt.Println(targetUrl)
-					cfg = promptConfig(targetUrl)
-				} else {
-					cfg = downloadConfig(args[0], strings.ReplaceAll(downloadUrl, "$$tag$$", "main"))
+				switch isUrl(downloadUrl) {
+				case true:
+					switch len(args) {
+					case 0:
+						targetUrl := strings.ReplaceAll(downloadUrl, "$$tag$$", "v"+cmd.Root().Version)
+						fmt.Println(targetUrl)
+						cfg = promptConfig(targetUrl)
+					default:
+						cfg = downloadConfig(args[0], strings.ReplaceAll(downloadUrl, "$$tag$$", "main"))
+					}
+				case false:
+					var err error
+					cfg, err = config.ReadPath(downloadUrl)
+					if err != nil {
+						glg.Fatalf("Couldn't read config file: %s", err)
+					}
 				}
 
 				checkDocker(&cfg)
 				config.SetDefaults(&cfg)
 
-				promptName(&cfg)
-				promptPorts(&cfg)
-				promptVolumes(&cfg)
+				if containerName == "" {
+					containerName = promptName(&cfg)
+				}
+				cfg.Podman.Container.Name = containerName
+
+				if containerVolume == "" {
+					containerVolume = promptVolumes(&cfg)
+				}
+				cfg.Podman.Container.Mounts = strings.Split(containerVolume, ",")
+
+				if containerPort == "" {
+					containerPort = promptPorts(&cfg)
+				}
+
+				switch containerPort {
+				case "":
+					cfg.Podman.Container.Args = append(cfg.Podman.Container.Args, "--net=host")
+				default:
+					cfg.Podman.Container.Ports = strings.Split(containerPort, ",")
+				}
 
 				err := config.Write(&cfg)
 				if err != nil {
@@ -100,6 +131,9 @@ func init() {
 	Create.Flags().BoolVarP(&createCfg, "config", "c", false, "Use to create a new config file")
 	Create.Flags().BoolVarP(&forceReplace, "force", "f", false, "Use to force the creation of a container/config")
 	Create.Flags().StringVarP(&downloadUrl, "source", "s", "https://raw.githubusercontent.com/kadmuffin/develbox/$$tag$$/configs", "A base path from where to get the configs.")
+	Create.Flags().StringVarP(&containerName, "name", "n", "", "The name of the container to create.")
+	Create.Flags().StringVarP(&containerVolume, "volume", "v", "", "The volume to mount in the container.")
+	Create.Flags().StringVarP(&containerPort, "port", "p", "", "The port to expose in the container.")
 }
 
 func checkDocker(cfg *config.Struct) {
@@ -126,6 +160,7 @@ func setupGitIgnore() error {
 	return nil
 }
 
+// promptGitignore prompts the user if they want to add the .develbox/home folder to the .gitignore file
 func writeGitIgnore() error {
 	toIgnore := "\n.develbox/home\n"
 	if !config.FileExists(".gitignore") {
@@ -141,4 +176,9 @@ func writeGitIgnore() error {
 		return err
 	}
 	return nil
+}
+
+// Checks if it's a valid url or a file path
+func isUrl(url string) bool {
+	return strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")
 }

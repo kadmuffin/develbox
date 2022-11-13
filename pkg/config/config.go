@@ -50,3 +50,13 @@ func ReadBytes(data []byte) (Struct, error) {
 	SetName(&configs)
 	return configs, nil
 }
+
+// Read the config file from a path
+func ReadPath(path string) (Struct, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return Struct{}, err
+	}
+
+	return ReadBytes(data)
+}
