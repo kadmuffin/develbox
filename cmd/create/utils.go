@@ -35,7 +35,7 @@ func downloadConfig(argum string, url string) config.Struct {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		glg.Errorf("Response from source returned bad status: %s", resp.StatusCode)
+		glg.Errorf("Response from source returned bad status: %d", resp.StatusCode)
 		os.Exit(1)
 	}
 

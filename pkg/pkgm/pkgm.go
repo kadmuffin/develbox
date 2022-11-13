@@ -144,11 +144,14 @@ func (e *Operation) StringCommand(cfg *config.Installer) (string, error) {
 		return "", glg.Errorf("couldn't find the key '%s' on the list of supported operations", e.Type)
 	}
 
+	// We want to process the flags and packages, but only if they are not empty
 	flags := strings.Join(e.Flags, " ")
 	if flags != "" {
 		flags += " "
 	}
 	packages := processPackages(e.Packages, cfg.ArgModifier[e.Type])
+
+	// This is where we replace the "{args}" string with the flags and packages
 	modifBase := strings.Replace(baseCmd, "{args}", fmt.Sprintf("%s%s", flags, packages), 1)
 	regex := regexp.MustCompile(`\{(.*)\}`)
 

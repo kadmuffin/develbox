@@ -50,7 +50,7 @@ var (
 
 			name := strings.Join(args, " ")
 			if _, ok := cfg.Commands[name]; !ok {
-				return glg.Errorf("Command '%s' does not exist")
+				return glg.Errorf("Command '%s' does not exist", name)
 			}
 
 			runArgs, err := getAllAsArray(name, "")
