@@ -27,6 +27,7 @@ import (
 )
 
 var createEtcPwd bool
+var PkgVersion string = "latest"
 
 func Create(cfg config.Struct, deleteOld bool) {
 	pman := podman.New(cfg.Podman.Path)
@@ -92,6 +93,9 @@ func Create(cfg config.Struct, deleteOld bool) {
 	// Creates & mounts a home directory so we can access it easily
 	err = os.Mkdir(".develbox/home", 0755)
 	args = append(args, "--mount", fmt.Sprintf("type=bind,source=%s/.develbox/home,destination=/home/%s,bind-propagation=rslave", config.GetCurrentDirectory(), user))
+	if config.GetCurrentDirectory() == os.Getenv("HOME") {
+		glg.Fatal("You can't create a develbox project on $HOME! (That means relabelling /home/$USER which is not a good idea)")
+	}
 
 	if err != nil && !os.IsExist(err) {
 		glg.Fatalf("Something went wrong while creating the .develbox/home folder. %s", err)
@@ -190,22 +194,20 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 
 	var goInstalled bool
 
-	if cfg.Podman.Container.Experiments.Socket {
-		// Check if cfg.Packages or cfg.DevPackages contain go
-		if !contains(cfg.Packages, "go") && !contains(cfg.DevPackages, "go") {
-			fmt.Println("> Installing Go for develbox experimental features")
-			opert := pkgm.NewOperation("add", []string{"go"}, []string{}, true)
-			cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{
-				Stdin:  true,
-				Stdout: true,
-				Stderr: true,
-			})
+	// Check if cfg.Packages or cfg.DevPackages contain go
+	if !contains(cfg.Packages, "go") && !contains(cfg.DevPackages, "go") {
+		fmt.Println("> Installing Go for develbox experimental features")
+		opert := pkgm.NewOperation("add", []string{"go"}, []string{}, true)
+		cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{
+			Stdin:  true,
+			Stdout: true,
+			Stderr: true,
+		})
 
-			if cmd.Run() != nil {
-				glg.Warn("Couldn't install Go, some features may not work")
-			} else {
-				goInstalled = true
-			}
+		if cmd.Run() != nil {
+			glg.Warn("Couldn't install Go, some features may not work")
+		} else {
+			goInstalled = true
 		}
 	}
 
@@ -222,9 +224,9 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		}
 	}
 
-	if cfg.Podman.Container.Experiments.Socket && goInstalled {
+	if goInstalled {
 		fmt.Println("> Installing develbox inside the container")
-		err := RunCommandList(cfg.Podman.Container.Name, []string{"go install github.com/kadmuffin/develbox", "cp /root/go/bin/develbox /usr/local/bin/develbox"}, pman, true, podman.Attach{
+		err := RunCommandList(cfg.Podman.Container.Name, []string{fmt.Sprintf("go install github.com/kadmuffin/develbox@v%s", PkgVersion), "cp /root/go/bin/develbox /usr/local/bin/develbox"}, pman, true, podman.Attach{
 			Stdin:  true,
 			Stdout: true,
 			Stderr: true,

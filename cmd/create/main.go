@@ -128,6 +128,7 @@ var (
 				glg.Errorf("Failed to read .develbox/config.json! Try running 'develbox create -c --force' to create a new one.")
 				return
 			}
+			container.PkgVersion = cmd.Root().Version
 			container.Create(cfg, forceReplace)
 		},
 	}
