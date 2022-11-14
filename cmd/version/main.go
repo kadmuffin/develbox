@@ -21,7 +21,7 @@ import (
 
 var (
 	// Number is the current version of the program
-	Number = "v0.4.1"
+	Number = "0.4.1"
 
 	// VersionCmd is the command for printing the current version
 	VersionCmd = &cobra.Command{
@@ -30,7 +30,7 @@ var (
 		Long:  `Prints the current version of develbox`,
 		Run: func(cmd *cobra.Command, args []string) {
 			root := cmd.Root()
-			root.Print(Number)
+			root.Print("v" + Number)
 		},
 	}
 )
