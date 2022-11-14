@@ -52,8 +52,21 @@ func Execute() {
 		glg.Fatal("Develbox doesn't currently support being ran as root.")
 	}
 
-	// Package manager operations
-	if !podman.InsideContainer() || config.FileExists(fmt.Sprintf("/home/%s/.develbox.sock", os.Getenv("USER"))) {
+	// Package manager operations are added if:
+	// - The user is outside the container
+	// - The user is inside the container and the socket experiment is enabled
+	// - The user is inside the container and running as root
+	if !podman.InsideContainer() || config.FileExists(fmt.Sprintf("/home/%s/.develbox.sock", os.Getenv("USER"))) || os.Getuid() == 0 {
+		// Add all the subcommands
+		rootCli.AddCommand(pkg.Add)
+		rootCli.AddCommand(pkg.Del)
+		rootCli.AddCommand(pkg.Update)
+		rootCli.AddCommand(pkg.Upgrade)
+		rootCli.AddCommand(pkg.Search)
+	}
+
+	if !podman.InsideContainer() || config.FileExists(fmt.Sprintf("/home/%s/.develbox.sock", os.Getenv("USER"))) || os.Getuid() == 0 {
+		// Add all the subcommands
 		rootCli.AddCommand(pkg.Add)
 		rootCli.AddCommand(pkg.Del)
 		rootCli.AddCommand(pkg.Update)
