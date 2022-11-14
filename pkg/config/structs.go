@@ -62,6 +62,11 @@ type Container struct {
 	Ports       []string    `default:"[]" json:"ports"`
 	Mounts      []string    `default:"[]" json:"mounts"`
 	Experiments Experiments `json:"experiments"`
+	// This is a map of tag:container_path
+	// For example, for nix, you can use
+	// the nix tag (which will create a global folder called nix)
+	// and then use it in the container as /nix
+	SharedFolders map[string]interface{} `default:"{}" json:"shared-folders"`
 }
 
 type Podman struct {

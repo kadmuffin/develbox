@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Creates a container and runs the setupContainer function
 package container
 
 import (
@@ -19,6 +20,7 @@ import (
 	"os"
 
 	"github.com/kadmuffin/develbox/pkg/config"
+	globalData "github.com/kadmuffin/develbox/pkg/global"
 	"github.com/kadmuffin/develbox/pkg/pkgm"
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
@@ -53,6 +55,11 @@ func Create(cfg config.Struct, deleteOld bool) {
 
 	args := []string{"--name", cfg.Podman.Container.Name}
 
+	debug := os.Getenv("DEVELBOX_DEBUG")
+	if debug != "true" && debug != "1" {
+		args = append(args, "-d")
+	}
+
 	glg.Debugf("rootless is set to: %t", cfg.Podman.Rootless)
 	if cfg.Podman.Rootless {
 
@@ -78,6 +85,12 @@ func Create(cfg config.Struct, deleteOld bool) {
 
 	}
 
+	// Shares a global folder with the container.
+	// What this means is that we can mantain certain files
+	// between containers. Mainly, it's useful for
+	// cache files, like nix, npm, etc...
+	bindSharedFolders(cfg, &args)
+
 	// Mount gitconfig globably inside container
 	args = append(args, fmt.Sprintf("-v=/home/%s/.gitconfig:/etc/gitconfig:ro", user))
 
@@ -90,7 +103,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 	}
 
 	if len(cfg.Podman.Container.Mounts) > 0 {
-		args = append(args, processVolumes(cfg))
+		args = append(args, processMounts(cfg))
 	}
 	if len(cfg.Podman.Container.Ports) > 0 {
 		args = append(args, processPorts(cfg))
@@ -117,13 +130,22 @@ func Create(cfg config.Struct, deleteOld bool) {
 	// Mount the main folder and pass the image URI before the
 	// container is created.
 	args = append(args, mountWorkDir(cfg)...)
-	args = append(args, cfg.Image.URI)
+	args = append(args, cfg.Image.URI, "sh")
 	err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
+
+	if err == nil && !pman.IsRunning(cfg.Podman.Container.Name) {
+		glg.Warnf("Container '%s' is not running! Retrying again with container attached.", cfg.Podman.Container.Name)
+
+		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{})
+
+		// Remove the "-d" argument
+		args = append(args[:2], args[3:]...)
+		err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
+	}
 
 	if err != nil {
 		glg.Fatalf("Something went wrong while creating the container.")
 	}
-
 	// Adds the current user to /etc/passwd
 	// Only used if the current podman version doesn't
 	// support --passwd-entry
@@ -283,4 +305,34 @@ func InstallAndEnter(cfg config.Struct, root bool) error {
 	//go pkgPipe(&cfg, pipe)
 	return cmd.Run()
 	//pipe.Remove()
+}
+
+// Loops through the shared folders and
+// creates and binds them to the container.
+func bindSharedFolders(cfg config.Struct, args *[]string) {
+	for key, value := range cfg.Podman.Container.SharedFolders {
+		switch value.(type) {
+		case string:
+			endPath := ReplaceEnvVars(value.(string))
+			newPath, err := globalData.CreateFile(endPath, key)
+
+			if err != nil {
+				glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
+			}
+			*args = append(*args, "-v", fmt.Sprintf("%s:%s:rw,rshared", newPath, endPath))
+		case []interface{}:
+			for _, val := range value.([]interface{}) {
+				endPath := ReplaceEnvVars(val.(string))
+				newPath, err := globalData.CreateFile(endPath, key)
+
+				if err != nil {
+					glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
+				}
+
+				*args = append(*args, "-v", fmt.Sprintf("%s:%s:rw,rshared", newPath, endPath))
+			}
+		default:
+			glg.Fatalf("The shared folder value must be a string or a list of strings. Got %d", value)
+		}
+	}
 }

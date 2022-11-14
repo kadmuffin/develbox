@@ -60,12 +60,19 @@ func FileExists(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-// Returns a hash string made using the current directory's name.
+// Returns a hash made using the current directory's name.
 func GetDirNmHash() string {
 	currentDirName := filepath.Base(GetCurrentDirectory())
 	hasher := sha256.New()
 	hasher.Write([]byte(currentDirName))
 	dir := hasher.Sum(nil)
 	return hex.EncodeToString(dir)
+}
 
+// Returns a hash made using the provided path.
+func GetPathHash(path string) string {
+	hasher := sha256.New()
+	hasher.Write([]byte(path))
+	dir := hasher.Sum(nil)
+	return hex.EncodeToString(dir)
 }

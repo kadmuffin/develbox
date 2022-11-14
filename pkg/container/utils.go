@@ -16,10 +16,13 @@ package container
 
 import (
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/podman"
+	"github.com/kpango/glg"
 )
 
 // Reads all the names in the a path, and returns them
@@ -73,15 +76,14 @@ func processPorts(cfg config.Struct) string {
 }
 
 // Returns a string with the extra volumes to mount
-func processVolumes(cfg config.Struct) string {
-	return "-v=" + strings.Join(cfg.Podman.Container.Mounts, "-v=")
+func processMounts(cfg config.Struct) string {
+	return "-v=" + ReplaceEnvVars(strings.Join(cfg.Podman.Container.Mounts, "-v="))
 }
 
 // Loops through the commands list and runs each one separately
 func RunCommandList(name string, commands []string, pman *podman.Podman, root bool, attach podman.Attach) error {
 	for _, command := range commands {
-		err := pman.Exec([]string{name, podman.ReplaceEnvVars(command)}, map[string]string{}, true, root, attach).Run()
-		if err != nil {
+		if err := pman.Exec([]string{name, podman.ReplaceEnvVars(command)}, map[string]string{}, true, root, attach).Run(); err != nil {
 			return err
 		}
 	}
@@ -96,4 +98,24 @@ func contains(list []string, item string) bool {
 		}
 	}
 	return false
+}
+
+// Matches any text that starts with "$" and replaces it with the value of the environment variable
+// If not set, it will return an empty string
+func ReplaceEnvVars(str string) string {
+	re := regexp.MustCompile(`\$(\w+)`)
+	// We'll replace any "~" with the home directory and join the path
+	if strings.Contains(str, "~/") {
+		str = filepath.Join(os.Getenv("HOME"), strings.Replace(str, "~/", "", 1))
+		glg.Debugf("Replaced ~ with $HOME path: %s", str)
+	}
+
+	return re.ReplaceAllStringFunc(str, func(s string) string {
+		envvar := os.Getenv(s[1:])
+		if envvar == "" {
+			glg.Fatalf("[cfg->SharedFolders] Environment variable '%s' is not set!", s[1:])
+		}
+		return envvar
+	})
+
 }

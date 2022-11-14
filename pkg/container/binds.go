@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Binds the current directory to the container. Also mounts
+// the XOrg socket if necessary.
 package container
 
 import (

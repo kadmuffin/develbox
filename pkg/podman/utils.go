@@ -16,9 +16,11 @@ package podman
 
 import (
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kpango/glg"
 )
 
 // Checks if we are inside a container
@@ -47,4 +49,45 @@ func ReplaceEnvVars(s string) string {
 	s = strings.ReplaceAll(s, "$$HOME", "/home/"+os.Getenv("USER"))
 	s = strings.ReplaceAll(s, "$$PWD", os.Getenv("PWD"))
 	return s
+}
+
+// Prints the command to run in a more readable format
+// where:
+//
+// - Each argument is on a new line
+//
+// - Flags are on the same line as their argument
+//
+// - The args[1] is on the same line as the command
+//
+// - The command is prefixed with a message
+func PrintCommand(msg string, cmd *exec.Cmd) {
+	var args []string
+	for i, arg := range cmd.Args {
+
+		if i == 0 {
+			args = append(args, arg)
+			continue
+		}
+
+		if strings.HasPrefix(arg, "-") {
+			args = append(args, arg)
+		} else {
+			args[len(args)-1] = args[len(args)-1] + " " + arg
+		}
+	}
+
+	glg.Infof(msg, strings.Join(args, "\n  > "))
+
+	// Also print full command
+	glg.Infof("Full command: %s", cmd.String())
+}
+
+// Prints the command to run in a more readable format
+// and returns the command to run
+//
+// Format is the same as PrintCommand()
+func PrintCommandR(msg string, cmd *exec.Cmd) *exec.Cmd {
+	PrintCommand(msg, cmd)
+	return cmd
 }
