@@ -24,13 +24,13 @@ import (
 	"github.com/kpango/glg"
 )
 
-// ConfigFolderExists returns true if the config folder exists.
-func ConfigFolderExists() bool {
+// FolderExists returns true if the config folder exists.
+func FolderExists() bool {
 	return FileExists(".develbox")
 }
 
-// ConfigExists returns true if the config file exists.
-func ConfigExists() bool {
+// Exists returns true if the config file exists.
+func Exists() bool {
 	return FileExists(".develbox/config.json")
 }
 

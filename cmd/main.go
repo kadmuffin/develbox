@@ -50,6 +50,7 @@ Created so I don't have to expose my entire computer to random node modules.`,
 	}
 )
 
+// Execute is the entrypoint for the program
 func Execute() {
 	if os.Getuid() == 0 && !podman.InsideContainer() {
 		glg.Fatal("Develbox doesn't currently support being ran as root.")
@@ -70,7 +71,7 @@ func Execute() {
 
 	if !podman.InsideContainer() {
 		socketExperiment, _ = strconv.ParseBool(os.Getenv("DEVELBOX_EXPERIMENTAL"))
-		if config.ConfigExists() {
+		if config.Exists() {
 			cfg, _ := config.Read()
 
 			if cfg.Podman.Container.Experiments.Socket {

@@ -46,7 +46,7 @@ var (
 		Args:       cobra.MaximumNArgs(1),
 		Example:    "develbox create -c alpine/latest",
 		Run: func(cmd *cobra.Command, args []string) {
-			configExists := config.ConfigExists()
+			configExists := config.Exists()
 
 			if createCfg || !configExists {
 				if configExists && !forceReplace {

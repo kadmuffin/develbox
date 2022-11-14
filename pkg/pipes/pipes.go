@@ -31,6 +31,7 @@ func New(path string) *Pipe {
 	return &Pipe{path: path}
 }
 
+// Path returns the path to the pipe file.
 func (e *Pipe) Path() string {
 	return e.path
 }

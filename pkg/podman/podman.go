@@ -171,7 +171,7 @@ func (e *Podman) IsDocker() bool {
 	return strings.Contains(e.path, "docker")
 }
 
-// Gets the current podman version
+// Version gets the current podman version
 func (e *Podman) Version() (major, minor, patch int64, err error) {
 	data, err := e.cmd([]string{"--version"}, Attach{}).Output()
 	if err != nil {

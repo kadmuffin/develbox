@@ -42,6 +42,7 @@ type Operations struct {
 	Clean string `default:"rm -rf /var/cache/apk/*" json:"clean"`
 }
 
+// Installer is the configuration for the package manager
 type Installer struct {
 	// Operations contains the commands for the package manager
 	Operations Operations `json:"operations"`

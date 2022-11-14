@@ -22,9 +22,7 @@ import (
 	"github.com/kadmuffin/develbox/pkg/config"
 )
 
-// Get XDG_DATA_HOME, if not set, use ~/.local/share and set it
-// In the future, this will be used to store the global folders
-// for the containers
+// GetDataHome gets XDG_DATA_HOME, if not set, use ~/.local/share and set it
 func GetDataHome() string {
 	dataHome := os.Getenv("XDG_DATA_HOME")
 	if dataHome == "" {
@@ -34,7 +32,7 @@ func GetDataHome() string {
 	return dataHome
 }
 
-// Get XDG_CONFIG_HOME, if not set, use ~/.config and set it
+// GetConfigHome gets XDG_CONFIG_HOME, if not set, use ~/.config and set it
 func GetConfigHome() string {
 	configHome := os.Getenv("XDG_CONFIG_HOME")
 	if configHome == "" {
@@ -54,33 +52,29 @@ func GetCacheHome() string {
 	return cacheHome
 }
 
-// Get last part of a path
-// Example: /home/user/Downloads -> Downloads
+// GetLastPathPart get last part of a path. Example: /home/user/Downloads -> Downloads
 func GetLastPathPart(path string) string {
 	return path[strings.LastIndex(path, "/")+1:]
 }
 
-// Get everything before the last part of a path
-// Example: /home/user/Downloads -> /home/user
+// GetPathBeforeLastPart gets everything before the last part of a path. Example: /home/user/Downloads -> /home/user
 func GetPathBeforeLastPart(path string) string {
 	return path[:strings.LastIndex(path, "/")]
 }
 
-// Create a new folder at the given path
+// CreateFolder creates a new folder at the given path
 func CreateFolder(path string) error {
 	return os.MkdirAll(path, 0755)
 }
 
-// Checks if a path is a folder or a file.
-// For doing this, it checks if the last part of the path
-// if it has a "/", it's a folder, otherwise it's a file
+// IsFolder checks if a path is a folder or a file.
 func IsFolder(path string) bool {
+	// For doing this, it checks if the last part of the path
+	// if it has a "/", it's a folder, otherwise it's a file
 	return strings.HasSuffix(path, "/")
 }
 
-// Returns a hash of a path and
-// mantains the "/" at the end of the path
-// if it exists.
+// HashPath returns a hash of a path and mantains the "/" at the end of the path if it exists.
 func HashPath(path string) string {
 	hashPath := config.GetPathHash(path)
 	if IsFolder(path) {

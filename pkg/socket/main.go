@@ -111,7 +111,7 @@ func (s *Socket) Send(msg string) (int, error) {
 	return s.Connection.Write([]byte(msg))
 }
 
-// Recieve receives a message from the socket. Returns the message received.
+// Receive receives a message from the socket. Returns the message received.
 func (s *Socket) Receive() ([]byte, error) {
 	var buf [1024]byte
 	n, err := s.Connection.Read(buf[:])
@@ -124,10 +124,7 @@ func (s *Socket) Receive() ([]byte, error) {
 // ReceiveJSON receives and parses JSON from the socket. Returns an unmarshaled JSON object using the provided interface.
 func (s *Socket) ReceiveJSON(v any) error {
 	dec := json.NewDecoder(s.Connection)
-	if err := dec.Decode(v); err != nil {
-		return err
-	}
-	return nil
+	return dec.Decode(v)
 }
 
 // SendJSON sends JSON bytes to the socket. Returns the amount of bytes sent.
