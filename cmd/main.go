@@ -23,6 +23,7 @@ import (
 	"github.com/kadmuffin/develbox/cmd/dockerfile"
 	"github.com/kadmuffin/develbox/cmd/pkg"
 	"github.com/kadmuffin/develbox/cmd/state"
+	"github.com/kadmuffin/develbox/cmd/version"
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
@@ -33,7 +34,7 @@ var (
 	socketExperiment bool
 	rootCli          = &cobra.Command{
 		Use:     "develbox",
-		Version: "0.4.0",
+		Version: version.Number,
 		Short:   "Develbox - CLI tool useful for creating dev environments.",
 		Long: `Develbox - A CLI tool that manages containerized dev environments.
 
@@ -81,6 +82,7 @@ func Execute() {
 		rootCli.AddCommand(Attach)
 		rootCli.AddCommand(StateCmd)
 		rootCli.AddCommand(Enter)
+
 		rootCli.AddCommand(create.Create)
 		rootCli.AddCommand(Exec)
 		rootCli.AddCommand(Run)
@@ -89,7 +91,7 @@ func Execute() {
 		rootCli.AddCommand(state.Restart)
 		rootCli.AddCommand(state.Trash)
 	}
-	rootCli.AddCommand(Version)
+	rootCli.AddCommand(version.VersionCmd)
 	rootCli.AddCommand(dockerfile.Build)
 
 	rootCli.Execute()

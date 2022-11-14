@@ -12,21 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package version
 
 import (
 	"github.com/spf13/cobra"
 )
 
-// Prints the current version set on the root command
 var (
-	Version = &cobra.Command{
+	// Version is the current version of the program
+	Number string = "v0.4.1"
+
+	// VersionCmd is the command for printing the current version
+	VersionCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Prints the current version of develbox",
 		Long:  `Prints the current version of develbox`,
 		Run: func(cmd *cobra.Command, args []string) {
 			root := cmd.Root()
-			root.Print(root.Version)
+			root.Print(Number)
 		},
 	}
 )

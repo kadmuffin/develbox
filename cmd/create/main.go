@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/kadmuffin/develbox/cmd/version"
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/container"
 	"github.com/kpango/glg"
@@ -34,8 +35,10 @@ var (
 	containerName  string
 	containerMount string
 	containerPort  string
-	version        string
-	Create         = &cobra.Command{
+	versionTag     string
+
+	// Create is the main command for creating a container
+	Create = &cobra.Command{
 		Use:        "create",
 		SuggestFor: []string{"config", "init"},
 		Short:      "Creates a new container/config for this project",
@@ -56,7 +59,7 @@ var (
 				case true:
 					switch len(args) {
 					case 0:
-						targetURL := strings.ReplaceAll(downloadURL, "$$tag$$", "v"+version)
+						targetURL := strings.ReplaceAll(downloadURL, "$$version$$", "v"+versionTag)
 						fmt.Println(targetURL)
 						cfg = promptConfig(targetURL)
 					default:
@@ -137,11 +140,11 @@ var (
 func init() {
 	Create.Flags().BoolVarP(&createCfg, "config", "c", false, "Use to create a new config file")
 	Create.Flags().BoolVarP(&forceReplace, "force", "f", false, "Use to force the creation of a container/config")
-	Create.Flags().StringVarP(&downloadURL, "source", "s", "https://raw.githubusercontent.com/kadmuffin/develbox/$$tag$$/configs", "A base path from where to get the configs.")
+	Create.Flags().StringVarP(&downloadURL, "source", "s", "https://raw.githubusercontent.com/kadmuffin/develbox/$$version$$/configs", "A base path from where to get the configs.")
 	Create.Flags().StringVarP(&containerName, "name", "n", "", "The name of the container to create.")
 	Create.Flags().StringVarP(&containerMount, "mount", "m", "none", "The volume to mount in the container.")
 	Create.Flags().StringVarP(&containerPort, "port", "p", "none", "The port to expose in the container.")
-	Create.Flags().StringVarP(&version, "version", "v", Create.Root().Version, "The version tag from where the config will be downloaded.")
+	Create.Flags().StringVarP(&versionTag, "version", "v", version.Number, "The version tag from where the config will be downloaded.")
 
 }
 
