@@ -53,12 +53,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 	user := os.Getenv("USER")
 	uid := os.Getuid()
 
-	args := []string{"--name", cfg.Podman.Container.Name}
-
-	debug := os.Getenv("DEVELBOX_DEBUG")
-	if debug != "true" && debug != "1" {
-		args = append(args, "-d")
-	}
+	args := []string{"--name", cfg.Podman.Container.Name, "-d"}
 
 	glg.Debugf("rootless is set to: %t", cfg.Podman.Rootless)
 	if cfg.Podman.Rootless {
@@ -319,7 +314,7 @@ func bindSharedFolders(cfg config.Struct, args *[]string) {
 			if err != nil {
 				glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
 			}
-			*args = append(*args, "-v", fmt.Sprintf("%s:%s:rw,rshared", newPath, endPath))
+			*args = append(*args, fmt.Sprintf("-v=%s:%s:rw,z", newPath, endPath))
 		case []interface{}:
 			for _, val := range value.([]interface{}) {
 				endPath := ReplaceEnvVars(val.(string))
@@ -329,7 +324,7 @@ func bindSharedFolders(cfg config.Struct, args *[]string) {
 					glg.Fatalf("Couldn't create the shared folder %s. %s", endPath, err)
 				}
 
-				*args = append(*args, "-v", fmt.Sprintf("%s:%s:rw,rshared", newPath, endPath))
+				*args = append(*args, fmt.Sprintf("-v=%s:%s:rw,z", newPath, endPath))
 			}
 		default:
 			glg.Fatalf("The shared folder value must be a string or a list of strings. Got %d", value)

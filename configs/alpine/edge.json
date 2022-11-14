@@ -9,7 +9,8 @@
 				"del": "apk del {args}",
 				"update": "apk update {args}",
 				"upgrade": "apk upgrade {args}",
-				"search": "apk search {args}"
+				"search": "apk search {args}",
+				"clean": "rm -rf /var/cache/apk"
 			},
 			"args-modifier": {}
 		},
@@ -32,7 +33,13 @@
 				"env-vars": []
 			},
 			"ports": [],
-			"mounts": []
+			"mounts": [],
+			"experiments": {
+				"sockets": false
+			},
+			"shared-folders": {
+				"alpine": "/var/cache/apk/"
+			}
 		}
 	},
 	"commands": {},

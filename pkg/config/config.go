@@ -17,6 +17,8 @@ package config
 import (
 	"encoding/json"
 	"os"
+
+	"github.com/kpango/glg"
 )
 
 func Read() (Struct, error) {
@@ -34,9 +36,9 @@ func ReadFile(path string) (Struct, error) {
 		return Struct{}, err
 	}
 
+	glg.Infof("Reading config file at %s", path)
 	return ReadBytes(data)
 }
-
 
 func Write(configs *Struct) error {
 	os.Mkdir(".develbox", 0755)

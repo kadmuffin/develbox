@@ -14,7 +14,8 @@
                 "del": "nix-env -e {args}",
                 "update": "nix-channel --update {args}",
                 "upgrade": "nix-env -u {args}",
-                "search": "nix-env -qaP {args}"
+                "search": "nix-env -qaP {args}",
+                "clean": "nix-collect-garbage"
             },
             "args-modifier": {
                 "add": "nixpkgs.{package}"
@@ -39,7 +40,10 @@
                 "env-vars": []
             },
             "ports": [],
-            "mounts": []
+            "mounts": [],
+            "experiments": {
+                "sockets": false
+            }
         }
     },
     "commands": {},

@@ -9,7 +9,8 @@
                 "del": "zypper -n remove {args}",
                 "update": "zypper -n refresh {args}",
                 "upgrade": "zypper -n dup {args}",
-                "search": "zypper -n search {args}"
+                "search": "zypper -n search {args}",
+                "clean": "zypper -n clean --all {args}"
             },
             "args-modifier": {}
         },
@@ -32,7 +33,13 @@
                 "env-vars": []
             },
             "ports": [],
-            "mounts": []
+            "mounts": [],
+            "experiments": {
+                "sockets": false
+            },
+            "shared-folders": {
+                "opensuse": "/var/cache/zypp"
+            }
         }
     },
     "commands": {},

@@ -9,7 +9,8 @@
                 "del": "pacman -R {args}",
                 "update": "pacman -Syu {args}",
                 "upgrade": "pacman -Syu {args}",
-                "search": "pacman -Ss {args}"
+                "search": "pacman -Ss {args}",
+                "clean": "pacman -Sc {args}"
             },
             "args-modifier": {}
         },
@@ -32,7 +33,13 @@
                 "env-vars": []
             },
             "ports": [],
-            "mounts": []
+            "mounts": [],
+            "experiments": {
+                "sockets": false
+            },
+            "shared-folders": {
+                "arch": "/var/cache/pacman/pkg/"
+            }
         }
     },
     "commands": {},

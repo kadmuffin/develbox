@@ -3,8 +3,8 @@
         "uri": "docker.io/lnl7/nix:latest",
         "on-creation": [
             "nix-channel --update",
-            "nix-env -i gnused",
-            "sed -i 's/sandbox = false/sandbox = true/g' /etc/nix/nix.conf",
+			"nix-env -i gnused",
+			"sed -i 's/sandbox = false/sandbox = true/g' /etc/nix/nix.conf",
             "echo 'extra-experimental-features = nix-command flakes' >> /etc/nix/nix.conf"
         ],
         "on-finish": [],
@@ -14,7 +14,8 @@
                 "del": "nix-env -e {args}",
                 "update": "nix-channel --update {args}",
                 "upgrade": "nix-env -u {args}",
-                "search": "nix-env -qaP {args}"
+                "search": "nix-env -qaP {args}",
+                "clean": "nix-collect-garbage"
             },
             "args-modifier": {
                 "add": "nixpkgs.{package}"
@@ -39,7 +40,10 @@
                 "env-vars": []
             },
             "ports": [],
-            "mounts": []
+            "mounts": [],
+            "experiments": {
+                "sockets": false
+            }
         }
     },
     "commands": {},

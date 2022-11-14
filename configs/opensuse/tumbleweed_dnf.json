@@ -12,7 +12,8 @@
                 "del": "dnf remove {args}",
                 "update": "dnf refresh {args}",
                 "upgrade": "dnf dup {args}",
-                "search": "dnf search {args}"
+                "search": "dnf search {args}",
+                "clean": "dnf clean all {args} {-y}"
             },
             "args-modifier": {}
         },
@@ -35,7 +36,13 @@
                 "env-vars": []
             },
             "ports": [],
-            "mounts": []
+            "mounts": [],
+            "experiments": {
+                "sockets": false
+            },
+            "shared-folders": {
+                "opensuse": ["/var/cache/zypp", "/var/cache/dnf"]
+            }
         }
     },
     "commands": {},

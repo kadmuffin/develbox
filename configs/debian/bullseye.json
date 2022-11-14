@@ -9,7 +9,8 @@
                 "del": "apt-get remove {args}",
                 "update": "apt-get update {args}",
                 "upgrade": "apt-get upgrade {args}",
-                "search": "apt-get search {args}"
+                "search": "apt-get search {args}",
+                "clean": "rm -rf /var/cache/apt"
             },
             "args-modifier": {}
         },
@@ -32,7 +33,13 @@
                 "env-vars": []
             },
             "ports": [],
-            "mounts": []
+            "mounts": [],
+            "experiments": {
+                "sockets": false
+            },
+            "shared-folders": {
+                "debian": "/var/cache/apt"
+            }
         }
     },
     "commands": {},

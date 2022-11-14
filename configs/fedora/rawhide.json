@@ -9,7 +9,8 @@
                 "del": "dnf remove {args}",
                 "update": "dnf update {args}",
                 "upgrade": "dnf upgrade {args}",
-                "search": "dnf search {args}"
+                "search": "dnf search {args}",
+                "clean": "dnf clean all {args} {-y}"
             },
             "args-modifier": {}
         },
@@ -32,7 +33,13 @@
                 "env-vars": []
             },
             "ports": [],
-            "mounts": []
+            "mounts": [],
+            "experiments": {
+                "sockets": false
+            },
+            "shared-folders": {
+                "fedora": "/var/cache/dnf/"
+            }
         }
     },
     "commands": {},

@@ -37,11 +37,10 @@ var (
 		Use:   "build",
 		Short: "Builds a dockerfile based on the config file",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceUsage = true
+
 			var dckFile []string
-			gitignore, err := ignore.CompileIgnoreFile(".gitignore")
-			if err != nil {
-				return err
-			}
+			gitignore, _ := ignore.CompileIgnoreFile(".gitignore")
 
 			cfg, err := config.Read()
 			if err != nil {
@@ -61,12 +60,16 @@ var (
 			dckFile = append(dckFile, fmt.Sprintf("RUN %s", update))
 
 			// Add packages
-			pkgInstall := pkgm.NewOperation("add", cfg.Packages, []string{}, true)
-			if devBuild {
-				pkgInstall.Packages = append(pkgInstall.Packages, cfg.DevPackages...)
+			if len(cfg.Packages)+len(cfg.DevPackages) > 0 {
+				pkgInstall := pkgm.NewOperation("add", cfg.Packages, []string{}, true)
+				if devBuild {
+					pkgInstall.Packages = append(pkgInstall.Packages, cfg.DevPackages...)
+				}
+				packages, _ := pkgInstall.StringCommand(&cfg.Image.Installer)
+				clean := pkgm.NewOperation("clean", []string{}, []string{}, true)
+				cleanCmd, _ := clean.StringCommand(&cfg.Image.Installer)
+				dckFile = append(dckFile, fmt.Sprintf("RUN %s && %s", packages, cleanCmd))
 			}
-			packages, _ := pkgInstall.StringCommand(&cfg.Image.Installer)
-			dckFile = append(dckFile, fmt.Sprintf("RUN %s", packages))
 
 			// Add post install commands
 			dckFile = append(dckFile, appendRun(cfg.Image.OnFinish)...)

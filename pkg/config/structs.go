@@ -26,6 +26,7 @@ type Operations struct {
 	Upd  string `default:"apk update {args}" json:"update"`
 	Dup  string `default:"apk upgrade {args}" json:"upgrade"`
 	Srch string `default:"apk search {args}" json:"search"`
+	Clean string `default:"rm -rf /var/cache/apk/*" json:"clean"`
 }
 
 type Installer struct {

@@ -42,7 +42,7 @@ type Operation struct {
 //
 // After creating a operation, run yourOperation.Process() to install/delete/etc
 //
-// Accepted types: ("add", "del", "update", "upgrade", "search")
+// Accepted types: ("add", "del", "update", "upgrade", "search", "clean")
 func NewOperation(opType string, packages []string, flags []string, autoInstall bool) Operation {
 	return Operation{Type: opType, Packages: packages, Flags: flags, AutoInstall: autoInstall, UserOperation: false}
 }
@@ -142,6 +142,8 @@ func (e *Operation) StringCommand(cfg *config.Installer) (string, error) {
 		baseCmd = cfg.Operations.Upd
 	case "upgrade":
 		baseCmd = cfg.Operations.Dup
+	case "clean":
+		baseCmd = cfg.Operations.Clean
 
 	// Throw an error if the operation is not supported
 	default:
