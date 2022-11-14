@@ -15,6 +15,8 @@
 package pkg
 
 import (
+	"os"
+
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/pkgm"
 	"github.com/kadmuffin/develbox/pkg/podman"
@@ -48,7 +50,7 @@ var (
 
 			StartContainer(&cfg)
 
-			if podman.InsideContainer() {
+			if podman.InsideContainer() && os.Getuid() != 0 {
 				SendOperation(opertn)
 				return
 			}

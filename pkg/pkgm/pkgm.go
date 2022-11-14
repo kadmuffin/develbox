@@ -106,7 +106,10 @@ func (e *Operation) Process(cfg *config.Struct) error {
 //
 // Config updates have to be handle separately
 func (e *Operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.Cmd, error) {
-	pman := podman.New(cfg.Podman.Path)
+	var pman podman.Podman
+	if !podman.InsideContainer() && os.Getuid() != 0 {
+		pman = podman.New(cfg.Podman.Path)
+	}
 	cname := cfg.Podman.Container.Name
 	baseCmd, err := e.StringCommand(&cfg.Image.Installer)
 

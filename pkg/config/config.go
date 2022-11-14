@@ -28,6 +28,16 @@ func Read() (Struct, error) {
 	return ReadBytes(data)
 }
 
+func ReadFile(path string) (Struct, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return Struct{}, err
+	}
+
+	return ReadBytes(data)
+}
+
+
 func Write(configs *Struct) error {
 	os.Mkdir(".develbox", 0755)
 	data, _ := json.MarshalIndent(configs, "", "	")

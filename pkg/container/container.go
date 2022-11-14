@@ -198,7 +198,7 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	if cfg.Podman.Container.Experiments.Socket {
 		// Check if cfg.Packages or cfg.DevPackages contain go
 		if !contains(cfg.Packages, "go") && !contains(cfg.DevPackages, "go") {
-			fmt.Println("Installing Go for develbox experimental features")
+			fmt.Println("> Installing Go for develbox experimental features")
 			opert := pkgm.NewOperation("add", []string{"go"}, []string{}, true)
 			cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{
 				Stdin:  true,
@@ -228,8 +228,8 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	}
 
 	if cfg.Podman.Container.Experiments.Socket && goInstalled {
-		fmt.Println("Installing develbox inside the container")
-		err := RunCommandList(cfg.Podman.Container.Name, []string{"go install github.com/kadmuffin/develbox"}, pman, true, podman.Attach{
+		fmt.Println("> Installing develbox inside the container")
+		err := RunCommandList(cfg.Podman.Container.Name, []string{"go install github.com/kadmuffin/develbox", "cp /root/go/bin/develbox /usr/local/bin/develbox"}, pman, true, podman.Attach{
 			Stdin:  true,
 			Stdout: true,
 			Stderr: true,
