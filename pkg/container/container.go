@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Creates a container and runs the setupContainer function
+// Package container contains the logic for creating and running containers.
 package container
 
 import (
@@ -27,11 +27,14 @@ import (
 )
 
 var createEtcPwd bool
-var PkgVersion string = "latest"
 
+// PkgVersion specifies the version of develbox (inside the container)
+var PkgVersion = "latest"
+
+// Create creates a container and runs the setupContainer function
 func Create(cfg config.Struct, deleteOld bool) {
 	pman := podman.New(cfg.Podman.Path)
-	version, err := pman.Version()
+	majorV, minorV, _, err := pman.Version()
 
 	if err != nil {
 		glg.Errorf("Can't parse podman version: %s", err)
@@ -64,7 +67,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 			args = append(args, "--userns=keep-id")
 		}
 
-		if !pman.IsDocker() && (version[0] >= 5 || version[0] >= 4 && version[1] >= 2) {
+		if !pman.IsDocker() && (majorV >= 5 || majorV >= 4 && minorV >= 2) {
 			// Setups a user account with the current account name
 			args = append(args, fmt.Sprintf("--passwd-entry=%s:*:$UID:0:develbox_container:/home/%s:/bin/sh", user, user))
 		} else {
@@ -170,7 +173,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 	fmt.Println("Enter to the container with: develbox enter.")
 }
 
-// Sets the packages up and runs the onCreation & onFinish commands
+// setupContainer installs the packages and runs the onCreation & onFinish commands
 func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	// Runs commands that should be ran just
 	// after the container was created
@@ -259,9 +262,7 @@ func installPkgs(pman *podman.Podman, cfg config.Struct, pkgs []string, root boo
 	return cmd.Run()
 }
 
-// Runs a shell in the container
-// and creates a pipe for package
-// installations.
+// Enter runs a shell in the container and creates a pipe for package installations.
 func Enter(cfg config.Struct, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
 	//pipe := pipes.New(".develbox/home/.develbox")
@@ -281,6 +282,7 @@ func Enter(cfg config.Struct, root bool) error {
 	return err
 }
 
+// InstallAndEnter install the packages and runs a shell in the container
 func InstallAndEnter(cfg config.Struct, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
 	//pipe := pipes.New(".develbox/home/.develbox")
@@ -304,13 +306,12 @@ func InstallAndEnter(cfg config.Struct, root bool) error {
 	//pipe.Remove()
 }
 
-// Loops through the shared folders and
-// creates and binds them to the container.
+// Loops through the shared folders and creates and binds them to the container.
 func bindSharedFolders(cfg config.Struct, args *[]string) {
 	for key, value := range cfg.Podman.Container.SharedFolders {
-		switch value.(type) {
+		switch value := value.(type) {
 		case string:
-			endPath := ReplaceEnvVars(value.(string))
+			endPath := ReplaceEnvVars(value)
 			newPath, err := globalData.CreateFile(endPath, key)
 
 			if err != nil {
@@ -318,7 +319,7 @@ func bindSharedFolders(cfg config.Struct, args *[]string) {
 			}
 			*args = append(*args, fmt.Sprintf("-v=%s:%s:rw,z", newPath, endPath))
 		case []interface{}:
-			for _, val := range value.([]interface{}) {
+			for _, val := range value {
 				endPath := ReplaceEnvVars(val.(string))
 				newPath, err := globalData.CreateFile(endPath, key)
 

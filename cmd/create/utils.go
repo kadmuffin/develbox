@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package create contains the create command
 package create
 
 import (
@@ -25,6 +26,7 @@ import (
 	"github.com/kpango/glg"
 )
 
+// downloadConfig downloads the config file from the given URL
 func downloadConfig(argum string, url string) config.Struct {
 	resp, err := http.Get(fmt.Sprintf("%s/%s.json", url, argum))
 
@@ -51,7 +53,7 @@ func downloadConfig(argum string, url string) config.Struct {
 	return cfg
 }
 
-// Returns the keys of a map as a slice
+// getKeys returns the keys of a map as a slice
 func getKeys(data map[string][]string) []string {
 	keys := []string{}
 	for k := range data {

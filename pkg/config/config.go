@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package config has the config file struct. This file has the logic for reading and writing the config file
 package config
 
 import (
@@ -21,15 +22,12 @@ import (
 	"github.com/kpango/glg"
 )
 
+// Read reads the config file and returns the Struct
 func Read() (Struct, error) {
-	data, err := os.ReadFile(".develbox/config.json")
-	if err != nil {
-		return Struct{}, err
-	}
-
-	return ReadBytes(data)
+	return ReadFile(".develbox/config.json")
 }
 
+// ReadFile reads the config file  from a path and returns the Struct
 func ReadFile(path string) (Struct, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -40,6 +38,7 @@ func ReadFile(path string) (Struct, error) {
 	return ReadBytes(data)
 }
 
+// Write writes the config file
 func Write(configs *Struct) error {
 	os.Mkdir(".develbox", 0755)
 	data, _ := json.MarshalIndent(configs, "", "	")
@@ -51,6 +50,7 @@ func Write(configs *Struct) error {
 	return nil
 }
 
+// ReadBytes reads the config file from bytes and returns the Struct
 func ReadBytes(data []byte) (Struct, error) {
 	var configs Struct
 	err := json.Unmarshal(data, &configs)

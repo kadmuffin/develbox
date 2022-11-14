@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package create contains the create command
 package create
 
 import (
@@ -148,6 +149,7 @@ func init() {
 
 }
 
+// checkDocker checks if we only have docker installed and if so, it sets the container engine to docker
 func checkDocker(cfg *config.Struct) {
 	err := exec.Command(cfg.Podman.Path, "--version").Run()
 	if err != nil {
@@ -161,6 +163,7 @@ func checkDocker(cfg *config.Struct) {
 	}
 }
 
+// setupGitIgnore adds the .develbox directory to the .gitignore file (if the user accepts)
 func setupGitIgnore() error {
 	gitign, _ := ignore.CompileIgnoreFile(".gitignore")
 
@@ -172,7 +175,7 @@ func setupGitIgnore() error {
 	return nil
 }
 
-// promptGitignore prompts the user if they want to add the .develbox/home folder to the .gitignore file
+// writeGitignore writes to the .gitignore file ".develbox/home/"
 func writeGitIgnore() error {
 	toIgnore := "\n.develbox/home\n"
 	if !config.FileExists(".gitignore") {
@@ -190,7 +193,7 @@ func writeGitIgnore() error {
 	return nil
 }
 
-// Checks if it's a valid URL or a file path
+// isURL checks if it's a valid URL or a file path
 func isURL(URL string) bool {
 	return strings.HasPrefix(URL, "http://") || strings.HasPrefix(URL, "https://")
 }

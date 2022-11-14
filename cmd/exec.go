@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cmd contains the some commands for the program
 package cmd
 
 import (
@@ -24,6 +25,7 @@ import (
 )
 
 var (
+	// Exec is the cobra command for the exec command
 	Exec = &cobra.Command{
 		Use:   "exec",
 		Short: "Executes a program inside the container",

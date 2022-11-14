@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Wrapper around net package to make it convinient to use for
-// UNIX domain sockets.
+// Package socket is a wrapper around net package to make it convinient to use for UNIX domain sockets.
 package socket
 
 import (
@@ -26,20 +25,20 @@ import (
 	"github.com/kpango/glg"
 )
 
+// Socket stores the socket information.
 type Socket struct {
 	Path       string
 	Listener   net.Listener
 	Connection net.Conn
 }
 
-// Returns a new socket instance.
-// To create the socker use the Create method.
+// New returns a new socket instance. To create the socker use the Create method.
 func New(path string) *Socket {
 	glg.Debug("Creating new socket instance")
 	return &Socket{Path: path}
 }
 
-// Checks if the socket exists.
+// Exists checks if the socket exists.
 func (s *Socket) Exists() bool {
 	_, err := os.Stat(s.Path)
 	if err != nil {
@@ -48,7 +47,7 @@ func (s *Socket) Exists() bool {
 	return true
 }
 
-// Creates a socket.
+// Create creates a socket.
 func (s *Socket) Create() error {
 	glg.Debug("Creating socket...")
 	// Create socket directory if it doesn't exist
@@ -68,8 +67,7 @@ func (s *Socket) Create() error {
 	return nil
 }
 
-// Connects to the socket.
-// Returns a net.Conn.
+// Connect connects to the socket. Returns a net.Conn.
 func (s *Socket) Connect() error {
 	glg.Debug("Connecting to socket...")
 	conn, err := net.Dial("unix", s.Path)
@@ -80,25 +78,22 @@ func (s *Socket) Connect() error {
 	return nil
 }
 
-// Closes the socket.
+// Close closes the socket and the connection.
 func (s *Socket) Close() error {
 	return s.Listener.Close()
 }
 
-// Only closes the connection.
+// CloseConnection only closes the connection but not the socket.
 func (s *Socket) CloseConnection() error {
 	return s.Connection.Close()
 }
 
-// Accepts a new connection.
-// Returns a net.Conn.
+// Accept accepts a new connection. Returns a net.Conn.
 func (s *Socket) Accept() (net.Conn, error) {
 	return s.Listener.Accept()
 }
 
-// Waits for a connection.
-// When a connection is made, it will run the callback function
-// with the connection as argument.
+// Listen waits for a connection, when a connection is made, it will run the callback function with the connection as argument.
 func (s *Socket) Listen(cb func()) {
 	glg.Debug("Listening for connections...")
 	for {
@@ -111,14 +106,12 @@ func (s *Socket) Listen(cb func()) {
 	}
 }
 
-// Sends a message to the socket.
-// Returns the amount of bytes sent.
+// Send sends a message to the socket. Returns the amount of bytes sent.
 func (s *Socket) Send(msg string) (int, error) {
 	return s.Connection.Write([]byte(msg))
 }
 
-// Receives a message from the socket.
-// Returns the message received.
+// Recieve receives a message from the socket. Returns the message received.
 func (s *Socket) Receive() ([]byte, error) {
 	var buf [1024]byte
 	n, err := s.Connection.Read(buf[:])
@@ -128,8 +121,7 @@ func (s *Socket) Receive() ([]byte, error) {
 	return buf[:n], nil
 }
 
-// Receives JSON from the socket.
-// Returns an unmarshaled JSON object using the provided interface.
+// ReceiveJSON receives and parses JSON from the socket. Returns an unmarshaled JSON object using the provided interface.
 func (s *Socket) ReceiveJSON(v any) error {
 	dec := json.NewDecoder(s.Connection)
 	if err := dec.Decode(v); err != nil {
@@ -138,8 +130,7 @@ func (s *Socket) ReceiveJSON(v any) error {
 	return nil
 }
 
-// Sends JSON to the socket.
-// Returns the amount of bytes sent.
+// SendJSON sends JSON bytes to the socket. Returns the amount of bytes sent.
 func (s *Socket) SendJSON(v any) (int, error) {
 	enc := json.NewEncoder(s.Connection)
 	if err := enc.Encode(v); err != nil {
@@ -148,12 +139,12 @@ func (s *Socket) SendJSON(v any) (int, error) {
 	return 0, nil
 }
 
-// Returns a reader for the socket.
+// Reader returns a reader for the socket.
 func (s *Socket) Reader() (io.Reader, error) {
 	return s.Connection, nil
 }
 
-// Returns a writer for the socket.
+// Writer returns a writer for the socket.
 func (s *Socket) Writer() (io.Writer, error) {
 	return s.Connection, nil
 }

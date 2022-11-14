@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Prompts the user about .dockerignore
+// Package dockerfile contains the logic for creating a Dockerfile
 package dockerfile
 
 import (
@@ -24,7 +24,7 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-// Create a .dockerignore file using the .gitignore file
+// createDockerignore creates a .dockerignore file using the .gitignore file
 func createDockerignore() {
 	// Create a .dockerignore file
 	file, err := os.Create(".dockerignore")
@@ -52,6 +52,7 @@ func createDockerignore() {
 	glg.Info("Created .dockerignore file")
 }
 
+// selectDckrfl returns what .dockerignore operation we want
 func selectDck() bool {
 	items := []string{}
 

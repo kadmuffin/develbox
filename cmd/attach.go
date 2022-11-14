@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cmd contains the some commands for the program
 package cmd
 
 import (
@@ -22,6 +23,7 @@ import (
 )
 
 var (
+	// Attach is the cobra command for the attach command
 	Attach = &cobra.Command{
 		Use:   "attach",
 		Short: "Attaches directly to the container",
@@ -42,6 +44,3 @@ var (
 		},
 	}
 )
-
-func init() {
-}

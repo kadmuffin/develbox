@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cmd contains the some commands for the program
 package cmd
 
 import (
@@ -32,7 +33,8 @@ import (
 
 var (
 	socketExperiment bool
-	rootCli          = &cobra.Command{
+	// rootCLI is the root command for the program
+	rootCLI = &cobra.Command{
 		Use:     "develbox",
 		Version: version.Number,
 		Short:   "Develbox - CLI tool useful for creating dev environments.",
@@ -59,11 +61,11 @@ func Execute() {
 	// - The user is inside the container and running as root
 	if !podman.InsideContainer() || config.FileExists(fmt.Sprintf("/home/%s/.develbox.sock", os.Getenv("USER"))) || os.Getuid() == 0 {
 		// Add all the subcommands
-		rootCli.AddCommand(pkg.Add)
-		rootCli.AddCommand(pkg.Del)
-		rootCli.AddCommand(pkg.Update)
-		rootCli.AddCommand(pkg.Upgrade)
-		rootCli.AddCommand(pkg.Search)
+		rootCLI.AddCommand(pkg.Add)
+		rootCLI.AddCommand(pkg.Del)
+		rootCLI.AddCommand(pkg.Update)
+		rootCLI.AddCommand(pkg.Upgrade)
+		rootCLI.AddCommand(pkg.Search)
 	}
 
 	if !podman.InsideContainer() {
@@ -77,22 +79,22 @@ func Execute() {
 		}
 
 		if socketExperiment {
-			rootCli.AddCommand(Socket)
+			rootCLI.AddCommand(Socket)
 		}
-		rootCli.AddCommand(Attach)
-		rootCli.AddCommand(StateCmd)
-		rootCli.AddCommand(Enter)
+		rootCLI.AddCommand(Attach)
+		rootCLI.AddCommand(StateCmd)
+		rootCLI.AddCommand(Enter)
 
-		rootCli.AddCommand(create.Create)
-		rootCli.AddCommand(Exec)
-		rootCli.AddCommand(Run)
-		rootCli.AddCommand(state.Start)
-		rootCli.AddCommand(state.Stop)
-		rootCli.AddCommand(state.Restart)
-		rootCli.AddCommand(state.Trash)
+		rootCLI.AddCommand(create.Create)
+		rootCLI.AddCommand(Exec)
+		rootCLI.AddCommand(Run)
+		rootCLI.AddCommand(state.Start)
+		rootCLI.AddCommand(state.Stop)
+		rootCLI.AddCommand(state.Restart)
+		rootCLI.AddCommand(state.Trash)
 	}
-	rootCli.AddCommand(version.VersionCmd)
-	rootCli.AddCommand(dockerfile.Build)
+	rootCLI.AddCommand(version.VersionCmd)
+	rootCLI.AddCommand(dockerfile.Build)
 
-	rootCli.Execute()
+	rootCLI.Execute()
 }

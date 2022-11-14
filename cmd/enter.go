@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cmd contains the some commands for the program
 package cmd
 
 import (
@@ -25,7 +26,9 @@ import (
 )
 
 var (
-	root  bool
+	root bool
+
+	// Enter is the cobra command for the enter command
 	Enter = &cobra.Command{
 		Use:     "enter",
 		Aliases: []string{"shell"},

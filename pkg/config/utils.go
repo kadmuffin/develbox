@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package config has the config file struct. This file has utils for the config file
 package config
 
 import (
@@ -23,24 +24,17 @@ import (
 	"github.com/kpango/glg"
 )
 
-// Checks whether the config folder exists.
-//
-// Wrapper around config.FileExists()
+// ConfigFolderExists returns true if the config folder exists.
 func ConfigFolderExists() bool {
 	return FileExists(".develbox")
 }
 
-// Checks whether the config file exists.
-//
-// Wrapper around config.FileExists()
+// ConfigExists returns true if the config file exists.
 func ConfigExists() bool {
 	return FileExists(".develbox/config.json")
 }
 
-// Gets the current folder's full path.
-//
-// Throws a fatal error in case of failure
-// and exists the program.
+// GetCurrentDirectory returns the current folder's full path.
 func GetCurrentDirectory() string {
 	currentDir, err := os.Getwd()
 
@@ -51,16 +45,13 @@ func GetCurrentDirectory() string {
 	return currentDir
 }
 
-// Checks if a file/path exists.
-// Returns true if it exists
-//
-// Wrapper around os.Stat() & os.IsNotExists()
+// FileExists returns true if a file/path exists.
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
 }
 
-// Returns a hash made using the current directory's name.
+// GetDirNmHash returns a hash made using the current directory's name.
 func GetDirNmHash() string {
 	currentDirName := filepath.Base(GetCurrentDirectory())
 	hasher := sha256.New()
@@ -69,7 +60,7 @@ func GetDirNmHash() string {
 	return hex.EncodeToString(dir)
 }
 
-// Returns a hash made using the provided path.
+// GetPathHash returns a hash made using the provided path.
 func GetPathHash(path string) string {
 	hasher := sha256.New()
 	hasher.Write([]byte(path))

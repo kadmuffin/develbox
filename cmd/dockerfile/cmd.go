@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Creates a dockerfile based on the config file
+// Package dockerfile contains the logic for creating a Dockerfile
 package dockerfile
 
 import (
@@ -33,6 +33,7 @@ var (
 	includeFiles bool
 	devBuild     bool
 
+	// Build is the command that builds a Dockerfile
 	Build = &cobra.Command{
 		Use:   "build",
 		Short: "Builds a dockerfile based on the config file",
@@ -113,8 +114,7 @@ var (
 	}
 )
 
-// Opens a file for writing and writes
-// a set of lines to it
+// writeList opens a file for writing and writes a set of lines to it
 func writeList(path string, list []string) error {
 	file, err := os.Create(path)
 	if err != nil {
@@ -133,9 +133,7 @@ func writeList(path string, list []string) error {
 	return nil
 }
 
-// Parses a port list in the format "host:container"
-// and returns a list with the word expose + the container's
-// port
+// exposePorts parses a port list in the format "host:container" and returns a list with the word expose + the container's port
 func exposePorts(ports []string) []string {
 	var exposed []string
 	regex := regexp.MustCompile(`[0-9\.]+:+(\d+(\/[a-z]+)?)`)
@@ -148,8 +146,7 @@ func exposePorts(ports []string) []string {
 	return exposed
 }
 
-// Appends the RUN prefix to each element
-// in a list.
+// appendRun appends the RUN prefix to each element in a list.
 func appendRun(list []string) []string {
 	var newList []string
 	for _, line := range list {
@@ -158,8 +155,7 @@ func appendRun(list []string) []string {
 	return newList
 }
 
-// Mounts the current directory to the container's workspace
-// and copies any file that doesn't match the .gitignore
+// mountWorkspace mounts the current directory to the container's workspace and copies any file that doesn't match the .gitignore
 func mountWorkspace(workspace string, gitignore *ignore.GitIgnore) []string {
 	lines := []string{
 		fmt.Sprintf("WORKDIR %s", workspace),
@@ -179,8 +175,7 @@ func mountWorkspace(workspace string, gitignore *ignore.GitIgnore) []string {
 	return lines
 }
 
-// Returns a list of string that sets the environment variables
-// in the Dockerfile
+// getEnvVars returns a list of string that sets the environment variables in the Dockerfile
 func getEnvVars(vars map[string]string) []string {
 	var lines []string
 	for key, value := range vars {

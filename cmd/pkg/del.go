@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package pkg has the logic for communication with the package manager
 package pkg
 
 import (
@@ -25,6 +26,7 @@ import (
 )
 
 var (
+	// Del is the cobra command for the pkg del command
 	Del = &cobra.Command{
 		Use:                "del",
 		Aliases:            []string{"delete", "remove", "uni", "uninstall"},
@@ -33,14 +35,14 @@ var (
 		DisableFlagParsing: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			packages, flags := pkgm.ParseArguments(args)
-			parsedFlags := parseFlags(flags)
+			parsedFlags := parseFlags(&flags)
 
-			if parsedFlags.ShowHelp || len(*packages)+len(parsedFlags.All) == 0 {
+			if parsedFlags.ShowHelp || len(packages)+len(parsedFlags.All) == 0 {
 				cmd.Help()
 				return
 			}
 
-			opertn := pkgm.NewOperation("del", *packages, parsedFlags.All, false)
+			opertn := pkgm.NewOperation("del", packages, parsedFlags.All, false)
 			opertn.DevInstall = parsedFlags.DevPkg
 			opertn.UserOperation = parsedFlags.UserOpert
 

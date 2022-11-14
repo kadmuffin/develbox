@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Binds the current directory to the container. Also mounts
-// the XOrg socket if necessary.
+// Package container contains all the functions related to running the container. This file contains logic to mount the binds.
 package container
 
 import (
@@ -32,7 +31,7 @@ var dfltEnvVars = []string{
 	"XDG_SESSION_CLASS",
 	"XDG_SESSION_DESKTOP",
 	"XDG_SESSION_TYPE",
-	//	"DBUS_SESSION_BUS_ADDRESS",
+	"DBUS_SESSION_BUS_ADDRESS",
 	"DESKTOP_SESSION",
 	"WAYLAND_DISPLAY",
 	"DISPLAY",
@@ -41,11 +40,10 @@ var dfltEnvVars = []string{
 	"USER",
 }
 
-// Returns a string list with the enviroment variables to copy
-// into the container.
-//
-// See https://github.com/containers/toolbox/blob/main/src/pkg/utils/utils.go#L273
+// Returns a string list with the enviroment variables to copy into the container.
 func getEnvVars(vars []string) []string {
+	// See https://github.com/containers/toolbox/blob/main/src/pkg/utils/utils.go#L273
+	// for where this comes from.
 	result := []string{}
 	for _, envVar := range vars {
 		variable, found := os.LookupEnv(envVar)
@@ -72,18 +70,16 @@ func mountXOrg() string {
 }
 
 // Mounts /dev with the rslave option.
-//
-// We mount /dev so we can access things like cameras and GPUs
-// inside the container. See github.com/containers/podman/issues/5623.
 func mountDev() []string {
+	// We mount /dev so we can access things like cameras and GPUs
+	// inside the container. See github.com/containers/podman/issues/5623.
 	return []string{
 		"-v=/dev/:/dev:rslave",
 		"--mount", "type=devpts,destination=/dev/pts",
 	}
 }
 
-// Mounts the Workspace directory with proper SELinux label
-// if necessary.
+// Mounts the Workspace directory with proper SELinux label if necessary.
 func mountWorkDir(cfg config.Struct) []string {
 	workDir := cfg.Podman.Container.WorkDir
 	mntOpts := ""
@@ -100,8 +96,7 @@ func mountWorkDir(cfg config.Struct) []string {
 	}
 }
 
-// Returns a string pointing to $XDG_RUNTIME_DIR and a boolean indicating
-// if the folder exists or not.
+// Returns a string pointing to $XDG_RUNTIME_DIR and a boolean indicating if the folder exists or not.
 func getXDGRuntime() (string, bool) {
 	xdgRuntime, found := os.LookupEnv("XDG_RUNTIME_DIR")
 

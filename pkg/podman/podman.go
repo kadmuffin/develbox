@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Wrapper around os/exec to run podman commands.
+// Package podman is a wrapper around os/exec to run podman commands.
 package podman
 
 import (
@@ -27,21 +27,24 @@ import (
 	"github.com/kpango/glg"
 )
 
+// Podman is a struct that saves the path to the podman executable.
 type Podman struct {
 	path string
 }
 
+// Attach is config struct that sets the Stdin, Stdout and Stderr
 type Attach struct {
-	// If true, the container's Stdin will be attached to the current process.
+	// Stdin sets if stdin should be attached to the current process.
 	Stdin bool
-	// If true, the container's Stdout will be attached to the current process.
+	// Stdout sets if stdout will be attached to the current process.
 	Stdout bool
-	// If true, the container's Stderr will be attached to the current process.
+	// Stderr sets if stderr will be attached to the current process.
 	Stderr bool
-	// If true, allocates a pseudo-TTY for the container.
+	// PseudoTTY sets if podman should allocate a pseudo-TTY for the container.
 	PseudoTTY bool
 }
 
+// New creates a new Podman struct with the path to the podman executable.
 func New(path string) Podman {
 	glg.Infof("Podman path set to '%s'.", path)
 	cmd := exec.Command(path, "--version")
@@ -54,8 +57,7 @@ func New(path string) Podman {
 	return Podman{path: path}
 }
 
-// Private function that manages the command creation.
-// Created as a boilerplate for other public functions,
+// cmd is private function that manages the command creation. Created as a boilerplate for other public functions.
 func (e *Podman) cmd(args []string, attach Attach) *exec.Cmd {
 	cmd := exec.Command(e.path, args...)
 
@@ -72,7 +74,7 @@ func (e *Podman) cmd(args []string, attach Attach) *exec.Cmd {
 	return cmd
 }
 
-// Creates a container using the arguments provided.
+// Create creates a container using the arguments provided.
 func (e *Podman) Create(args []string, attach Attach) *exec.Cmd {
 	params := []string{"run", "-t", "--init"}
 	params = append(params, args...)
@@ -81,8 +83,7 @@ func (e *Podman) Create(args []string, attach Attach) *exec.Cmd {
 
 }
 
-// Executes a command inside a running container and
-// attaches (Stdin, Stdout) if "attach" is true.
+// Exec executes a command inside a running container and attaches (Stdin, Stdout) if "attach" is true.
 func (e *Podman) Exec(args []string, envVars map[string]string, sh bool, root bool, attach Attach) *exec.Cmd {
 	uid := os.Getuid()
 	params := []string{"exec", "-i"}
@@ -116,7 +117,7 @@ func (e *Podman) Exec(args []string, envVars map[string]string, sh bool, root bo
 	return PrintCommandR("Executing command: %s", e.cmd(params, attach))
 }
 
-// Returns a boolean that indicates if the container was found.
+// Exists returns a boolean that indicates if the container was found.
 func (e *Podman) Exists(name string) bool {
 	params := []string{"container", "exists", name}
 
@@ -129,10 +130,7 @@ func (e *Podman) Exists(name string) bool {
 	return e.cmd(params, Attach{}).Run() == nil
 }
 
-// Starts a container and returns an error in case of failure.
-//
-// In arguments, the first argument should probably be the
-// container's name/id.
+// Start starts a container and returns an error in case of failure. The first argument has to be the container's name/id.
 func (e *Podman) Start(args []string, attach Attach) error {
 	params := []string{"start"}
 	params = append(params, args...)
@@ -140,10 +138,7 @@ func (e *Podman) Start(args []string, attach Attach) error {
 	return PrintCommandR("Starting container using the following arguments:\n  - %s", e.cmd(params, attach)).Run()
 }
 
-// Stops a container and returns an error in case of failure.
-//
-// In arguments, the first argument has to be the
-// container's name/id if no flag are added before of the name.
+// Stop stops a container and returns an error in case of failure. In arguments, the first argument has to be the container's name/id if no flag are added before of the name.
 func (e *Podman) Stop(args []string, attach Attach) error {
 	params := []string{"stop"}
 	params = append(params, args...)
@@ -151,10 +146,7 @@ func (e *Podman) Stop(args []string, attach Attach) error {
 	return PrintCommandR("Stopping container using the following arguments:\n  - %s", e.cmd(params, attach)).Run()
 }
 
-// Removes a container and returns an error in case of failure.
-//
-// In arguments, the first argument has to be the
-// container's name/id if no flag are added before of the name.
+// Remove removes a container and returns an error in case of failure. In arguments, the first argument has to be the container's name/id if no flag are added before of the name.
 func (e *Podman) Remove(args []string, attach Attach) error {
 	e.Stop(args, attach)
 
@@ -164,7 +156,7 @@ func (e *Podman) Remove(args []string, attach Attach) error {
 	return PrintCommandR("Removing container using the following arguments:\n  - %s", e.cmd(params, attach)).Run()
 }
 
-// Copies files into the container
+// Copy copies files into the container
 func (e *Podman) Copy(args []string, attach Attach) *exec.Cmd {
 	e.Stop(args, attach)
 
@@ -174,55 +166,48 @@ func (e *Podman) Copy(args []string, attach Attach) *exec.Cmd {
 	return PrintCommandR("Running copy using the following arguments:\n  - %s", e.cmd(params, attach))
 }
 
-// Checks if the path contains the word "docker"
-//
-// Mainly here so we can make this work on docker too.
+// IsDocker checks if the podman path contains the word "docker". Mainly here so we can make this work on docker too.
 func (e *Podman) IsDocker() bool {
 	return strings.Contains(e.path, "docker")
 }
 
 // Gets the current podman version
-//
-// It parses the version out of the version string,
-// returns a list in the following format:
-//
-/* []int64{major, minor, patch} */
-func (e *Podman) Version() ([]int64, error) {
+func (e *Podman) Version() (major, minor, patch int64, err error) {
 	data, err := e.cmd([]string{"--version"}, Attach{}).Output()
 	if err != nil {
-		return []int64{}, err
+		return 0, 0, 0, err
 	}
 
 	regex, err := regexp.Compile(`([0-9]+)\.([0-9]+)\.([0-9]+)([0-9a-zA-z-\.]+)*`)
 	if err != nil {
-		return []int64{}, err
+		return 0, 0, 0, err
 	}
 
 	parsed := regex.FindStringSubmatch(string(data))
 
 	if parsed == nil {
-		return []int64{}, errors.New("unable to parse version")
+		return 0, 0, 0, errors.New("unable to parse version")
 	}
 
-	major, err := strconv.ParseInt(parsed[1], 10, 0)
+	major, err = strconv.ParseInt(parsed[1], 10, 0)
 	if err != nil {
-		return []int64{}, err
+		return 0, 0, 0, err
 	}
 
-	minor, err := strconv.ParseInt(parsed[2], 10, 0)
+	minor, err = strconv.ParseInt(parsed[2], 10, 0)
 	if err != nil {
-		return []int64{}, err
+		return 0, 0, 0, err
 	}
 
-	patch, err := strconv.ParseInt(parsed[3], 10, 0)
+	patch, err = strconv.ParseInt(parsed[3], 10, 0)
 	if err != nil {
-		return []int64{}, err
+		return 0, 0, 0, err
 	}
 
-	return []int64{major, minor, patch}, nil
+	return major, minor, patch, nil
 }
 
-// Builds a new image using Podman
+// Build builds a new image using Podman
 func (e *Podman) Build(path string, tag string, attach Attach) *exec.Cmd {
 	params := []string{"build"}
 	params = append(params, tag)
@@ -230,7 +215,7 @@ func (e *Podman) Build(path string, tag string, attach Attach) *exec.Cmd {
 	return PrintCommandR("Running build using the following arguments:\n  - %s", e.cmd(params, attach))
 }
 
-// Attaches to the podman container
+// Attach attaches to the podman container
 func (e *Podman) Attach(args []string, attach Attach) *exec.Cmd {
 	params := []string{"attach"}
 	params = append(params, args...)
@@ -238,12 +223,12 @@ func (e *Podman) Attach(args []string, attach Attach) *exec.Cmd {
 	return PrintCommandR("Running attach using the following arguments:\n  - %s", e.cmd(params, attach))
 }
 
-// Runs any podman subcommand (for example: ps)
+// RawCommand runs any podman subcommand (for example: ps)
 func (e *Podman) RawCommand(args []string, attach Attach) *exec.Cmd {
 	return e.cmd(args, attach)
 }
 
-// Checks if the container is running
+// IsRunning checks if the container is running
 func (e *Podman) IsRunning(name string) bool {
 	params := []string{"container", "inspect", "-f", "'{{.State.Running}}'", name}
 	data, err := e.cmd(params, Attach{}).Output()

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cmd contains the some commands for the program
 package cmd
 
 import (
@@ -27,7 +28,9 @@ import (
 var (
 	cfg  config.Struct
 	pman podman.Podman
-	Run  = &cobra.Command{
+
+	// Run is the command to run command defined in config.
+	Run = &cobra.Command{
 		Use:   "run",
 		Short: "Runs the command defined in the config file",
 		Long: `Runs the command defined in the config file.
@@ -64,12 +67,11 @@ var (
 )
 
 // getAllAsArray takes a name and returns an array of strings.
-//
-// The resulting array will contain all the commands inside that name.
-//
-// If the name is prefixed with "!", it will recursively call itself
-// to get the full command tree.
 func getAllAsArray(name string, from string) ([]string, error) {
+	// The resulting array will contain all the commands inside that name.
+	//
+	// If the name is prefixed with "!", it will recursively call itself
+	// to get the full command tree.
 	if _, ok := cfg.Commands[name]; !ok {
 		return []string{}, glg.Errorf("[%s] Command '%s' does not exist", from, name)
 	}
@@ -103,8 +105,7 @@ func getAllAsArray(name string, from string) ([]string, error) {
 	return result, glg.Errorf("'%s' uses an unsupported type, expected string or list of strings.", name)
 }
 
-// runCommandList takes a list of commands and runs them.
-// If a command is prefixed with "#", it will run as root.
+// runCommandList takes a list of commands and runs them. If a command is prefixed with "#", it will run as root.
 func runCommandList(runArgs []string) error {
 	for _, v := range runArgs {
 		rootOpert := strings.HasPrefix(v, "#")
@@ -126,8 +127,7 @@ func runCommandList(runArgs []string) error {
 	return nil
 }
 
-// This is used to parse the recursion of commands.
-// It also stops the recursion if it detects a loop.
+// parseRecursion is used to parse the recursion of commands. It also stops the recursion if it detects a loop.
 func parseRecursion(v, name, from string) ([]string, error) {
 	parsedName := strings.TrimPrefix(v, "!")
 	if parsedName == name || strings.Contains(from, parsedName) {

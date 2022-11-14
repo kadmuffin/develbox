@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Manages package installations and removals.
+// Package pkgm manages package installations and removals.
 package pkgm
 
 import (
@@ -28,7 +28,7 @@ import (
 	"github.com/kpango/glg"
 )
 
-// A struct that is used to install/delete packages.
+// Operation is a struct that is used to install/delete packages.
 type Operation struct {
 	Type          string   `json:"operation"`
 	Packages      []string `json:"packages"`
@@ -38,16 +38,12 @@ type Operation struct {
 	UserOperation bool     `json:"run-as-user"`
 }
 
-// Creates a new operation struct that is used to request a transaction.
-//
-// After creating a operation, run yourOperation.Process() to install/delete/etc
-//
-// Accepted types: ("add", "del", "update", "upgrade", "search", "clean")
+// NewOperation creates a new operation struct that is used to request a transaction. Accepted types: ("add", "del", "update", "upgrade", "search", "clean").
 func NewOperation(opType string, packages []string, flags []string, autoInstall bool) Operation {
 	return Operation{Type: opType, Packages: packages, Flags: flags, AutoInstall: autoInstall, UserOperation: false}
 }
 
-// Updates the config file with the new packages
+// UpdateConfig updates the config file with the new packages
 func (e *Operation) UpdateConfig(cfg *config.Struct) {
 	pkgsP := &cfg.Packages
 	devPkgsP := &cfg.DevPackages
@@ -81,11 +77,7 @@ func (e *Operation) UpdateConfig(cfg *config.Struct) {
 	}
 }
 
-// Processes the transaction and updates the config reference.
-//
-// Returns an error in case of failure.
-// Wrapper around ProcessCmd() that updates
-// the config reference.
+// Process processes the transaction and updates the config reference. Returns an error in case of failure.
 func (e *Operation) Process(cfg *config.Struct) error {
 	cmd, err := e.ProcessCmd(cfg, podman.Attach{
 		Stdin:     true,
@@ -102,9 +94,7 @@ func (e *Operation) Process(cfg *config.Struct) error {
 	return cmd.Run()
 }
 
-// Processes the transaction and returns a command
-//
-// Config updates have to be handle separately
+// ProcessCmd processes the transaction and returns a command. Config updates have to be handle separately.
 func (e *Operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.Cmd, error) {
 	var pman podman.Podman
 	if !podman.InsideContainer() && os.Getuid() != 0 {
@@ -124,10 +114,8 @@ func (e *Operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.
 		attach), nil
 }
 
-// Returns the string that will be send to
-// the container.
-//
-// For example: "apt install -y vim"
+// StringCommand returns the string that will be send to
+// the container. For example: "apt install -y vim".
 func (e *Operation) StringCommand(cfg *config.Installer) (string, error) {
 	var baseCmd string
 
@@ -174,10 +162,7 @@ func (e *Operation) StringCommand(cfg *config.Installer) (string, error) {
 	return modifBase, nil
 }
 
-// Runs a podman command with the config's pkgmanager settings.
-//
-// Returns an error so we can know if something failed or the user
-// did a Ctrl+C and stopped the transaction. Either way, packages failed to install.
+// sendCommand runs a podman command with the config's pkgmanager settings.
 func (e *Operation) sendCommand(cname, base string, pman podman.Podman, attach podman.Attach) *exec.Cmd {
 
 	arguments := []string{cname, base}
@@ -200,9 +185,7 @@ func (e *Operation) sendCommand(cname, base string, pman podman.Podman, attach p
 	return pman.Exec(arguments, map[string]string{}, true, !e.UserOperation, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
 }
 
-// writes a JSON formatted data into a file.
-//
-// In this case, it's used to write into the pipe.
+// Write writes a JSON formatted data into a file. In this case, it's used to write into the pipe or socket.
 func (e *Operation) Write(path string, perm os.FileMode) error {
 	data, err := json.Marshal(e)
 	if err != nil {
@@ -212,20 +195,19 @@ func (e *Operation) Write(path string, perm os.FileMode) error {
 	return os.WriteFile(path, data, perm)
 }
 
-// Parses a bytes list and returns aan operation
-// and an error.
+// Read parses a bytes list and returns aan operation and an error.
 func Read(data []byte) (Operation, error) {
 	opertn := Operation{}
 	err := json.Unmarshal(data, &opertn)
 	return opertn, err
 }
 
-// Returns a string representation of the operation
+// String returns a string representation of the operation
 func (e *Operation) String() string {
 	return fmt.Sprintf("Type: %s, Packages: %s, Flags: %s, AutoInstall: %t, DevInstall: %t, UserOperation: %t", e.Type, e.Packages, e.Flags, e.AutoInstall, e.DevInstall, e.UserOperation)
 }
 
-// Converts the operation to a JSON string
+// ToJSON converts the operation to a JSON string
 func (e *Operation) ToJSON() string {
 	data, err := json.Marshal(e)
 	if err != nil {

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package pkg has the logic for communication with the package manager
 package pkg
 
 import (
@@ -25,6 +26,7 @@ import (
 )
 
 var (
+	// Add is the cobra command for adding packages
 	Add = &cobra.Command{
 		Use:                "add",
 		Aliases:            []string{"install", "i", "in"},
@@ -33,14 +35,14 @@ var (
 		DisableFlagParsing: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			packages, flags := pkgm.ParseArguments(args)
-			parsedFlags := parseFlags(flags)
+			parsedFlags := parseFlags(&flags)
 
-			if parsedFlags.ShowHelp || len(*packages)+len(parsedFlags.All) == 0 {
+			if parsedFlags.ShowHelp || len(packages)+len(parsedFlags.All) == 0 {
 				cmd.Help()
 				return
 			}
 
-			opertn := pkgm.NewOperation("add", *packages, parsedFlags.All, false)
+			opertn := pkgm.NewOperation("add", packages, parsedFlags.All, false)
 			opertn.UserOperation = parsedFlags.UserOpert
 			opertn.DevInstall = parsedFlags.DevPkg
 

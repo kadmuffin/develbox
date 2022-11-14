@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package create contains the create command
 package create
 
 import (
@@ -52,7 +53,7 @@ var avaliableCfgs = map[string][]string{
 	},
 }
 
-// Create a prompt that asks to choose a distro and version
+// promptConfig create a prompt that asks to choose a distro and version.
 func promptConfig(URL string) config.Struct {
 	prompt := promptui.Select{
 		Label: "Choose a distro",
@@ -75,11 +76,11 @@ func promptConfig(URL string) config.Struct {
 	return downloadConfig(fmt.Sprintf("%s/%s", distro, version), URL)
 }
 
-// Prompts the user for ports to publish
-//
-// A config reference is required as this function
-// will set the network to host if the user chooses
+// promptPorts prompts the user for ports to publish.
 func promptPorts(cfg *config.Struct) string {
+	// A config reference is required as this function
+	// will set the network to host if the user chooses
+	// to not publish any ports
 	prompt := promptui.Prompt{
 		Label: "Publish ports (separate with commas, empty for host network)",
 	}
@@ -91,7 +92,7 @@ func promptPorts(cfg *config.Struct) string {
 	return result
 }
 
-// Prompts the user for volumes to mount
+// promptVolumes prompts the user for volumes to mount.
 func promptVolumes(cfg *config.Struct) string {
 	prompt := promptui.Prompt{
 		Label: "Mount volumes (separate with commas)",
@@ -104,7 +105,7 @@ func promptVolumes(cfg *config.Struct) string {
 	return result
 }
 
-// Prompts the user for the container name
+// promptName prompts the user for the container name.
 func promptName(cfg *config.Struct) string {
 	prompt := promptui.Prompt{
 		Label: "Container name (empty for default)",
@@ -117,8 +118,7 @@ func promptName(cfg *config.Struct) string {
 	return result
 }
 
-// Prompt to add .develbox/home to .gitignore
-// Default answer is yes
+// promptGitignore prompts to add .develbox/home to .gitignore. Default answer is yes.
 func promptGitignore() bool {
 	prompt := promptui.Prompt{
 		Label:     "Add .develbox/home to .gitignore",
@@ -130,8 +130,7 @@ func promptGitignore() bool {
 	return result == "y"
 }
 
-// Asks the user if they want to use $EDITOR to open
-// the config file
+// promptEditConfig asks the user if they want to use $EDITOR to open the config file.
 func promptEditConfig() {
 	prompt := promptui.Prompt{
 		Label:     "Edit config file",

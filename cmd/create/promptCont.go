@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package create contains the create command
 package create
 
 import (
 	"github.com/manifoldco/promptui"
 )
 
-// Prompt for no/yes if the user wants to create the container now
+// promptEditConfig prompts for no/yes if the user wants to create the container now.
 func promptCont() bool {
 	prompt := promptui.Prompt{
 		Label:     "Create container now",

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package state manages the state of the container
 package state
 
 import (
@@ -22,10 +23,11 @@ import (
 )
 
 var (
+	// Trash is the cobra command for the trash command
 	Trash = &cobra.Command{
-		Use:   "trash",
+		Use:     "trash",
 		Aliases: []string{"rm"},
-		Short: "Deletes the container",
+		Short:   "Deletes the container",
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg, err := config.Read()
 			if err != nil {

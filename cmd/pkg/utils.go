@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package pkg has the logic for communication with the package manager
 package pkg
 
 import (
@@ -28,6 +29,7 @@ import (
 	"github.com/kpango/glg"
 )
 
+// Flags is a struct to hold CLI flags
 type Flags struct {
 	All       []string
 	DevPkg    bool
@@ -62,7 +64,7 @@ func parseFlags(flags *[]string) (result Flags) {
 	return
 }
 
-// Sends an operation to the socket server
+// SendOperation sends an operation to the socket server
 func SendOperation(opertn pkgm.Operation) {
 
 	fmt.Println("[Experimental Feature] You *will* need to press enter to continue when the operation is done.")
@@ -97,7 +99,7 @@ func SendOperation(opertn pkgm.Operation) {
 	io.Copy(writer, ReadStdinAndWarn(5))
 }
 
-// Starts the container, if we are not inside it.
+// StartContainer starts the container, if we are not inside it.
 func StartContainer(cfg *config.Struct) {
 	if !podman.InsideContainer() {
 		pman := podman.New(cfg.Podman.Path)
@@ -109,8 +111,7 @@ func StartContainer(cfg *config.Struct) {
 	}
 }
 
-// Read stdin with a timeout and
-// write the result to the provided io.writer
+// ReadStdin reads from stdin and returns the result
 func ReadStdin(timeout int) io.Reader {
 	// Create a pipe to read from
 	reader, writer := io.Pipe()
@@ -141,8 +142,7 @@ func ReadStdin(timeout int) io.Reader {
 	return reader
 }
 
-// Does the same as ReadStdin, but it warns
-// the user that the operation is probably done
+// ReadStdinAndWarn reads from stdin and warns the user if it takes too long
 func ReadStdinAndWarn(timeout int) io.Reader {
 	// Create a pipe to read from
 	reader, writer := io.Pipe()

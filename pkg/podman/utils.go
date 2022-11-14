@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package podman is a wrapper around os/exec to run podman commands.
 package podman
 
 import (
@@ -23,10 +24,7 @@ import (
 	"github.com/kpango/glg"
 )
 
-// Checks if we are inside a container
-//
-// To do this we check the /run directory for .containerenv (podman)
-// or .dockerenv (docker)
+// InsideContainer checks if we are inside a container To do this we check the /run/ directory for .containerenv (podman) or .dockerenv (docker)
 func InsideContainer() bool {
 	inCtnr := config.FileExists("/run/.containerenv") || config.FileExists("/.dockerenv")
 
@@ -37,31 +35,28 @@ func InsideContainer() bool {
 	return inCtnr
 }
 
-// Replaces the following instances:
-//
-// $USER -> os.Getenv("USER")
-//
-// $HOME -> /home/$USER
-//
-// $PWD -> os.Getwd()
+// ReplaceEnvVars replaces some key environment variables with their values
 func ReplaceEnvVars(s string) string {
+	// $USER -> os.Getenv("USER")
+	//
+	// $HOME -> /home/$USER
+	//
+	// $PWD -> os.Getwd()
 	s = strings.ReplaceAll(s, "$$USER", os.Getenv("USER"))
 	s = strings.ReplaceAll(s, "$$HOME", "/home/"+os.Getenv("USER"))
 	s = strings.ReplaceAll(s, "$$PWD", os.Getenv("PWD"))
 	return s
 }
 
-// Prints the command to run in a more readable format
-// where:
-//
-// - Each argument is on a new line
-//
-// - Flags are on the same line as their argument
-//
-// - The args[1] is on the same line as the command
-//
-// - The command is prefixed with a message
+// PrintCommand prints the command to run in a more readable format
 func PrintCommand(msg string, cmd *exec.Cmd) {
+	// - Each argument is on a new line
+	//
+	// - Flags are on the same line as their argument
+	//
+	// - The args[1] is on the same line as the command
+	//
+	// - The command is prefixed with a message
 	var args []string
 	for i, arg := range cmd.Args {
 
@@ -83,10 +78,7 @@ func PrintCommand(msg string, cmd *exec.Cmd) {
 	glg.Infof("Full command: %s", cmd.String())
 }
 
-// Prints the command to run in a more readable format
-// and returns the command to run
-//
-// Format is the same as PrintCommand()
+// PrintCommandR prints the command to run in a more readable format and returns the command to run. Format is the same as PrintCommand()
 func PrintCommandR(msg string, cmd *exec.Cmd) *exec.Cmd {
 	PrintCommand(msg, cmd)
 	return cmd

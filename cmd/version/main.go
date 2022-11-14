@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package version has the command to print the version of the program
 package version
 
 import (
@@ -19,8 +20,8 @@ import (
 )
 
 var (
-	// Version is the current version of the program
-	Number string = "v0.4.1"
+	// Number is the current version of the program
+	Number = "v0.4.1"
 
 	// VersionCmd is the command for printing the current version
 	VersionCmd = &cobra.Command{

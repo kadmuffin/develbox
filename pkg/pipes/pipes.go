@@ -12,11 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The pipes package creates a FIFO pipe and provides functions to read/write to it.
-//
-// After creating the Pipe instance with pipes.New() use pipe.Create() to actually create the pipe file.
-//
-// It probably only works on Linux, can't confirm if it will work on macOS.
+// Package pipes creates a FIFO pipe and provides functions to read/write to it. It probably only works on Linux, can't confirm if it will work on macOS.
 package pipes
 
 import (
@@ -24,16 +20,14 @@ import (
 	"syscall"
 )
 
+// Pipe is a FIFO pipe.
 type Pipe struct {
 	path string
 }
 
-// New returns a pipe instance.
-//
-// The path argument is the place where the FIFO pipe will be created.
-//
-// This constructor is necessary as the path has to be previously defined before  creating a new pipe to mantain the pipe file path consistent.
+// New returns a pipe instance. The path argument is the place where the FIFO pipe will be created.
 func New(path string) *Pipe {
+	// This constructor is necessary as the path has to be previously defined before  creating a new pipe to mantain the pipe file path consistent.
 	return &Pipe{path: path}
 }
 
@@ -41,40 +35,37 @@ func (e *Pipe) Path() string {
 	return e.path
 }
 
-// Creates a new FIFO pipe using syscall.Mkfifo(). In case of error the function returns an error
+// Create creates a new FIFO pipe using syscall.Mkfifo(). In case of error the function returns an error
 func (e *Pipe) Create() error {
 	return syscall.Mkfifo(e.path, 0666)
 }
 
-// Removes the pipe file. In case of failure it returns
-// the error provided by os.Remove()
+// Remove removes the pipe file. In case of failure it returns the error provided by os.Remove()
 func (e *Pipe) Remove() error {
 	return os.Remove(e.path)
 }
 
-// Waits and reads the contents of the pipe.
-/* Use after pipe.Create() */
+// Read waits and reads the contents of the pipe. Use after pipe.Create()
 func (e *Pipe) Read() ([]byte, error) {
 	return os.ReadFile(e.path)
 }
 
-// Writes data to the pipe. In case of failure it returns an error.
-/* Use after pipe.Create() */
+// Write writes data to the pipe. In case of failure it returns an error. Use after pipe.Create()
 func (e *Pipe) Write(data []byte) error {
 	return os.WriteFile(e.path, data, 0666)
 }
 
-// Returns a writer to the pipe file.
+// Writer returns a writer to the pipe file.
 func (e *Pipe) Writer() (*os.File, error) {
 	return os.OpenFile(e.path, os.O_WRONLY, 0666)
 }
 
-// Returns a reader to the pipe file.
+// Reader returns a reader to the pipe file.
 func (e *Pipe) Reader() (*os.File, error) {
 	return os.OpenFile(e.path, os.O_RDONLY, 0666)
 }
 
-// Wrapper around os.stat() to check if the pipe file exists.
+// Exists is wrapper around os.stat() to check if the pipe file exists.
 func (e *Pipe) Exists() bool {
 	_, err := os.Stat(e.path)
 	return !os.IsNotExist(err)

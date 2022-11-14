@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package container contains all the functions related to the container. This file has utils.
 package container
 
 import (
@@ -25,10 +26,10 @@ import (
 	"github.com/kpango/glg"
 )
 
-// Reads all the names in the a path, and returns them
-// If an item is a folder it will return it like this:
-// "foldername/" instead of "foldername"
+// GetFolderFiles reads all the names in the a path, and returns them
 func GetFolderFiles(path string) ([]string, error) {
+	// If an item is a folder it will return it like this:
+	// "foldername/" instead of "foldername"
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return []string{}, err
@@ -45,9 +46,7 @@ func GetFolderFiles(path string) ([]string, error) {
 	return names, nil
 }
 
-// Returns a list of all the files inside a path that match a string
-//
-// Wrapper around GetFolderFiles() that filters the results
+// GetFolderFilesMtch returns a list of all the files inside a path that match a string
 func GetFolderFilesMtch(path string, match string) ([]string, error) {
 	files, err := GetFolderFiles(path)
 
@@ -64,23 +63,23 @@ func GetFolderFilesMtch(path string, match string) ([]string, error) {
 	return matches, nil
 }
 
-// Checks if a file/path exists using os.Stat()
+// FileExists checks if a file/path exists using os.Stat()
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
 }
 
-// Returns a string with all the ports to publish
+// processPorts returns a string with all the ports to publish
 func processPorts(cfg config.Struct) string {
 	return "-p=" + strings.Join(cfg.Podman.Container.Ports, "-p=")
 }
 
-// Returns a string with the extra volumes to mount
+// processMounts returns a string with the extra volumes to mount
 func processMounts(cfg config.Struct) string {
 	return "-v=" + ReplaceEnvVars(strings.Join(cfg.Podman.Container.Mounts, "-v="))
 }
 
-// Loops through the commands list and runs each one separately
+// RunCommandList loops through the commands list and runs each one separately
 func RunCommandList(name string, commands []string, pman *podman.Podman, root bool, attach podman.Attach) error {
 	for _, command := range commands {
 		if err := pman.Exec([]string{name, podman.ReplaceEnvVars(command)}, map[string]string{}, true, root, attach).Run(); err != nil {
@@ -90,7 +89,7 @@ func RunCommandList(name string, commands []string, pman *podman.Podman, root bo
 	return nil
 }
 
-// Loops through a list to check if a string is inside it
+// contains loops through a list to check if a string is inside it
 func contains(list []string, item string) bool {
 	for _, v := range list {
 		if v == item {
@@ -100,8 +99,7 @@ func contains(list []string, item string) bool {
 	return false
 }
 
-// Matches any text that starts with "$" and replaces it with the value of the environment variable
-// If not set, it will return an empty string
+// ReplaceEnvVars matches any text that starts with "$" and replaces it with the value of the environment variable. If not set, it will return an empty string.
 func ReplaceEnvVars(str string) string {
 	re := regexp.MustCompile(`\$(\w+)`)
 	// We'll replace any "~" with the home directory and join the path

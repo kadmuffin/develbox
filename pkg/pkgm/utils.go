@@ -12,19 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package pkgm manages package installations and removals.
 package pkgm
 
 import "strings"
 
-// Splits packages from flags in string arrays.
-//
-// Returns a tuple with packages first, and the flags.
-// (&packages, &flags)
-//
-// Useful for parsing the packages & flags from Cobra
-func ParseArguments(arguments []string) (*[]string, *[]string) {
-	packages := []string{}
-	flags := []string{}
+// ParseArguments splits packages from flags in string arrays. Useful for parsing the packages & flags from Cobra.
+func ParseArguments(arguments []string) (packages, flags []string) {
 	for _, arg := range arguments {
 		if strings.HasPrefix(arg, "-") {
 			flags = append(flags, arg)
@@ -33,12 +27,10 @@ func ParseArguments(arguments []string) (*[]string, *[]string) {
 		packages = append(packages, arg)
 	}
 
-	return &packages, &flags
+	return packages, flags
 }
 
-// Loops through the list and returns true if an item matches the string.
-//
-// Returns true if the item matched our string. False if not.
+// ContainsString loops through the list and returns true if an item matches the string. Returns true if the item matched our string. False if not.
 func ContainsString(list []string, match string) bool {
 	for _, item := range list {
 		if item == match {
@@ -48,8 +40,7 @@ func ContainsString(list []string, match string) bool {
 	return false
 }
 
-// Returns a new array based on `baseList` without anything
-// repeated on the append list.
+// RemoveDuplicates returns a new array based on `baseList` without anything repeated on the append list.
 func RemoveDuplicates(appendList *[]string, baseList *[]string) []string {
 	newList := []string{}
 	for _, item := range *baseList {
@@ -60,6 +51,7 @@ func RemoveDuplicates(appendList *[]string, baseList *[]string) []string {
 	return newList
 }
 
+// processPackages combines the packages with the argModifier (for example, by adding the prefix or suffix) and returns a string
 func processPackages(packages []string, argModifier string) string {
 	pkgs := []string{}
 
