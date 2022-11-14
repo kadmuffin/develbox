@@ -129,7 +129,7 @@ func (e *Operation) StringCommand(cfg *config.Installer) (string, error) {
 	case "update":
 		baseCmd = cfg.Operations.Upd
 	case "upgrade":
-		baseCmd = cfg.Operations.Dup
+		baseCmd = cfg.Operations.Upg
 	case "clean":
 		baseCmd = cfg.Operations.Clean
 

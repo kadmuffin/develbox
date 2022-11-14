@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmd contains the some commands for the program
-package cmd
+// Package state manages the state of the container
+package state
 
 import (
 	"fmt"
@@ -25,8 +25,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// StateCmd is the cobra command for the state command
-var StateCmd = &cobra.Command{
+// State is the cobra command for the state command
+var Cmd = &cobra.Command{
 	Use:   "state",
 	Short: "Prints the current container state",
 	Long:  `Prints the current container state`,

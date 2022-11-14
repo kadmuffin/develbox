@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package config has the config file struct. This file has utils for the config file
 package config
 
 import (

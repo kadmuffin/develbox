@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pkg has the logic for communication with the package manager
 package pkg
 
 import (

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package container contains all the functions related to running the container. This file contains logic to mount the binds.
 package container
 
 import (

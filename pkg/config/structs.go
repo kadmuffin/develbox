@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package config contains the configuration for the program
 package config
 
 import (
@@ -21,24 +20,24 @@ import (
 	"github.com/creasty/defaults"
 )
 
-// Operations is a list of package manager commands
+// Operations contains all supported commands for managing packages
 type Operations struct {
-	// Add is the command to add a package
+	// Add is the base string that the package manager uses to add a package
 	Add string `default:"apk add {args}" json:"add"` // add "{-y}" to auto install on creation on debian
 
-	// Del is the command to remove a package
+	// Del, short for delete, is the base string that the package manager uses to delete a package
 	Del string `default:"apk del {args}" json:"del"`
 
-	// Upd is the command to update a package or the database
+	// Upd, short for update, is the base string that the package manager uses to update the database
 	Upd string `default:"apk update {args}" json:"update"`
 
-	// Dup is the command to upgrade a package or all packages
-	Dup string `default:"apk upgrade {args}" json:"upgrade"`
+	// Upg, short for upgrade, is the base string that the package manager uses to upgrade all packages
+	Upg string `default:"apk upgrade {args}" json:"upgrade"`
 
-	// Srch is the command to search for a package
+	// Srch, short for search, is the base string that the package manager uses to search for a package
 	Srch string `default:"apk search {args}" json:"search"`
 
-	// Clean is the command to clean the cache
+	// Clean is the command to clean the cache, necessary if we want to reduce the image size (using the build command)
 	Clean string `default:"rm -rf /var/cache/apk/*" json:"clean"`
 }
 

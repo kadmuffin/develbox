@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package container contains the logic for creating and running containers.
+// Package container contains the logic for creating and entering containers.
 package container
 
 import (

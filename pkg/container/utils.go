@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package container contains all the functions related to the container. This file has utils.
 package container
 
 import (

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package global contains global variables and functions
+// Package global manages the shared folders feature
 package global
 
 import (

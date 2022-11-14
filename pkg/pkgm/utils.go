@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pkgm manages package installations and removals.
 package pkgm
 
 import "strings"

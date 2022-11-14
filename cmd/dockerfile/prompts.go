@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package dockerfile contains the logic for creating a Dockerfile
 package dockerfile
 
 import (

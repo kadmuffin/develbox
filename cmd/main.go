@@ -83,7 +83,7 @@ func Execute() {
 			rootCLI.AddCommand(Socket)
 		}
 		rootCLI.AddCommand(Attach)
-		rootCLI.AddCommand(StateCmd)
+		rootCLI.AddCommand(state.Cmd)
 		rootCLI.AddCommand(Enter)
 
 		rootCLI.AddCommand(create.Create)

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package config has the config file struct. This file has the logic for reading and writing the config file
+// Package config defines the configuration file and provides functions to read and write it
 package config
 
 import (
