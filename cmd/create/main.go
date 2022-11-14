@@ -30,7 +30,7 @@ import (
 var (
 	createCfg      bool
 	forceReplace   bool
-	downloadUrl    string
+	downloadURL    string
 	containerName  string
 	containerMount string
 	containerPort  string
@@ -52,19 +52,19 @@ var (
 
 				cfg := config.Struct{}
 
-				switch isUrl(downloadUrl) {
+				switch isURL(downloadURL) {
 				case true:
 					switch len(args) {
 					case 0:
-						targetUrl := strings.ReplaceAll(downloadUrl, "$$tag$$", "v"+version)
-						fmt.Println(targetUrl)
-						cfg = promptConfig(targetUrl)
+						targetURL := strings.ReplaceAll(downloadURL, "$$tag$$", "v"+version)
+						fmt.Println(targetURL)
+						cfg = promptConfig(targetURL)
 					default:
-						cfg = downloadConfig(args[0], strings.ReplaceAll(downloadUrl, "$$tag$$", "main"))
+						cfg = downloadConfig(args[0], strings.ReplaceAll(downloadURL, "$$tag$$", "main"))
 					}
 				case false:
 					var err error
-					cfg, err = config.ReadFile(downloadUrl)
+					cfg, err = config.ReadFile(downloadURL)
 					if err != nil {
 						glg.Fatalf("Couldn't read config file: %s", err)
 					}
@@ -136,7 +136,7 @@ var (
 func init() {
 	Create.Flags().BoolVarP(&createCfg, "config", "c", false, "Use to create a new config file")
 	Create.Flags().BoolVarP(&forceReplace, "force", "f", false, "Use to force the creation of a container/config")
-	Create.Flags().StringVarP(&downloadUrl, "source", "s", "https://raw.githubusercontent.com/kadmuffin/develbox/$$tag$$/configs", "A base path from where to get the configs.")
+	Create.Flags().StringVarP(&downloadURL, "source", "s", "https://raw.githubusercontent.com/kadmuffin/develbox/$$tag$$/configs", "A base path from where to get the configs.")
 	Create.Flags().StringVarP(&containerName, "name", "n", "", "The name of the container to create.")
 	Create.Flags().StringVarP(&containerMount, "mount", "m", "none", "The volume to mount in the container.")
 	Create.Flags().StringVarP(&containerPort, "port", "p", "none", "The port to expose in the container.")
@@ -186,7 +186,7 @@ func writeGitIgnore() error {
 	return nil
 }
 
-// Checks if it's a valid url or a file path
-func isUrl(url string) bool {
-	return strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")
+// Checks if it's a valid URL or a file path
+func isURL(URL string) bool {
+	return strings.HasPrefix(URL, "http://") || strings.HasPrefix(URL, "https://")
 }
