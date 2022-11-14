@@ -42,7 +42,7 @@ func GetConfigHome() string {
 	return configHome
 }
 
-// Get XDG_CACHE_HOME, if not set, use ~/.cache and set it
+// GetCacheHome gets XDG_CACHE_HOME, if not set, use ~/.cache and set it
 func GetCacheHome() string {
 	cacheHome := os.Getenv("XDG_CACHE_HOME")
 	if cacheHome == "" {
