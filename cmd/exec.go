@@ -39,10 +39,10 @@ var (
 				return err
 			}
 			pman := podman.New(cfg.Podman.Path)
-			if !pman.Exists(cfg.Podman.Container.Name) {
+			if !pman.Exists(cfg.Container.Name) {
 				glg.Fatal("Container does not exist")
 			}
-			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
+			pman.Start([]string{cfg.Container.Name}, podman.Attach{})
 
 			var rootOpert bool
 			joinedArgs := strings.Join(args, " ")
@@ -55,8 +55,8 @@ var (
 				joinedArgs = strings.TrimPrefix(joinedArgs, "!")
 			}
 
-			params := []string{cfg.Podman.Container.Name, joinedArgs}
-			command := pman.Exec(params, cfg.Image.EnvVars, true, rootOpert,
+			params := []string{cfg.Container.Name, joinedArgs}
+			command := pman.Exec(params, cfg.Image.Variables, true, rootOpert,
 				podman.Attach{
 					Stdin:     true,
 					Stdout:    true,

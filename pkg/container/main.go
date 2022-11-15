@@ -42,10 +42,10 @@ func Create(cfg config.Struct, deleteOld bool) {
 
 	if deleteOld {
 		glg.Debug("Deleting old container!")
-		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{})
+		pman.Remove([]string{cfg.Container.Name}, podman.Attach{})
 	}
 
-	if pman.Exists(cfg.Podman.Container.Name) {
+	if pman.Exists(cfg.Container.Name) {
 		glg.Fail("Container already exists!")
 		os.Exit(1)
 	}
@@ -57,7 +57,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 	user := os.Getenv("USER")
 	uid := os.Getuid()
 
-	args := []string{"--name", cfg.Podman.Container.Name, "-d"}
+	args := []string{"--name", cfg.Container.Name, "-d"}
 
 	glg.Debugf("rootless is set to: %t", cfg.Podman.Rootless)
 	if cfg.Podman.Rootless {
@@ -104,24 +104,24 @@ func Create(cfg config.Struct, deleteOld bool) {
 		glg.Fatalf("Something went wrong while creating the .develbox/home folder. %s", err)
 	}
 
-	if len(cfg.Podman.Container.Mounts) > 0 {
+	if len(cfg.Container.Mounts) > 0 {
 		args = append(args, processMounts(cfg))
 	}
-	if len(cfg.Podman.Container.Ports) > 0 {
+	if len(cfg.Container.Ports) > 0 {
 		args = append(args, processPorts(cfg))
 	}
-	if len(cfg.Podman.Container.Args) > 0 {
-		args = append(args, cfg.Podman.Container.Args...)
+	if len(cfg.Podman.Args) > 0 {
+		args = append(args, cfg.Podman.Args...)
 	}
 
-	if cfg.Podman.Container.Privileged {
+	if cfg.Podman.Privileged {
 		args = append(args, "--privileged")
 	}
 
 	args = append(args, getEnvVars(dfltEnvVars)...)
 
-	if len(cfg.Podman.Container.Binds.Vars) > 0 {
-		args = append(args, getEnvVars(cfg.Podman.Container.Binds.Vars)...)
+	if len(cfg.Container.Binds.Vars) > 0 {
+		args = append(args, getEnvVars(cfg.Container.Binds.Vars)...)
 	}
 
 	// Mount configs from host
@@ -135,10 +135,10 @@ func Create(cfg config.Struct, deleteOld bool) {
 	args = append(args, cfg.Image.URI, "sh")
 	err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
 
-	if err == nil && !pman.IsRunning(cfg.Podman.Container.Name) {
-		glg.Warnf("Container '%s' is not running! Retrying again with container attached.", cfg.Podman.Container.Name)
+	if err == nil && !pman.IsRunning(cfg.Container.Name) {
+		glg.Warnf("Container '%s' is not running! Retrying again with container attached.", cfg.Container.Name)
 
-		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{})
+		pman.Remove([]string{cfg.Container.Name}, podman.Attach{})
 
 		// Remove the "-d" argument
 		args = append(args[:2], args[3:]...)
@@ -152,7 +152,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 	// Only used if the current podman version doesn't
 	// support --passwd-entry
 	if createEtcPwd {
-		cmd := pman.Exec([]string{cfg.Podman.Container.Name, fmt.Sprintf("echo '%s:*:%d:0:develbox_container:/home/%s:/bin/sh' >> /etc/passwd", user, os.Getuid(), user)}, map[string]string{}, true, true, podman.Attach{Stderr: true})
+		cmd := pman.Exec([]string{cfg.Container.Name, fmt.Sprintf("echo '%s:*:%d:0:develbox_container:/home/%s:/bin/sh' >> /etc/passwd", user, os.Getuid(), user)}, map[string]string{}, true, true, podman.Attach{Stderr: true})
 		glg.Debugf("Running command: %s", cmd.String())
 		err = cmd.Run()
 
@@ -163,10 +163,10 @@ func Create(cfg config.Struct, deleteOld bool) {
 
 	setupContainer(&pman, cfg)
 
-	pman.Stop([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
+	pman.Stop([]string{cfg.Container.Name}, podman.Attach{Stderr: true})
 
 	if cfg.Podman.BuildOnly {
-		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
+		pman.Remove([]string{cfg.Container.Name}, podman.Attach{Stderr: true})
 	}
 
 	fmt.Println("Operation completed!")
@@ -177,7 +177,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	// Runs commands that should be ran just
 	// after the container was created
-	err := RunCommandList(cfg.Podman.Container.Name,
+	err := RunCommandList(cfg.Container.Name,
 		cfg.Image.OnCreation, pman, true,
 		podman.Attach{
 			Stdin:     true,
@@ -187,7 +187,7 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		})
 
 	if err != nil {
-		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
+		pman.Remove([]string{cfg.Container.Name}, podman.Attach{Stderr: true})
 		glg.Fatalf("Something went wrong with creating your container. %s", err)
 	}
 
@@ -222,14 +222,14 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		err := installPkgs(pman, cfg, append(cfg.UserPkgs.Packages, cfg.UserPkgs.DevPackages...), false)
 
 		if err != nil {
-			pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
+			pman.Remove([]string{cfg.Container.Name}, podman.Attach{Stderr: true})
 			glg.Fatalf("Something went wrong while installing the specified packages. %s", err)
 		}
 	}
 
 	if goInstalled {
 		fmt.Println("> Installing develbox inside the container")
-		err := RunCommandList(cfg.Podman.Container.Name, []string{fmt.Sprintf("go install github.com/kadmuffin/develbox@v%s", PkgVersion), "cp /root/go/bin/develbox /usr/local/bin/develbox"}, pman, true, podman.Attach{
+		err := RunCommandList(cfg.Container.Name, []string{fmt.Sprintf("go install github.com/kadmuffin/develbox@v%s", PkgVersion), "cp /root/go/bin/develbox /usr/local/bin/develbox"}, pman, true, podman.Attach{
 			Stdin:  true,
 			Stdout: true,
 			Stderr: true,
@@ -240,7 +240,7 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		}
 	}
 
-	err = RunCommandList(cfg.Podman.Container.Name,
+	err = RunCommandList(cfg.Container.Name,
 		cfg.Image.OnFinish, pman, true,
 		podman.Attach{
 			Stdin:     true,
@@ -250,7 +250,7 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 		})
 
 	if err != nil {
-		pman.Remove([]string{cfg.Podman.Container.Name}, podman.Attach{Stderr: true})
+		pman.Remove([]string{cfg.Container.Name}, podman.Attach{Stderr: true})
 		glg.Fatalf("Something went wrong with finishing setting up your container. %s", err)
 	}
 }
@@ -268,7 +268,7 @@ func Enter(cfg config.Struct, root bool) error {
 	//pipe := pipes.New(".develbox/home/.develbox")
 	//pipe.Create()
 
-	cmd := pman.Exec([]string{cfg.Podman.Container.Name, cfg.Podman.Container.Shell}, cfg.Image.EnvVars, false, root,
+	cmd := pman.Exec([]string{cfg.Container.Name, cfg.Container.Shell}, cfg.Image.Variables, false, root,
 		podman.Attach{
 			Stdin:     true,
 			Stdout:    true,
@@ -293,7 +293,7 @@ func InstallAndEnter(cfg config.Struct, root bool) error {
 		glg.Error("Couldn't install packages.")
 	}
 
-	cmd := pman.Exec([]string{cfg.Podman.Container.Name, cfg.Podman.Container.Shell}, cfg.Image.EnvVars, false, root,
+	cmd := pman.Exec([]string{cfg.Container.Name, cfg.Container.Shell}, cfg.Image.Variables, false, root,
 		podman.Attach{
 			Stdin:     true,
 			Stdout:    true,
@@ -308,7 +308,7 @@ func InstallAndEnter(cfg config.Struct, root bool) error {
 
 // Loops through the shared folders and creates and binds them to the container.
 func bindSharedFolders(cfg config.Struct, args *[]string) {
-	for key, value := range cfg.Podman.Container.SharedFolders {
+	for key, value := range cfg.Container.SharedFolders {
 		switch value := value.(type) {
 		case string:
 			endPath := ReplaceEnvVars(value)

@@ -45,10 +45,10 @@ var (
 			}
 
 			pman = podman.New(cfg.Podman.Path)
-			if !pman.Exists(cfg.Podman.Container.Name) {
+			if !pman.Exists(cfg.Container.Name) {
 				glg.Fatal("Container does not exist")
 			}
-			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
+			pman.Start([]string{cfg.Container.Name}, podman.Attach{})
 
 			name := strings.Join(args, " ")
 			if _, ok := cfg.Commands[name]; !ok {
@@ -110,9 +110,9 @@ func runCommandList(runArgs []string) error {
 		rootOpert := strings.HasPrefix(v, "#")
 		newArg := strings.TrimPrefix(v, "#")
 
-		params := []string{cfg.Podman.Container.Name, newArg}
+		params := []string{cfg.Container.Name, newArg}
 
-		err := pman.Exec(params, cfg.Image.EnvVars, true, rootOpert,
+		err := pman.Exec(params, cfg.Image.Variables, true, rootOpert,
 			podman.Attach{
 				Stdin:     true,
 				Stdout:    true,

@@ -74,7 +74,7 @@ func Execute() {
 		if config.Exists() {
 			cfg, _ := config.Read()
 
-			if cfg.Podman.Container.Experiments.Socket {
+			if cfg.Experiments.Socket {
 				socketExperiment = true
 			}
 		}

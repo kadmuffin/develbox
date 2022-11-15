@@ -34,11 +34,11 @@ var (
 			}
 			pman := podman.New(cfg.Podman.Path)
 
-			if !pman.Exists(cfg.Podman.Container.Name) {
+			if !pman.Exists(cfg.Container.Name) {
 				glg.Fatal("Container does not exist")
 			}
 
-			err = pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
+			err = pman.Start([]string{cfg.Container.Name}, podman.Attach{})
 			if err != nil {
 				glg.Fatal(err)
 			}

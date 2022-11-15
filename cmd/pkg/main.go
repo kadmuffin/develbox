@@ -103,11 +103,11 @@ func SendOperation(opertn pkgm.Operation) {
 func StartContainer(cfg *config.Struct) {
 	if !podman.InsideContainer() {
 		pman := podman.New(cfg.Podman.Path)
-		if !pman.Exists(cfg.Podman.Container.Name) {
+		if !pman.Exists(cfg.Container.Name) {
 			glg.Fatal("Container does not exist")
 		}
 
-		pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
+		pman.Start([]string{cfg.Container.Name}, podman.Attach{})
 	}
 }
 

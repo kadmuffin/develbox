@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+// Package config defines the configuration file and provides functions to read and write it
+//
+// This is the old version of the config file, which is now deprecated in favor of the new version (v2 at time of writing)
+package v1_config
 
 import (
 	"fmt"

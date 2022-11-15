@@ -50,14 +50,14 @@ var (
 
 			dckFile = append(dckFile, fmt.Sprintf("FROM %s", cfg.Image.URI))
 
-			dckFile = append(dckFile, getEnvVars(cfg.Image.EnvVars)...)
+			dckFile = append(dckFile, getEnvVars(cfg.Image.Variables)...)
 
 			// Add precmds before adding any packages
 			dckFile = append(dckFile, appendRun(cfg.Image.OnCreation)...)
 
 			// Update base image
 			pkgUpdate := pkgm.NewOperation("update", []string{}, []string{}, true)
-			update, _ := pkgUpdate.StringCommand(&cfg.Image.Installer)
+			update, _ := pkgUpdate.StringCommand(&cfg.Image.PkgManager)
 			dckFile = append(dckFile, fmt.Sprintf("RUN %s", update))
 
 			// Add packages
@@ -66,18 +66,18 @@ var (
 				if devBuild {
 					pkgInstall.Packages = append(pkgInstall.Packages, cfg.DevPackages...)
 				}
-				packages, _ := pkgInstall.StringCommand(&cfg.Image.Installer)
+				packages, _ := pkgInstall.StringCommand(&cfg.Image.PkgManager)
 				clean := pkgm.NewOperation("clean", []string{}, []string{}, true)
-				cleanCmd, _ := clean.StringCommand(&cfg.Image.Installer)
+				cleanCmd, _ := clean.StringCommand(&cfg.Image.PkgManager)
 				dckFile = append(dckFile, fmt.Sprintf("RUN %s && %s", packages, cleanCmd))
 			}
 
 			// Add post install commands
 			dckFile = append(dckFile, appendRun(cfg.Image.OnFinish)...)
 
-			dckFile = append(dckFile, exposePorts(cfg.Podman.Container.Ports)...)
+			dckFile = append(dckFile, exposePorts(cfg.Container.Ports)...)
 
-			for _, mount := range cfg.Podman.Container.Mounts {
+			for _, mount := range cfg.Container.Mounts {
 				regex := regexp.MustCompile(`([a-zA-Z0-9\.\-\/]+):([a-zA-Z0-9\.\-\/]+):?([a-zA-Z0-9\.\-\/]+)?`)
 				match := regex.FindStringSubmatch(mount)
 				if len(match) > 0 {
@@ -90,9 +90,9 @@ var (
 				dckIgnore := selectDck()
 				switch dckIgnore {
 				case true:
-					dckFile = append(dckFile, fmt.Sprintf("COPY . %s", cfg.Podman.Container.WorkDir))
+					dckFile = append(dckFile, fmt.Sprintf("COPY . %s", cfg.Container.WorkDir))
 				case false:
-					dckFile = append(dckFile, mountWorkspace(cfg.Podman.Container.WorkDir, gitignore)...)
+					dckFile = append(dckFile, mountWorkspace(cfg.Container.WorkDir, gitignore)...)
 				}
 			}
 
@@ -101,9 +101,9 @@ var (
 					return glg.Errorf("command %s not found in config file", command)
 				}
 
-				dckFile = append(dckFile, fmt.Sprintf("ENTRYPOINT [\"%s\", \"-c\", \"%s\"]", cfg.Podman.Container.Shell, cfg.Commands[command]))
+				dckFile = append(dckFile, fmt.Sprintf("ENTRYPOINT [\"%s\", \"-c\", \"%s\"]", cfg.Container.Shell, cfg.Commands[command]))
 			} else {
-				dckFile = append(dckFile, fmt.Sprintf("ENTRYPOINT [\"%s\"]", cfg.Podman.Container.Shell))
+				dckFile = append(dckFile, fmt.Sprintf("ENTRYPOINT [\"%s\"]", cfg.Container.Shell))
 			}
 
 			if config.FileExists("Dockerfile") {

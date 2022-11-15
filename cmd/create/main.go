@@ -68,9 +68,14 @@ var (
 					}
 				case false:
 					var err error
-					cfg, err = config.ReadFile(downloadURL)
+					var v1Cfg bool
+					cfg, err, v1Cfg = config.ReadFile(downloadURL)
 					if err != nil {
 						glg.Fatalf("Couldn't read config file: %s", err)
+					}
+
+					if v1Cfg {
+						glg.Warn("Config file is from an older version of develbox. Develbox will write an updated version to .develbox/config.json")
 					}
 				}
 
@@ -80,7 +85,7 @@ var (
 				if containerName == "" {
 					containerName = promptName(&cfg)
 				}
-				cfg.Podman.Container.Name = containerName
+				cfg.Container.Name = containerName
 
 				if containerMount == "none" {
 					containerMount = promptVolumes(&cfg)
@@ -88,9 +93,9 @@ var (
 
 				switch containerMount {
 				case "":
-					cfg.Podman.Container.Mounts = []string{}
+					cfg.Container.Mounts = []string{}
 				default:
-					cfg.Podman.Container.Mounts = strings.Split(containerMount, ",")
+					cfg.Container.Mounts = strings.Split(containerMount, ",")
 				}
 
 				if containerPort == "none" {
@@ -99,9 +104,9 @@ var (
 
 				switch containerPort {
 				case "":
-					cfg.Podman.Container.Args = append(cfg.Podman.Container.Args, "--net=host")
+					cfg.Podman.Args = append(cfg.Podman.Args, "--net=host")
 				default:
-					cfg.Podman.Container.Ports = strings.Split(containerPort, ",")
+					cfg.Container.Ports = strings.Split(containerPort, ",")
 				}
 
 				err := config.Write(&cfg)

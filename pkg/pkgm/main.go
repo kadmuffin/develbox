@@ -100,8 +100,8 @@ func (e *Operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.
 	if !podman.InsideContainer() && os.Getuid() != 0 {
 		pman = podman.New(cfg.Podman.Path)
 	}
-	cname := cfg.Podman.Container.Name
-	baseCmd, err := e.StringCommand(&cfg.Image.Installer)
+	cname := cfg.Container.Name
+	baseCmd, err := e.StringCommand(&cfg.Image.PkgManager)
 
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (e *Operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.
 
 // StringCommand returns the string that will be send to
 // the container. For example: "apt install -y vim".
-func (e *Operation) StringCommand(cfg *config.Installer) (string, error) {
+func (e *Operation) StringCommand(cfg *config.PackageManager) (string, error) {
 	var baseCmd string
 
 	switch e.Type {
@@ -143,7 +143,7 @@ func (e *Operation) StringCommand(cfg *config.Installer) (string, error) {
 	if flags != "" {
 		flags += " "
 	}
-	packages := processPackages(e.Packages, cfg.ArgModifier[e.Type])
+	packages := processPackages(e.Packages, cfg.Modifiers[e.Type])
 
 	// This is where we replace the "{args}" string with the flags and packages
 	modifBase := strings.Replace(baseCmd, "{args}", fmt.Sprintf("%s%s", flags, packages), 1)

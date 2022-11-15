@@ -70,12 +70,12 @@ func FileExists(path string) bool {
 
 // processPorts returns a string with all the ports to publish
 func processPorts(cfg config.Struct) string {
-	return "-p=" + strings.Join(cfg.Podman.Container.Ports, "-p=")
+	return "-p=" + strings.Join(cfg.Container.Ports, "-p=")
 }
 
 // processMounts returns a string with the extra volumes to mount
 func processMounts(cfg config.Struct) string {
-	return "-v=" + ReplaceEnvVars(strings.Join(cfg.Podman.Container.Mounts, "-v="))
+	return "-v=" + ReplaceEnvVars(strings.Join(cfg.Container.Mounts, "-v="))
 }
 
 // RunCommandList loops through the commands list and runs each one separately

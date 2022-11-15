@@ -80,7 +80,7 @@ func mountDev() []string {
 
 // Mounts the Workspace directory with proper SELinux label if necessary.
 func mountWorkDir(cfg config.Struct) []string {
-	workDir := cfg.Podman.Container.WorkDir
+	workDir := cfg.Container.WorkDir
 	mntOpts := ""
 
 	// Adding "private unshare label" so SELinux doesn't
@@ -113,11 +113,11 @@ func mountBindings(cfg config.Struct, xdgRuntime string) []string {
 
 	os.Setenv("XDG_RUNTIME_DIR", xdgRuntime)
 
-	if cfg.Podman.Container.Binds.XOrg {
+	if cfg.Container.Binds.XOrg {
 		args = append(args, mountXOrg())
 	}
 
-	if cfg.Podman.Container.Binds.Dev {
+	if cfg.Container.Binds.Dev {
 		args = append(args, mountDev()...)
 	}
 

@@ -39,12 +39,12 @@ var Cmd = &cobra.Command{
 
 		pman := podman.New(cfg.Podman.Path)
 
-		if !pman.Exists(cfg.Podman.Container.Name) {
+		if !pman.Exists(cfg.Container.Name) {
 			fmt.Println("Container does not exist.")
 			os.Exit(1)
 		}
 
-		running := pman.IsRunning(cfg.Podman.Container.Name)
+		running := pman.IsRunning(cfg.Container.Name)
 		if running {
 			fmt.Println("Container is running!")
 			os.Exit(0)

@@ -39,10 +39,10 @@ var (
 				glg.Failf("Can't read config: %s", err)
 			}
 			pman := podman.New(cfg.Podman.Path)
-			if !pman.Exists(cfg.Podman.Container.Name) {
+			if !pman.Exists(cfg.Container.Name) {
 				glg.Fatal("Container does not exist")
 			}
-			pman.Start([]string{cfg.Podman.Container.Name}, podman.Attach{})
+			pman.Start([]string{cfg.Container.Name}, podman.Attach{})
 
 			defer os.Remove(".develbox/home/.develbox.sock")
 			createSocket(&cfg)

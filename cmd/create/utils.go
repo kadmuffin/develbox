@@ -45,9 +45,13 @@ func downloadConfig(argum string, url string) config.Struct {
 		glg.Fatalf("Something went wrong while downloading the config file. %s", err)
 	}
 
-	cfg, err := config.ReadBytes(data)
+	cfg, err, v1Cfg := config.ReadBytes(data)
 	if err != nil {
 		glg.Fatalf("Failed to parse the JSON data. %s", err)
+	}
+
+	if v1Cfg {
+		glg.Warn("The config file is in the old format. Develbox will update it to the new format.")
 	}
 	return cfg
 }
