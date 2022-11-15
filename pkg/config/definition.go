@@ -99,7 +99,7 @@ type Podman struct {
 	Rootless bool `default:"true" json:"rootless"`
 
 	// BuildOnly tells develbox if it should delete the container after created
-	BuildOnly bool `json:"create-deletion"`
+	BuildOnly bool `json:"buildonly"`
 
 	// Privileged is a boolean that determines if the container should be run in privileged mode.
 	Privileged bool `default:"true" json:"privileged"`
