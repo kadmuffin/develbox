@@ -36,10 +36,10 @@ type Image struct {
 	URI string `default:"alpine:latest" json:"uri"`
 
 	// OnCreation is a list of commands to run on creation
-	OnCreation []string `default:"[\"apk update\"]" json:"oncreation"`
+	OnCreation []string `default:"[\"apk update\"]" json:"on_creation"`
 
 	// OnFinish is a list of commands to run on finish
-	OnFinish []string `default:"[]" json:"onfinish"`
+	OnFinish []string `default:"[]" json:"on_finish"`
 
 	// PkgManager contains the configuration for the package manager
 	PkgManager PackageManager `json:"pkgmanager"`
@@ -84,7 +84,7 @@ type Container struct {
 	Mounts []string `default:"[]" json:"mounts"`
 
 	// SharedFolders is a list of folders that are shared between containers
-	SharedFolders map[string]interface{} `default:"{}" json:"sharedfolders"`
+	SharedFolders map[string]interface{} `default:"{}" json:"shared_folders"`
 }
 
 // Podman is the struct for the podman configuration

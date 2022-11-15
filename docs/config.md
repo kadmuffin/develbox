@@ -55,8 +55,8 @@ The config file contains the following sections:
 The `image` section contains the following fields:
 
 - `uri` - Which is the URI of the image to use, for example, `docker.io/library/ubuntu:latest`
-- `oncreation` - This is a list of commands to run when the container is just created
-- `onfinish` - This is a list of commands to run when the container has finished building
+- `on_creation` - This is a list of commands to run when the container is just created
+- `on_finish` - This is a list of commands to run when the container has finished building
 - `pkgmanager` - Contains the configuration for the package manager to use in the container
 - `variables` - Contains the environment variables to set in the container
 
@@ -141,7 +141,7 @@ The `container` section contains the following fields:
 - `binds` - Contains the binds to mount in the container
 - `ports` - Contains the ports to expose in the container
 - `volumes` - Contains the volumes to mount in the container
-- `sharedfolders` - Contains the shared folders to mount in the container
+- `shared_folders` - Contains the shared folders to mount in the container
 
 #### Binds
 
