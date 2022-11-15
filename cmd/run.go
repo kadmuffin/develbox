@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
@@ -77,17 +78,26 @@ func getAllAsArray(name string, from string) ([]string, error) {
 	cmds := cfg.Commands[name]
 	result := []string{}
 
-	if _, ok := cmds.(string); ok {
-		if strings.HasPrefix(cmds.(string), "!") {
-			return parseRecursion(cmds.(string), name, from)
+	switch cmds := cmds.(type) {
+	case string:
+		if strings.HasPrefix(cmds, "!") {
+			parsedCmds, err := runBashParse(cmds)
+			if err != nil {
+				return []string{}, err
+			}
+			return parseRecursion(parsedCmds, name, from)
 		}
-		result = append(result, cmds.(string))
+		result = append(result, cmds)
 		return result, nil
-	}
-	if _, ok := cmds.([]interface{}); ok {
-		for _, v := range cmds.([]interface{}) {
+	case []interface{}:
+		for _, v := range cmds {
 			if strings.HasPrefix(v.(string), "!") {
-				newCmds, err := parseRecursion(v.(string), name, from)
+				parsedCmds, err := runBashParse(v.(string))
+				if err != nil {
+					return []string{}, err
+				}
+
+				newCmds, err := parseRecursion(parsedCmds, name, from)
 
 				if err != nil {
 					return []string{}, err
@@ -99,9 +109,10 @@ func getAllAsArray(name string, from string) ([]string, error) {
 			result = append(result, v.(string))
 		}
 		return result, nil
+	default:
+		return result, glg.Errorf("'%s' uses an unsupported type, expected string or list of strings.", name)
 	}
 
-	return result, glg.Errorf("'%s' uses an unsupported type, expected string or list of strings.", name)
 }
 
 // runCommandList takes a list of commands and runs them. If a command is prefixed with "#", it will run as root.
@@ -136,4 +147,63 @@ func parseRecursion(v, name, from string) ([]string, error) {
 	// We pass from where we came from and the name of the command we are parsing.
 	// It's also useful for debugging loops when one happens.
 	return getAllAsArray(parsedName, fmt.Sprintf("%s,%s", from, name))
+}
+
+// parseSubBash runs commands inside "${}" and returns the result.
+//
+// (It runs them inside the container, then it auto replaces itself with the result)
+//
+// Matches in any place of the string. (Runs all matches)
+func parseSubBash(v string) (string, error) {
+	re := regexp.MustCompile(`\$\{(.+?)\}`)
+	matches := re.FindAllStringSubmatch(v, -1)
+
+	for _, match := range matches {
+		params := []string{cfg.Container.Name, match[1]}
+		result, err := pman.Exec(params, cfg.Image.Variables, true, false, podman.Attach{}).Output()
+		if err != nil {
+			return "", err
+		}
+
+		v = strings.Replace(v, match[0], strings.TrimSuffix(string(result), "\n"), -1)
+	}
+
+	return v, nil
+}
+
+// parseSubRootBash runs commands inside "$#{}" and returns the result.
+//
+// (It runs them inside the container, then it auto replaces itself with the result)
+//
+// Matches in any place of the string. (Runs all matches)
+func parseSubRootBash(v string) (string, error) {
+	re := regexp.MustCompile(`\$#\{(.+?)\}`)
+	matches := re.FindAllStringSubmatch(v, -1)
+
+	for _, match := range matches {
+		params := []string{cfg.Container.Name, match[1]}
+		result, err := pman.Exec(params, cfg.Image.Variables, true, true, podman.Attach{}).Output()
+		if err != nil {
+			return "", err
+		}
+
+		v = strings.Replace(v, match[0], strings.TrimSuffix(string(result), "\n"), -1)
+	}
+
+	return v, nil
+}
+
+// runBashParse runs the bash parse and returns the result.
+func runBashParse(v string) (string, error) {
+	v, err := parseSubBash(v)
+	if err != nil {
+		return "", err
+	}
+
+	v, err = parseSubRootBash(v)
+	if err != nil {
+		return "", err
+	}
+
+	return v, nil
 }

@@ -18,7 +18,7 @@
 
 The config file contains the configuration for the application. It is a JSON file that is parsed by the CLI.
 
-In the [configs](../configs)'](../configs) folder, you can find some of all the default config files.
+In the [configs](../configs) folder, you can find some of the default config files.
 
 ## Table of Contents
 
@@ -54,7 +54,7 @@ The config file contains the following sections:
 
 The `image` section contains the following fields:
 
-- `URI` - Which is the URI of the image to use, for example, `docker.io/library/ubuntu:latest`
+- `uri` - Which is the URI of the image to use, for example, `docker.io/library/ubuntu:latest`
 - `oncreation` - This is a list of commands to run when the container is just created
 - `onfinish` - This is a list of commands to run when the container has finished building
 - `pkgmanager` - Contains the configuration for the package manager to use in the container
@@ -160,10 +160,11 @@ The value can be a string or a list of strings, where each string is a command t
 - `!<command key>` - Runs the command defined in the `commands` section (only works if `!` is the first character)
 - `$<env var>` - Replaces the environment variable with its value (work anywhere in the string)
 - `~/` - Replaces the `~/` character with the home directory of the user (work anywhere in the string)
-- `${command}` - Replaces the command with the output of the command (work anywhere in the string)
+- `${command}` - Runs a bash command (in the container) and replaces itself with the output of the command (works anywhere in the string)
+- `$#{command}` - Runs a bash command as root (in the container) and replaces itself with the output of the command (works anywhere in the string)
 - `#<command>` - Runs the command as root (only works if `#` is the first character)
 
-An example of a command would be:
+An example of how to use this section would be:
 
 ```json
 {
@@ -248,13 +249,13 @@ An example would be:
 }
 ```
 
-Packages here will make the package manager inside develbox run the operation as user instead of root. Any packages here won't be included in Dockerfiles.
+Packages here will make the package manager inside develbox run the operation as a user instead of root. Any packages here won't be included in Dockerfiles.
 
 ### Experiments
 
 The `experiments` section contains the experimental features to enable. It uses a key-value dictionary, where the key is the name of the feature and the value is a boolean indicating if the feature should be enabled or not.
 
-The only feature currently supported is `sockets`, enables package installations from inside the container (when running as user).
+The only feature currently supported is `sockets`, that enables package installations from inside the container (when running as a user).
 
 An example would be:
 
