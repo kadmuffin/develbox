@@ -21,7 +21,7 @@ import (
 
 var (
 	// Number is the current version of the program
-	Number = "0.5.3"
+	Number = "0.5.4"
 
 	// VersionCmd is the command for printing the current version
 	VersionCmd = &cobra.Command{
