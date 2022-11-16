@@ -68,7 +68,7 @@ The `pkgmanager` section uses base strings, where:
 
 So, taking that into account, a valid package manager configuration would look like this:
 
-```json
+```jsonc
 {
     ...
     "pkgmanager": {
@@ -97,7 +97,7 @@ The only supported commands are:
 
 The package manager also supports adding prefixes or suffixes to package names, for example, in the nix config it is used to add the `nixpkgs.` prefix to the package name.
 
-```json
+```jsonc
 {
     ...
     "pkgmanager": {
@@ -166,7 +166,7 @@ The value can be a string or a list of strings, where each string is a command t
 
 An example of how to use this section would be:
 
-```json
+```jsonc
 {
     ...
     "commands": {
@@ -188,7 +188,7 @@ The `packages` section contains the packages to install in the container. It use
 
 An example would be:
 
-```json
+```jsonc
 {
     ...
     "packages": [
@@ -209,7 +209,7 @@ Any package here won't be included in the Dockerfile unless the `--dev` flag is 
 
 An example would be:
 
-```json
+```jsonc
 {
     ...
     "devpackages": [
@@ -229,7 +229,7 @@ Currently, no provided configuration makes use of this section.
 
 An example would be:
 
-```json
+```jsonc
 {
     ...
     "userpkgs": {
@@ -259,7 +259,7 @@ The only feature currently supported is `sockets, which enable package installat
 
 An example would be:
 
-```json
+```jsonc
 {
     ...
     "experiments": {
@@ -273,7 +273,7 @@ An example would be:
 
 Here is a full example of a configuration file:
 
-```json
+```jsonc
 {
   "image": {
     "uri": "alpine:edge",
