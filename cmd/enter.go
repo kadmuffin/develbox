@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"os"
+	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/container"
@@ -59,4 +60,42 @@ var (
 
 func init() {
 	Enter.Flags().BoolVarP(&root, "root", "r", false, "Use to start a root shell in the container")
+}
+
+// SearchActiveContainer searches for all active containers and returns id, name, and project path of containers that match
+// Mainly, it searches containers with the label develbox_container=1
+// For the project path it gets the label develbox_project_path
+func SearchActiveContainer(pman podman.Podman) ([]string, error) {
+	cmd := pman.RawCommand([]string{"ps", "--format", "{{.ID}}\t{{.Names}}\t{{.Labels}}"}, podman.Attach{
+		Stderr: true,
+	})
+	containers, err := cmd.Output()
+	if err != nil {
+		return []string{"", "", ""}, err
+	}
+
+	// Split the output into lines
+	lines := strings.Split(string(containers), "\n")
+
+	// Remove the last line because it is empty
+	lines = lines[:len(lines)-1]
+
+	// Create a slice to store the containers
+	var activeContainers []string
+
+	// Loop through the lines
+	for _, line := range lines {
+		// Split the line into fields
+		fields := strings.Split(line, "\t")
+
+		// Check if the container is active
+		if fields[2] == "develbox_container=1" {
+			// Add the container to the slice
+			activeContainers = append(activeContainers, fields[0])
+			activeContainers = append(activeContainers, fields[1])
+			activeContainers = append(activeContainers, fields[2])
+		}
+	}
+
+	return activeContainers, nil
 }

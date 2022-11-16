@@ -131,6 +131,13 @@ func Create(cfg config.Structure, deleteOld bool) {
 	}
 	args = append(args, "--mount", fmt.Sprintf("type=bind,src=/home/%s/.gitconfig,dst=/etc/gitconfig,ro", user))
 
+	// Add DEVELBOX_VERSION label to the container
+	args = append(args, "--label", fmt.Sprintf("develbox_version=%s", PkgVersion))
+	// Add DEVELBOX_CONTAINER label to the container
+	args = append(args, "--label", "develbox_container=1")
+	// Add DEVELBOX_PROJECT_PATH label to the container
+	args = append(args, "--label", fmt.Sprintf("develbox_project_path=%s", config.GetCurrentDirectory()))
+
 	// Mount the main folder and pass the image URI before the
 	// container is created.
 	args = append(args, mountWorkDir(cfg)...)
