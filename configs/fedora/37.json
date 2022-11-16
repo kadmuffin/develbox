@@ -1,6 +1,6 @@
 {
     "image": {
-        "uri": "fedora:37",
+        "uri": "docker.io/fedora:37",
         "on_creation": [],
         "on_finish": [],
         "pkgmanager": {

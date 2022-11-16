@@ -1,6 +1,6 @@
 {
     "image": {
-        "uri": "ubuntu:jammy",
+        "uri": "docker.io/ubuntu:jammy",
         "on_creation": [],
         "on_finish": [],
         "pkgmanager": {

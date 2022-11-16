@@ -1,6 +1,6 @@
 {
     "image": {
-        "uri": "fedora:rawhide",
+        "uri": "docker.io/fedora:rawhide",
         "on_creation": [],
         "on_finish": [],
         "pkgmanager": {

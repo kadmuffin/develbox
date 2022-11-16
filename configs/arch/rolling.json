@@ -1,6 +1,6 @@
 {
     "image": {
-        "uri": "archlinux:latest",
+        "uri": "docker.io/archlinux:latest",
         "on_creation": [],
         "on_finish": [],
         "pkgmanager": {

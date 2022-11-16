@@ -115,7 +115,7 @@ func Create(cfg config.Structure, deleteOld bool) {
 		args = append(args, "--privileged")
 	}
 
-	args = append(args, "-e=DEVELBOX_CONTAINER=1")
+	args = append(args, "-e", "DEVELBOX_CONTAINER=1")
 	args = append(args, getEnvVars(dfltEnvVars)...)
 
 	if len(cfg.Container.Binds.Variables) > 0 {

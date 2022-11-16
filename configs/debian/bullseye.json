@@ -1,6 +1,6 @@
 {
     "image": {
-        "uri": "debian:bullseye",
+        "uri": "docker.io/debian:bullseye",
         "on_creation": [],
         "on_finish": [],
         "pkgmanager": {

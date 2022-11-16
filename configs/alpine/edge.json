@@ -1,6 +1,6 @@
 {
 	"image": {
-		"uri": "alpine:edge",
+		"uri": "docker.io/alpine:edge",
 		"on_creation": [],
 		"on_finish": [],
 		"pkgmanager": {

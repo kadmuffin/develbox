@@ -1,6 +1,6 @@
 {
     "image": {
-        "uri": "debian:testing",
+        "uri": "docker.io/debian:testing",
         "on_creation": [],
         "on_finish": [],
         "pkgmanager": {

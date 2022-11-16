@@ -1,6 +1,6 @@
 {
     "image": {
-        "uri": "opensuse/tumbleweed",
+        "uri": "docker.io/opensuse/tumbleweed",
         "on_creation": [
             "zypper -n refresh",
             "zypper -n in dnf libdnf-repo-config-zypp"
