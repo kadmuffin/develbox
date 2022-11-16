@@ -45,7 +45,7 @@ func downloadConfig(argum string, url string) config.Structure {
 		glg.Fatalf("Something went wrong while downloading the config file. %s", err)
 	}
 
-	cfg, err, v1Cfg := config.ReadBytes(data)
+	cfg, v1Cfg, err := config.ReadBytes(data)
 	if err != nil {
 		glg.Fatalf("Failed to parse the JSON data. %s", err)
 	}

@@ -26,7 +26,7 @@ import (
 	"os"
 	"path/filepath"
 
-	v1_config "github.com/kadmuffin/develbox/pkg/config/v1"
+	v1_config "github.com/kadmuffin/develbox/pkg/config/v1config"
 	"github.com/kpango/glg"
 	"github.com/spf13/viper"
 )
@@ -34,7 +34,7 @@ import (
 // Read reads the config file and returns the Struct
 func Read() (cfg Structure, err error) {
 	var v1Cfg bool
-	cfg, err, v1Cfg = ReadFile(".develbox/config.json")
+	cfg, v1Cfg, err = ReadFile(".develbox/config.json")
 	if err == nil && v1Cfg {
 		err = WriteNewVersion(&cfg)
 	}
@@ -45,17 +45,17 @@ func Read() (cfg Structure, err error) {
 // ReadFile reads the config file  from a path and returns the Struct
 //
 // It converts the v1 config file to the v2 config file if it detects a v1 config file
-func ReadFile(path string) (Structure, error, bool) {
+func ReadFile(path string) (Structure, bool, error) {
 	viper.SetConfigFile(path)
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		return Structure{}, err, false
+		return Structure{}, false, err
 	}
 
 	file, err := os.Open(path)
 	if err != nil {
-		return Structure{}, err, false
+		return Structure{}, false, err
 	}
 	defer file.Close()
 
@@ -65,14 +65,14 @@ func ReadFile(path string) (Structure, error, bool) {
 // ReadBytes parses bytes and returns the Struct
 //
 // It converts the v1 config file to the v2 config file if it detects a v1 config file
-func ReadBytes(data []byte) (parsed Structure, err error, wasV1Conf bool) {
+func ReadBytes(data []byte) (parsed Structure, wasV1Conf bool, err error) {
 	// Create io.Reader from bytes
 	reader := bufio.NewReader(os.Stdin)
 
 	viper.SetConfigType("json")
 	err = viper.ReadConfig(reader)
 	if err != nil {
-		return Structure{}, err, false
+		return Structure{}, false, err
 	}
 
 	return parseWithViper(reader)
@@ -162,7 +162,7 @@ func WriteNewVersion(configs *Structure) error {
 }
 
 // parseWithViper assumes viper is already configured and returns the parsed config
-func parseWithViper(reader io.Reader) (Structure, error, bool) {
+func parseWithViper(reader io.Reader) (Structure, bool, error) {
 	// Use json parser until I can figure out how to use the viper parser
 	// properly (the issue arises from parsing interface{} types, specifically, shared-folders, see pkg/config/v1/struct.go:125)
 	decoder := json.NewDecoder(reader)
@@ -172,20 +172,20 @@ func parseWithViper(reader io.Reader) (Structure, error, bool) {
 
 		err := decoder.Decode(&v1Struct)
 		if err != nil {
-			return Structure{}, err, false
+			return Structure{}, false, err
 		}
 
 		parsed := ConvertFromV1(&v1Struct)
-		return parsed, nil, true
+		return parsed, true, nil
 	}
 
 	var parsed Structure
 	err := decoder.Decode(&parsed)
 	if err != nil {
-		return Structure{}, err, false
+		return Structure{}, false, nil
 	}
 
 	SetDefaults(&parsed)
 
-	return parsed, nil, false
+	return parsed, false, nil
 }

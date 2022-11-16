@@ -18,9 +18,10 @@ import (
 	"fmt"
 
 	"github.com/creasty/defaults"
-	v1_config "github.com/kadmuffin/develbox/pkg/config/v1"
+	v1_config "github.com/kadmuffin/develbox/pkg/config/v1config"
 )
 
+// Operations is a list of pkgm that can be performed on a container
 type Operations struct {
 	// Add is the base string that the package manager uses to add a package
 	Add string `default:"" json:"add"` // add "{-y}" to auto install on creation on debian

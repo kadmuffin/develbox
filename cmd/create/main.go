@@ -69,7 +69,7 @@ var (
 				case false:
 					var err error
 					var v1Cfg bool
-					cfg, err, v1Cfg = config.ReadFile(downloadURL)
+					cfg, v1Cfg, err = config.ReadFile(downloadURL)
 					if err != nil {
 						glg.Fatalf("Couldn't read config file: %s", err)
 					}

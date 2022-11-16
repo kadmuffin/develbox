@@ -15,7 +15,7 @@
 package config
 
 import (
-	v1_config "github.com/kadmuffin/develbox/pkg/config/v1"
+	v1_config "github.com/kadmuffin/develbox/pkg/config/v1config"
 )
 
 // ConvertFromV1 converts a v1 config file to a v2 config file

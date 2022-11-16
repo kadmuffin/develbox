@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// State is the cobra command for the state command
+// Cmd is the cobra command for the state command
 var Cmd = &cobra.Command{
 	Use:   "state",
 	Short: "Prints the current container state",
