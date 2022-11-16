@@ -22,7 +22,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"io"
 	"os"
 	"path/filepath"
 
@@ -53,28 +52,26 @@ func ReadFile(path string) (Structure, bool, error) {
 		return Structure{}, false, err
 	}
 
-	file, err := os.Open(path)
+	// Read the config file
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return Structure{}, false, err
 	}
-	defer file.Close()
 
-	return parseWithViper(file)
+	return parseWithViper(data)
 }
 
 // ReadBytes parses bytes and returns the Struct
 //
 // It converts the v1 config file to the v2 config file if it detects a v1 config file
 func ReadBytes(data []byte) (parsed Structure, wasV1Conf bool, err error) {
-	buffer := bytes.NewBuffer(data)
 	viper.SetConfigType("json")
-
-	err = viper.ReadConfig(buffer)
+	err = viper.ReadConfig(bytes.NewBuffer(data))
 	if err != nil {
 		return Structure{}, false, err
 	}
 
-	return parseWithViper(buffer)
+	return parseWithViper(data)
 }
 
 // Write writes the config file
@@ -161,12 +158,13 @@ func WriteNewVersion(configs *Structure) error {
 }
 
 // parseWithViper assumes viper is already configured and returns the parsed config
-func parseWithViper(reader io.Reader) (Structure, bool, error) {
+func parseWithViper(data []byte) (Structure, bool, error) {
 	// Use json parser until I can figure out how to use the viper parser
 	// properly (the issue arises from parsing interface{} types, specifically, shared-folders, see pkg/config/v1/struct.go:125)
-	decoder := json.NewDecoder(reader)
 
+	decoder := json.NewDecoder(bytes.NewReader(data))
 	if !viper.IsSet("container") && viper.IsSet("podman.container") {
+		glg.Info("Detected v1 config file")
 		var v1Struct v1config.Struct
 
 		err := decoder.Decode(&v1Struct)
@@ -184,7 +182,7 @@ func parseWithViper(reader io.Reader) (Structure, bool, error) {
 		return Structure{}, false, nil
 	}
 
-	SetDefaults(&parsed)
+	SetName(&parsed)
 
 	return parsed, false, nil
 }

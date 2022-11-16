@@ -69,7 +69,7 @@ func ConvertFromV1(cfg *v1config.Struct) Structure {
 		Experiments: cfg.Podman.Container.Experiments,
 	}
 
-	SetDefaults(&newCfg)
+	SetName(&newCfg)
 
 	return newCfg
 }
