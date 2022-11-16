@@ -59,7 +59,7 @@ You can now proceed to create the container with the following command.
 develbox create
 ```
 
-Configs file will be located at `.develbox/config.json`
+Configs file will be located at `.develbox/config.json`. See [configs folder](configs/) for documentation. 
 
 #### Opening the shell
 
