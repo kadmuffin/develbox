@@ -18,7 +18,7 @@
 package config
 
 import (
-	"bufio"
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -66,16 +66,15 @@ func ReadFile(path string) (Structure, bool, error) {
 //
 // It converts the v1 config file to the v2 config file if it detects a v1 config file
 func ReadBytes(data []byte) (parsed Structure, wasV1Conf bool, err error) {
-	// Create io.Reader from bytes
-	reader := bufio.NewReader(os.Stdin)
-
+	buffer := bytes.NewBuffer(data)
 	viper.SetConfigType("json")
-	err = viper.ReadConfig(reader)
+
+	err = viper.ReadConfig(buffer)
 	if err != nil {
 		return Structure{}, false, err
 	}
 
-	return parseWithViper(reader)
+	return parseWithViper(buffer)
 }
 
 // Write writes the config file
