@@ -15,6 +15,7 @@
 package container
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -75,16 +76,8 @@ func processPorts(cfg config.Structure) string {
 
 // processMounts returns a string with the extra volumes to mount
 func processMounts(cfg config.Structure) (result []string) {
-	// parse %s:%s
-	regex := regexp.MustCompile(`(?P<host>.*):(?P<container>.*)`)
-
 	for _, v := range cfg.Container.Mounts {
-		match := regex.FindStringSubmatch(v)
-		if len(match) != 3 {
-			glg.Fatalf("Invalid mount format: %s", v)
-		}
-
-		result = append(result, "--mount=type=bind,src="+ReplaceEnvVars(match[1])+",dst="+ReplaceEnvVars(match[2]))
+		result = MountArg(result, v, false, "")
 	}
 	return result
 }
@@ -126,4 +119,36 @@ func ReplaceEnvVars(str string) string {
 		return envvar
 	})
 
+}
+
+var mountRegex = regexp.MustCompile(`(?P<host>.*):(?P<container>.*)`)
+
+// MountArg appends a string to a list with the mount argument. It also checks path existance and replaces any environment variables
+func MountArg(list []string, mount string, readOnly bool, bindPropagation string) []string {
+	// parse %s:%s
+	match := mountRegex.FindStringSubmatch(mount)
+	if len(match) != 3 {
+		glg.Fatalf("Invalid mount format: %s", mount)
+	}
+
+	// Save modified paths
+	hostPath := ReplaceEnvVars(match[1])
+	containerPath := ReplaceEnvVars(match[2])
+
+	// Check if the host path exists
+	if !FileExists(hostPath) {
+		glg.Warnf("Host path '%s' does not exist! Skipping mount", hostPath)
+		return list
+	}
+
+	// Set extra options
+	extraOpts := ""
+	if readOnly {
+		extraOpts += ",readonly"
+	}
+	if bindPropagation != "" {
+		extraOpts += fmt.Sprintf(",bind-propagation=%s", bindPropagation)
+	}
+
+	return append(list, fmt.Sprintf("--mount=type=bind,src=%s,dst=%s%s", hostPath, containerPath, extraOpts))
 }

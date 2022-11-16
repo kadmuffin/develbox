@@ -92,7 +92,8 @@ func Create(cfg config.Structure, deleteOld bool) {
 
 	// Creates & mounts a home directory so we can access it easily
 	err = os.Mkdir(".develbox/home", 0755)
-	args = append(args, "--mount", fmt.Sprintf("type=bind,source=%s/.develbox/home,destination=/home/%s,bind-propagation=rslave", config.GetCurrentDirectory(), user))
+	args = MountArg(args, fmt.Sprintf("%s/.develbox/home:/home/%s", config.GetCurrentDirectory(), user), false, "rslave")
+
 	if config.GetCurrentDirectory() == os.Getenv("HOME") {
 		glg.Fatal("You can't create a develbox project on $HOME! (That means relabelling /home/$USER which is not a good idea)")
 	}
@@ -123,13 +124,11 @@ func Create(cfg config.Structure, deleteOld bool) {
 	}
 
 	// Mount configs from host
-	args = append(args, "--mount", "type=bind,src=/etc/localtime,dst=/etc/localtime,ro")
-	args = append(args, "--mount", "type=bind,src=/etc/resolv.conf,dst=/etc/resolv.conf,ro")
-	args = append(args, "--mount", "type=bind,src=/etc/hosts,dst=/etc/hosts,ro")
-	if config.FileExists("/etc/timezone") {
-		args = append(args, "--mount", "type=bind,src=/etc/timezone,dst=/etc/timezone,ro")
-	}
-	args = append(args, "--mount", fmt.Sprintf("type=bind,src=/home/%s/.gitconfig,dst=/etc/gitconfig,ro", user))
+	args = MountArg(args, "/etc/localtime:/etc/localtime", true, "")
+	args = MountArg(args, "/etc/resolv.conf:/etc/resolv.conf", true, "")
+	args = MountArg(args, "/etc/hosts:/etc/hosts", true, "")
+	args = MountArg(args, "/etc/timezone:/etc/timezone", true, "")
+	args = MountArg(args, "/home/%s/.gitconfig:/etc/gitconfig", true, "")
 
 	// Add DEVELBOX_VERSION label to the container
 	args = append(args, "--label", fmt.Sprintf("develbox_version=%s", PkgVersion))
@@ -142,6 +141,7 @@ func Create(cfg config.Structure, deleteOld bool) {
 	// container is created.
 	args = append(args, mountWorkDir(cfg)...)
 	args = append(args, cfg.Image.URI, "sh")
+
 	err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
 
 	if !pman.IsRunning(cfg.Container.Name) {

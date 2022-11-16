@@ -17,6 +17,7 @@ package container
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"os/exec"
 
@@ -57,21 +58,25 @@ func getEnvVars(vars []string) []string {
 }
 
 // Mounts the directory used by xorg and adds user with xhost
-func mountXOrg() string {
+func mountXOrg(args []string) []string {
 	if !config.FileExists("/tmp/.X11-unix") {
 		glg.Errorf("didn't find XOrg socket, skipping mount...")
-		return ""
+		return args
 	}
 
 	glg.Debugf("Mounting XOrg.")
 	exec.Command("xhost", fmt.Sprintf("+SI:localhost:%s", os.Getenv("USER"))).Run()
-	return "-v=/tmp/.X11-unix:/tmp/.X11-unix:rw"
+	return append(args, "-v=/tmp/.X11-unix:/tmp/.X11-unix:rslave")
 }
 
 // Mounts /dev with the rslave option.
-func mountDev() []string {
+func mountDev(cfg config.Podman) []string {
 	// We mount /dev so we can access things like cameras and GPUs
 	// inside the container. See github.com/containers/podman/issues/5623.
+	if strings.Contains(cfg.Path, "docker") {
+		return []string{"-v=/dev:/dev:rslave"}
+	}
+
 	return []string{
 		"-v=/dev/:/dev:rslave",
 		"--mount", "type=devpts,destination=/dev/pts",
@@ -84,16 +89,17 @@ func mountWorkDir(cfg config.Structure) []string {
 	workDir := cfg.Container.WorkDir
 	mntOpts := ""
 
+	mountString := []string{"--mount", fmt.Sprintf("type=bind,source=%s,destination=%s,bind-propagation=rslave", config.GetCurrentDirectory(), workDir)}
+
 	// Adding "private unshare label" so SELinux doesn't
 	// get mad at us when running without "--privileged"
-	if cfg.Podman.Rootless {
+	if cfg.Podman.Rootless && !cfg.Podman.Privileged {
 		mntOpts += ":Z"
-	}
 
-	return []string{
-		fmt.Sprintf("-v=%s:%s%s", config.GetCurrentDirectory(), workDir, mntOpts),
-		fmt.Sprintf("-w=%s", workDir),
+		mountString = []string{fmt.Sprintf("-v=%s:%s%s", config.GetCurrentDirectory(), workDir, mntOpts)}
 	}
+	return append(mountString, fmt.Sprintf("-w=%s", workDir))
+
 }
 
 // Returns a string pointing to $XDG_RUNTIME_DIR and a boolean indicating if the folder exists or not.
@@ -115,11 +121,11 @@ func mountBindings(cfg config.Structure, xdgRuntime string) []string {
 	os.Setenv("XDG_RUNTIME_DIR", xdgRuntime)
 
 	if cfg.Container.Binds.XOrg {
-		args = append(args, mountXOrg())
+		args = mountXOrg(args)
 	}
 
 	if cfg.Container.Binds.Dev {
-		args = append(args, mountDev()...)
+		args = append(args, mountDev(cfg.Podman)...)
 	}
 
 	args = append(args, fmt.Sprintf("-v=%s:%s:rslave", xdgRuntime, xdgRuntime))
