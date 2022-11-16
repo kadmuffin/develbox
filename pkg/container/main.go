@@ -126,7 +126,9 @@ func Create(cfg config.Structure, deleteOld bool) {
 	args = append(args, "--mount", "type=bind,src=/etc/localtime,dst=/etc/localtime,ro")
 	args = append(args, "--mount", "type=bind,src=/etc/resolv.conf,dst=/etc/resolv.conf,ro")
 	args = append(args, "--mount", "type=bind,src=/etc/hosts,dst=/etc/hosts,ro")
-	args = append(args, "--mount", "type=bind,src=/etc/timezone,dst=/etc/timezone,ro")
+	if config.FileExists("/etc/timezone") {
+		args = append(args, "--mount", "type=bind,src=/etc/timezone,dst=/etc/timezone,ro")
+	}
 	args = append(args, "--mount", fmt.Sprintf("type=bind,src=/home/%s/.gitconfig,dst=/etc/gitconfig,ro", user))
 
 	// Mount the main folder and pass the image URI before the
