@@ -15,11 +15,11 @@
 package config
 
 import (
-	v1_config "github.com/kadmuffin/develbox/pkg/config/v1config"
+	v1config "github.com/kadmuffin/develbox/pkg/config/v1config"
 )
 
 // ConvertFromV1 converts a v1 config file to a v2 config file
-func ConvertFromV1(cfg *v1_config.Struct) Structure {
+func ConvertFromV1(cfg *v1config.Struct) Structure {
 	newCfg := Structure{
 		Image: Image{
 			URI:        cfg.Image.URI,

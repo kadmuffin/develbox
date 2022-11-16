@@ -1,12 +1,12 @@
 {
     "image": {
         "uri": "opensuse/tumbleweed",
-        "on-creation": [
+        "on_creation": [
             "zypper -n refresh",
             "zypper -n in dnf libdnf-repo-config-zypp"
         ],
-        "on-finish": [],
-        "pkg-manager": {
+        "on_finish": [],
+        "pkgmanager": {
             "operations": {
                 "add": "dnf install {args} {-y}",
                 "del": "dnf remove {args}",
@@ -15,39 +15,47 @@
                 "search": "dnf search {args}",
                 "clean": "dnf clean all {args} {-y}"
             },
-            "args-modifier": {}
+            "modifiers": {}
         },
-        "env-vars": {}
+        "variables": {}
     },
     "podman": {
         "path": "podman",
+        "args": [],
         "rootless": true,
-        "create-deletion": false,
-        "container": {
-            "name": "",
-            "arguments": [],
-            "work-dir": "/code",
-            "shell": "/usr/bin/fish",
-            "root-user": false,
-            "privileged": true,
-            "binds": {
-                "xorg": true,
-                "/dev": true,
-                "env-vars": []
-            },
-            "ports": [],
-            "mounts": [],
-            "experiments": {
-                "sockets": false
-            },
-            "shared-folders": {
-                "opensuse": ["/var/cache/zypp", "/var/cache/dnf"]
-            }
+        "auto_delete": false,
+        "auto_commit": false,
+        "privileged": true
+    },
+    "container": {
+        "name": "",
+        "workdir": "/code",
+        "shell": "/usr/bin/fish",
+        "rootuser": false,
+        "binds": {
+            "xorg": true,
+            "dev": true,
+            "variables": []
+        },
+        "ports": [],
+        "mounts": [],
+        "shared_folders": {
+            "opensuse": [
+                "/var/cache/zypp",
+                "/var/cache/dnf"
+            ]
         }
     },
     "commands": {},
     "packages": [],
     "devpackages": [
         "fish"
-    ]
+    ],
+    "userpkgs": {
+        "packages": [],
+        "devpackages": []
+    },
+    "experiments": {
+        "sockets": false
+    }
 }

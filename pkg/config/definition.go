@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/creasty/defaults"
-	v1_config "github.com/kadmuffin/develbox/pkg/config/v1config"
+	v1config "github.com/kadmuffin/develbox/pkg/config/v1config"
 )
 
 // Operations is a list of pkgm that can be performed on a container
@@ -120,10 +120,10 @@ type Podman struct {
 	Rootless bool `default:"true" json:"rootless"`
 
 	// AutoDelete tells develbox if it should delete the container after created
-	AutoDelete bool `default:"false" json:"onlybuild"`
+	AutoDelete bool `default:"false" json:"auto_delete"`
 
 	// AutoCommit tells develbox if it should commit the container after created
-	AutoCommit bool `default:"false" json:"onlycommit"`
+	AutoCommit bool `default:"false" json:"auto_commit"`
 
 	// Privileged is a boolean that determines if the container should be run in privileged mode.
 	Privileged bool `default:"true" json:"privileged"`
@@ -150,16 +150,16 @@ type Structure struct {
 	DevPackages []string `default:"[]" json:"devpackages"`
 
 	// UserPkgs is a list of packages to install user-side (Image has to support it)
-	UserPkgs v1_config.UserPkgs `json:"userpkgs"`
+	UserPkgs v1config.UserPkgs `json:"userpkgs"`
 
 	// Experiments is a list of experimental features to enable
-	Experiments v1_config.Experiments `json:"experiments"`
+	Experiments v1config.Experiments `json:"experiments"`
 }
 
 // SetName sets the name of the container
 func SetName(cfg *Structure) {
 	if cfg.Container.Name == "" {
-		cfg.Container.Name = fmt.Sprintf("develbox-%s", v1_config.GetDirNmHash()[:32])
+		cfg.Container.Name = fmt.Sprintf("develbox-%s", v1config.GetDirNmHash()[:32])
 	}
 }
 

@@ -35,6 +35,7 @@ In the [configs](../configs) folder, you can find some of the default config fil
     - [Development packages](#development-packages)
     - [User packages](#user-packages)
     - [Experiments](#experiments)
+  - [Full example](#full-example)
 
 <!-- Index ends -->
 ## Config file structure
@@ -128,8 +129,8 @@ The `podman` section contains the following fields:
 - `path` - This is the path to the podman executable (which can also be `docker`)
 - `args` - Contains the arguments to pass to the podman executable (for `podman run`)
 - `rootless` - Informs the CLI if the podman executable is rootless or not (will mount using the `--userns=keep-id` flag and unshare with `:Z` the project directory)
-- `autodelete` - Creates the container and after finishing doing its thing, it gets deleted
-- `autocommit` - Creates the container and after finishing doing its thing, it gets committed as an image
+- `auto_delete` - Creates the container and after finishing doing its thing, it gets deleted
+- `auto_commit` - Creates the container and after finishing doing its thing, it gets committed as an image
 - `privileged` - Runs the container in privileged mode
 
 ### Container
@@ -256,7 +257,7 @@ Packages here will make the package manager inside develbox run the operation as
 
 The `experiments` section contains the experimental features to enable. It uses a key-value dictionary, where the key is the name of the feature and the value is a boolean indicating if the feature should be enabled or not.
 
-The only feature currently supported is `sockets`, that enables package installations from inside the container (when running as a user).
+The only feature currently supported is `sockets, which enable package installations from inside the container (when running as a user).
 
 An example would be:
 
@@ -267,5 +268,67 @@ An example would be:
         "sockets": true
     }
     ...
+}
+```
+
+## Full example
+
+Here is a full example of a configuration file:
+
+```json
+{
+  "image": {
+    "uri": "alpine:edge",
+    "on_creation": [],
+    "on_finish": [],
+    "pkgmanager": {
+      "operations": {
+        "add": "apk add {args}",
+        "del": "apk del {args}",
+        "update": "apk update {args}",
+        "upgrade": "apk upgrade {args}",
+        "search": "apk search {args}",
+        "clean": "rm -rf /var/cache/apk"
+      },
+      "modifiers": {}
+    },
+    "variables": {}
+  },
+  "podman": {
+    "path": "podman",
+    "args": [],
+    "rootless": true,
+    "auto_delete": false,
+    "auto_commit": false,
+    "privileged": true
+  },
+  "container": {
+    "name": "",
+    "workdir": "/code",
+    "shell": "/usr/bin/fish",
+    "rootuser": false,
+    "binds": {
+      "xorg": true,
+      "dev": true,
+      "variables": []
+    },
+    "ports": [],
+    "mounts": [],
+    "shared_folders": {
+      "alpine": "/var/cache/apk/"
+    }
+  },
+  "commands": {},
+  "packages": [],
+  "devpackages": [
+    "fish"
+  ],
+  "userpkgs": {
+    "packages": [],
+    "devpackages": []
+  },
+  "experiments": {
+    "sockets": false
+  }
 }
 ```

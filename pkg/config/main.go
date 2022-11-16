@@ -26,7 +26,7 @@ import (
 	"os"
 	"path/filepath"
 
-	v1_config "github.com/kadmuffin/develbox/pkg/config/v1config"
+	v1config "github.com/kadmuffin/develbox/pkg/config/v1config"
 	"github.com/kpango/glg"
 	"github.com/spf13/viper"
 )
@@ -94,7 +94,7 @@ func Write(configs *Structure) error {
 	defer f.Close()
 
 	encoder := json.NewEncoder(f)
-	encoder.SetIndent("", "  ")
+	encoder.SetIndent("", "\t")
 	err = encoder.Encode(configs)
 	if err != nil {
 		return err
@@ -168,7 +168,7 @@ func parseWithViper(reader io.Reader) (Structure, bool, error) {
 	decoder := json.NewDecoder(reader)
 
 	if !viper.IsSet("container") && viper.IsSet("podman.container") {
-		var v1Struct v1_config.Struct
+		var v1Struct v1config.Struct
 
 		err := decoder.Decode(&v1Struct)
 		if err != nil {
