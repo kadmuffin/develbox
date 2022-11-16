@@ -59,7 +59,7 @@ func getEnvVars(vars []string) []string {
 // Mounts the directory used by xorg and adds user with xhost
 func mountXOrg() string {
 	if !config.FileExists("/tmp/.X11-unix") {
-		glg.Errorf("didn't find xorg socket, skipping mount...")
+		glg.Errorf("didn't find XOrg socket, skipping mount...")
 		return ""
 	}
 
@@ -76,10 +76,11 @@ func mountDev() []string {
 		"-v=/dev/:/dev:rslave",
 		"--mount", "type=devpts,destination=/dev/pts",
 	}
+
 }
 
 // Mounts the Workspace directory with proper SELinux label if necessary.
-func mountWorkDir(cfg config.Struct) []string {
+func mountWorkDir(cfg config.Structure) []string {
 	workDir := cfg.Container.WorkDir
 	mntOpts := ""
 
@@ -108,7 +109,7 @@ func getXDGRuntime() (string, bool) {
 }
 
 // Mounts all the required binds in the config file.
-func mountBindings(cfg config.Struct, xdgRuntime string) []string {
+func mountBindings(cfg config.Structure, xdgRuntime string) []string {
 	args := []string{}
 
 	os.Setenv("XDG_RUNTIME_DIR", xdgRuntime)

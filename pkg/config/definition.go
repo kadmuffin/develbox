@@ -21,10 +21,30 @@ import (
 	v1_config "github.com/kadmuffin/develbox/pkg/config/v1"
 )
 
+type Operations struct {
+	// Add is the base string that the package manager uses to add a package
+	Add string `default:"" json:"add"` // add "{-y}" to auto install on creation on debian
+
+	// Del, short for delete, is the base string that the package manager uses to delete a package
+	Del string `default:"" json:"del"`
+
+	// Upd, short for update, is the base string that the package manager uses to update the database
+	Upd string `default:"" json:"update"`
+
+	// Upg, short for upgrade, is the base string that the package manager uses to upgrade all packages
+	Upg string `default:"" json:"upgrade"`
+
+	// Srch, short for search, is the base string that the package manager uses to search for a package
+	Srch string `default:"" json:"search"`
+
+	// Clean is the command to clean the cache, necessary if we want to reduce the image size (using the build command)
+	Clean string `default:"" json:"clean"`
+}
+
 // PackageManager is the configuration for the package manager
 type PackageManager struct {
 	// Operations contains the commands for the package manager
-	Operations v1_config.Operations `json:"operations"`
+	Operations Operations `json:"operations"`
 
 	// Modifiers enable prefixs or suffixs on packages names with a string (see configs/nix/unstable.json)
 	Modifiers map[string]string `default:"{}" json:"modifiers"`
@@ -36,7 +56,7 @@ type Image struct {
 	URI string `default:"alpine:latest" json:"uri"`
 
 	// OnCreation is a list of commands to run on creation
-	OnCreation []string `default:"[\"apk update\"]" json:"on_creation"`
+	OnCreation []string `default:"[]" json:"on_creation"`
 
 	// OnFinish is a list of commands to run on finish
 	OnFinish []string `default:"[]" json:"on_finish"`
@@ -54,10 +74,10 @@ type Binds struct {
 	XOrg bool `default:"true" json:"xorg"`
 
 	// Dev decides if the /dev directory should be bind mounted
-	Dev bool `default:"true" json:"/dev"`
+	Dev bool `default:"true" json:"dev"`
 
-	// Vars is a list of environment variables to copy to the container
-	Vars []string `default:"[]" json:"vars"`
+	// Variables is a list of environment variables to copy to the container
+	Variables []string `default:"[]" json:"variables"`
 }
 
 // Container is the struct for the container configuration
@@ -93,20 +113,23 @@ type Podman struct {
 	Path string `default:"podman" json:"path"`
 
 	// Args is a list of arguments to pass to the podman executable
-	Args []string `default:"[\"--net=host\"]" json:"args"`
+	Args []string `default:"[]" json:"args"`
 
 	// Rootless tells develbox if podman is running as rootless
 	Rootless bool `default:"true" json:"rootless"`
 
-	// BuildOnly tells develbox if it should delete the container after created
-	BuildOnly bool `json:"buildonly"`
+	// AutoDelete tells develbox if it should delete the container after created
+	AutoDelete bool `default:"false" json:"onlybuild"`
+
+	// AutoCommit tells develbox if it should commit the container after created
+	AutoCommit bool `default:"false" json:"onlycommit"`
 
 	// Privileged is a boolean that determines if the container should be run in privileged mode.
 	Privileged bool `default:"true" json:"privileged"`
 }
 
-// Struct is the main configuration struct
-type Struct struct {
+// Structure is the main configuration struct
+type Structure struct {
 	// Image contains the information for the image
 	Image Image `json:"image"`
 
@@ -133,14 +156,14 @@ type Struct struct {
 }
 
 // SetName sets the name of the container
-func SetName(cfg *Struct) {
+func SetName(cfg *Structure) {
 	if cfg.Container.Name == "" {
 		cfg.Container.Name = fmt.Sprintf("develbox-%s", v1_config.GetDirNmHash()[:32])
 	}
 }
 
 // SetDefaults sets the default values for the configuration
-func SetDefaults(cfg *Struct) {
+func SetDefaults(cfg *Structure) {
 	defaults.Set(cfg)
 	SetName(cfg)
 }

@@ -100,7 +100,7 @@ func SendOperation(opertn pkgm.Operation) {
 }
 
 // StartContainer starts the container, if we are not inside it.
-func StartContainer(cfg *config.Struct) {
+func StartContainer(cfg *config.Structure) {
 	if !podman.InsideContainer() {
 		pman := podman.New(cfg.Podman.Path)
 		if !pman.Exists(cfg.Container.Name) {

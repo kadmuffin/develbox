@@ -238,3 +238,11 @@ func (e *Podman) IsRunning(name string) bool {
 
 	return strings.Contains(string(data), "true")
 }
+
+// Commit commits the container to an image
+func (e *Podman) Commit(args []string, attach Attach) *exec.Cmd {
+	params := []string{"commit"}
+	params = append(params, args...)
+
+	return PrintCommandR("Running commit using the following arguments:\n  - %s", e.cmd(params, attach))
+}

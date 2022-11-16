@@ -15,30 +15,36 @@
 package config
 
 import (
-	"github.com/creasty/defaults"
 	v1_config "github.com/kadmuffin/develbox/pkg/config/v1"
 )
 
 // ConvertFromV1 converts a v1 config file to a v2 config file
-func ConvertFromV1(cfg v1_config.Struct) Struct {
-	newCfg := Struct{
+func ConvertFromV1(cfg *v1_config.Struct) Structure {
+	newCfg := Structure{
 		Image: Image{
 			URI:        cfg.Image.URI,
 			OnCreation: cfg.Image.OnCreation,
 			OnFinish:   cfg.Image.OnFinish,
 			Variables:  cfg.Image.EnvVars,
 			PkgManager: PackageManager{
-				Operations: cfg.Image.Installer.Operations,
-				Modifiers:  cfg.Image.Installer.ArgModifier,
+				Operations: Operations{
+					Add:   cfg.Image.Installer.Operations.Add,
+					Del:   cfg.Image.Installer.Operations.Del,
+					Upd:   cfg.Image.Installer.Operations.Upd,
+					Upg:   cfg.Image.Installer.Operations.Upg,
+					Srch:  cfg.Image.Installer.Operations.Srch,
+					Clean: cfg.Image.Installer.Operations.Clean,
+				},
+				Modifiers: cfg.Image.Installer.ArgModifier,
 			},
 		},
 
 		Podman: Podman{
-			Path:       cfg.Podman.Path,
 			Args:       cfg.Podman.Container.Args,
 			Privileged: cfg.Podman.Container.Privileged,
+			Path:       cfg.Podman.Path,
 			Rootless:   cfg.Podman.Rootless,
-			BuildOnly:  cfg.Podman.BuildOnly,
+			AutoDelete: cfg.Podman.BuildOnly,
 		},
 
 		Container: Container{
@@ -47,9 +53,9 @@ func ConvertFromV1(cfg v1_config.Struct) Struct {
 			Shell:    cfg.Podman.Container.Shell,
 			RootUser: cfg.Podman.Container.RootUser,
 			Binds: Binds{
-				XOrg: cfg.Podman.Container.Binds.XOrg,
-				Dev:  cfg.Podman.Container.Binds.Dev,
-				Vars: cfg.Podman.Container.Binds.Vars,
+				XOrg:      cfg.Podman.Container.Binds.XOrg,
+				Dev:       cfg.Podman.Container.Binds.Dev,
+				Variables: cfg.Podman.Container.Binds.Vars,
 			},
 			Ports:         cfg.Podman.Container.Ports,
 			Mounts:        cfg.Podman.Container.Mounts,
@@ -63,8 +69,7 @@ func ConvertFromV1(cfg v1_config.Struct) Struct {
 		Experiments: cfg.Podman.Container.Experiments,
 	}
 
-	defaults.Set(&newCfg)
-	SetName(&newCfg)
+	SetDefaults(&newCfg)
 
 	return newCfg
 }

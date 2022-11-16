@@ -26,7 +26,7 @@ import (
 )
 
 // downloadConfig downloads the config file from the given URL
-func downloadConfig(argum string, url string) config.Struct {
+func downloadConfig(argum string, url string) config.Structure {
 	resp, err := http.Get(fmt.Sprintf("%s/%s.json", url, argum))
 
 	if err != nil {

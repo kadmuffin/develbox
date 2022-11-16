@@ -54,7 +54,7 @@ var (
 					os.Exit(1)
 				}
 
-				cfg := config.Struct{}
+				cfg := config.Structure{}
 
 				switch isURL(downloadURL) {
 				case true:
@@ -155,7 +155,7 @@ func init() {
 }
 
 // checkDocker checks if we only have docker installed and if so, it sets the container engine to docker
-func checkDocker(cfg *config.Struct) {
+func checkDocker(cfg *config.Structure) {
 	err := exec.Command(cfg.Podman.Path, "--version").Run()
 	if err != nil {
 		err = exec.Command("docker", "--version").Run()

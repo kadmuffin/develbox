@@ -53,7 +53,7 @@ var avaliableCfgs = map[string][]string{
 }
 
 // promptConfig create a prompt that asks to choose a distro and version.
-func promptConfig(URL string) config.Struct {
+func promptConfig(URL string) config.Structure {
 	prompt := promptui.Select{
 		Label: "Choose a distro",
 		Items: getKeys(avaliableCfgs),
@@ -76,7 +76,7 @@ func promptConfig(URL string) config.Struct {
 }
 
 // promptPorts prompts the user for ports to publish.
-func promptPorts(cfg *config.Struct) string {
+func promptPorts(cfg *config.Structure) string {
 	// A config reference is required as this function
 	// will set the network to host if the user chooses
 	// to not publish any ports
@@ -92,7 +92,7 @@ func promptPorts(cfg *config.Struct) string {
 }
 
 // promptVolumes prompts the user for volumes to mount.
-func promptVolumes(cfg *config.Struct) string {
+func promptVolumes(cfg *config.Structure) string {
 	prompt := promptui.Prompt{
 		Label: "Mount volumes (separate with commas)",
 	}
@@ -105,7 +105,7 @@ func promptVolumes(cfg *config.Struct) string {
 }
 
 // promptName prompts the user for the container name.
-func promptName(cfg *config.Struct) string {
+func promptName(cfg *config.Structure) string {
 	prompt := promptui.Prompt{
 		Label: "Container name (empty for default)",
 	}

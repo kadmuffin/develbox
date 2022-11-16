@@ -1,24 +1,33 @@
 # Direct dependencies
 github.com/creasty/defaults,https://github.com/creasty/defaults/blob/v1.6.0/LICENSE,MIT
-github.com/spf13/cobra,https://github.com/spf13/cobra/blob/v1.5.0/LICENSE.txt,Apache-2.0
 github.com/kpango/glg,https://github.com/kpango/glg/blob/v1.6.13/LICENSE,MIT
-github.com/sabhiram/go-gitignore,https://github.com/sabhiram/go-gitignore/blob/master/LICENSE,MIT
-github.com/manifoldco/promptui,https://github.com/manifoldco/promptui/blob/v0.9.0/LICENSE,BSD-3-Clause
+github.com/manifoldco/promptui,https://github.com/manifoldco/promptui/blob/v0.9.0/LICENSE.md,BSD-3-Clause
+github.com/sabhiram/go-gitignore,https://github.com/sabhiram/go-gitignore/blob/525f6e181f06/LICENSE,MIT
+github.com/spf13/cobra,https://github.com/spf13/cobra/blob/v1.6.0/LICENSE.txt,Apache-2.0
+github.com/spf13/viper,https://github.com/spf13/viper/blob/v1.14.0/LICENSE,MIT
 
 # Indirect dependencies
+github.com/chzyer/readline,https://github.com/chzyer/readline/blob/2972be24d48e/LICENSE,MIT
+github.com/fsnotify/fsnotify,https://github.com/fsnotify/fsnotify/blob/v1.6.0/LICENSE,BSD-3-Clause
+github.com/goccy/go-json,https://github.com/goccy/go-json/blob/v0.9.11/LICENSE,MIT
+github.com/hashicorp/hcl,https://github.com/hashicorp/hcl/blob/v1.0.0/LICENSE,MPL-2.0
+github.com/kpango/fastime,https://github.com/kpango/fastime/blob/v1.1.4/LICENSE,MIT
+github.com/magiconair/properties,https://github.com/magiconair/properties/blob/v1.8.6/LICENSE.md,BSD-2-Clause
+github.com/mitchellh/mapstructure,https://github.com/mitchellh/mapstructure/blob/v1.5.0/LICENSE,MIT
+github.com/pelletier/go-toml/v2,https://github.com/pelletier/go-toml/blob/v2.0.5/LICENSE,MIT
+github.com/spf13/afero,https://github.com/spf13/afero/blob/v1.9.2/LICENSE.txt,Apache-2.0
+github.com/spf13/cast,https://github.com/spf13/cast/blob/v1.5.0/LICENSE,MIT
+github.com/spf13/jwalterweatherman,https://github.com/spf13/jwalterweatherman/blob/v1.1.0/LICENSE,MIT
 github.com/spf13/pflag,https://github.com/spf13/pflag/blob/v1.0.5/LICENSE,BSD-3-Clause
-github.com/inconshreveable/mousetrap,https://github.com/inconshreveable/mousetrap/blob/v1.0.1/LICENSE,Apache-2.0
-github.com/kpango/fastime,https://github.com/kpango/fastime/blob/master/LICENSE,MIT
-github.com/goccy/go-json,https://github.com/goccy/go-json/blob/master/LICENSE,MIT
-golang.org/x/sys,https://cs.opensource.google/go/x/sys/+/master:LICENSE,BSD-3-Clause
-github.com/chzyer/readline,https://github.com/chzyer/readline/blob/master/LICENSE,MIT
-github.com/stretchr/testify,https://github.com/stretchr/testify/v1.8.1/LICENSE,MIT
-github.com/uber-go/atomic,https://github.com/uber-go/atomic/blob/v1.9.0/LICENSE,MIT
-github.com/uber-go/multierr,https://github.com/uber-go/multierr/blob/v1.8.0/LICENSE,MIT
+github.com/subosito/gotenv,https://github.com/subosito/gotenv/blob/v1.4.1/LICENSE,MIT
+golang.org/x/sys/unix,https://cs.opensource.google/go/x/sys/+/95e765b1:LICENSE,BSD-3-Clause
+golang.org/x/text,https://cs.opensource.google/go/x/text/+/v0.4.0:LICENSE,BSD-3-Clause
+gopkg.in/ini.v1,https://github.com/go-ini/ini/blob/v1.67.0/LICENSE,Apache-2.0
+gopkg.in/yaml.v3,https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE,MIT
 
 # Inspiration
 github.com/jetpack-io/devbox,https://github.com/jetpack-io/devbox/blob/main/LICENSE,Apache-2.0
 
-# Helpful Code/Wiki
+# Useful code/wiki
 github.com/containers/toolbox,https://github.com/containers/toolbox/blob/main/COPYING,Apache-2.0
 github.com/mviereck/x11docker,https://github.com/mviereck/x11docker/blob/master/LICENSE.txt,MIT

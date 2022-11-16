@@ -44,7 +44,7 @@ func NewOperation(opType string, packages []string, flags []string, autoInstall 
 }
 
 // UpdateConfig updates the config file with the new packages
-func (e *Operation) UpdateConfig(cfg *config.Struct) {
+func (e *Operation) UpdateConfig(cfg *config.Structure) {
 	pkgsP := &cfg.Packages
 	devPkgsP := &cfg.DevPackages
 	if e.UserOperation {
@@ -78,7 +78,7 @@ func (e *Operation) UpdateConfig(cfg *config.Struct) {
 }
 
 // Process processes the transaction and updates the config reference. Returns an error in case of failure.
-func (e *Operation) Process(cfg *config.Struct) error {
+func (e *Operation) Process(cfg *config.Structure) error {
 	cmd, err := e.ProcessCmd(cfg, podman.Attach{
 		Stdin:     true,
 		Stdout:    true,
@@ -95,7 +95,7 @@ func (e *Operation) Process(cfg *config.Struct) error {
 }
 
 // ProcessCmd processes the transaction and returns a command. Config updates have to be handle separately.
-func (e *Operation) ProcessCmd(cfg *config.Struct, attach podman.Attach) (*exec.Cmd, error) {
+func (e *Operation) ProcessCmd(cfg *config.Structure, attach podman.Attach) (*exec.Cmd, error) {
 	var pman podman.Podman
 	if !podman.InsideContainer() && os.Getuid() != 0 {
 		pman = podman.New(cfg.Podman.Path)

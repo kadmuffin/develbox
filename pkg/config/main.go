@@ -18,18 +18,21 @@
 package config
 
 import (
+	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 
 	v1_config "github.com/kadmuffin/develbox/pkg/config/v1"
 	"github.com/kpango/glg"
+	"github.com/spf13/viper"
 )
 
 // Read reads the config file and returns the Struct
-func Read() (cfg Struct, err error) {
+func Read() (cfg Structure, err error) {
 	var v1Cfg bool
 	cfg, err, v1Cfg = ReadFile(".develbox/config.json")
 	if err == nil && v1Cfg {
@@ -42,60 +45,74 @@ func Read() (cfg Struct, err error) {
 // ReadFile reads the config file  from a path and returns the Struct
 //
 // It converts the v1 config file to the v2 config file if it detects a v1 config file
-func ReadFile(path string) (Struct, error, bool) {
-	data, err := os.ReadFile(path)
+func ReadFile(path string) (Structure, error, bool) {
+	viper.SetConfigFile(path)
+
+	err := viper.ReadInConfig()
 	if err != nil {
-		return Struct{}, err, false
+		return Structure{}, err, false
 	}
 
-	glg.Infof("Reading config file at %s", path)
-
-	configs, err, v1Cfg := ReadBytes(data)
+	file, err := os.Open(path)
 	if err != nil {
-		return Struct{}, err, v1Cfg
+		return Structure{}, err, false
+	}
+	defer file.Close()
+
+	return parseWithViper(file)
+}
+
+// ReadBytes parses bytes and returns the Struct
+//
+// It converts the v1 config file to the v2 config file if it detects a v1 config file
+func ReadBytes(data []byte) (parsed Structure, err error, wasV1Conf bool) {
+	// Create io.Reader from bytes
+	reader := bufio.NewReader(os.Stdin)
+
+	viper.SetConfigType("json")
+	err = viper.ReadConfig(reader)
+	if err != nil {
+		return Structure{}, err, false
 	}
 
-	return configs, nil, v1Cfg
+	return parseWithViper(reader)
 }
 
 // Write writes the config file
-func Write(configs *Struct) error {
-	os.Mkdir(".develbox", 0755)
-	data, _ := json.MarshalIndent(configs, "", "  ")
+func Write(configs *Structure) error {
+	glg.Infof("Writing config file to %s", ".develbox/config.json")
 
-	err := os.WriteFile(".develbox/config.json", data, 0644)
+	err := os.MkdirAll(".develbox", 0755)
 	if err != nil {
 		return err
 	}
-	return nil
-}
 
-// ReadBytes reads the config file from bytes and returns the Struct
-//
-// It converts the v1 config file to the v2 config file if it detects a v1 config file
-func ReadBytes(data []byte) (Struct, error, bool) {
-	var configs Struct
-	err := json.Unmarshal(data, &configs)
+	f, err := os.Create(".develbox/config.json")
 	if err != nil {
-		// If the config file is in the old format, convert it to the new format
-		var oldConfigs v1_config.Struct
-		err = json.Unmarshal(data, &oldConfigs)
-		if err != nil {
-			return Struct{}, err, false
-		}
+		return err
+	}
+	defer f.Close()
 
-		glg.Info("Valid v1 config! Converting v1 config file to new format (v2)...")
-		configs = ConvertFromV1(oldConfigs)
-		return configs, nil, true
+	encoder := json.NewEncoder(f)
+	encoder.SetIndent("", "  ")
+	err = encoder.Encode(configs)
+	if err != nil {
+		return err
 	}
 
-	return configs, nil, false
+	return nil
 }
 
 // Exists checks if the config file exists
 func Exists() bool {
 	_, err := os.Stat(".develbox/config.json")
-	return err != nil
+	exists := err == nil
+	if exists {
+		glg.Info("Config file exists!")
+	} else {
+		glg.Info("Config file does not exist!")
+	}
+	return exists
 }
 
 // FileExists checks if a file exists
@@ -131,7 +148,7 @@ func GetPathHash(path string) string {
 }
 
 // WriteNewVersion writes the new version of the config file
-func WriteNewVersion(configs *Struct) error {
+func WriteNewVersion(configs *Structure) error {
 	glg.Warn("Updating v1 config file to new format (v2)... (a backup of the old config file will be saved as config.json.bak)")
 
 	// Backup the old config file
@@ -142,4 +159,33 @@ func WriteNewVersion(configs *Struct) error {
 
 	// Write the new config file
 	return Write(configs)
+}
+
+// parseWithViper assumes viper is already configured and returns the parsed config
+func parseWithViper(reader io.Reader) (Structure, error, bool) {
+	// Use json parser until I can figure out how to use the viper parser
+	// properly (the issue arises from parsing interface{} types, specifically, shared-folders, see pkg/config/v1/struct.go:125)
+	decoder := json.NewDecoder(reader)
+
+	if !viper.IsSet("container") && viper.IsSet("podman.container") {
+		var v1Struct v1_config.Struct
+
+		err := decoder.Decode(&v1Struct)
+		if err != nil {
+			return Structure{}, err, false
+		}
+
+		parsed := ConvertFromV1(&v1Struct)
+		return parsed, nil, true
+	}
+
+	var parsed Structure
+	err := decoder.Decode(&parsed)
+	if err != nil {
+		return Structure{}, err, false
+	}
+
+	SetDefaults(&parsed)
+
+	return parsed, nil, false
 }

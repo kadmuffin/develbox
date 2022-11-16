@@ -32,7 +32,7 @@ var createEtcPwd bool
 var PkgVersion = "latest"
 
 // Create creates a container and runs the setupContainer function
-func Create(cfg config.Struct, deleteOld bool) {
+func Create(cfg config.Structure, deleteOld bool) {
 	pman := podman.New(cfg.Podman.Path)
 	majorV, minorV, _, err := pman.Version()
 
@@ -90,9 +90,6 @@ func Create(cfg config.Struct, deleteOld bool) {
 	// cache files, like nix, npm, etc...
 	bindSharedFolders(cfg, &args)
 
-	// Mount gitconfig globably inside container
-	args = append(args, fmt.Sprintf("-v=/home/%s/.gitconfig:/etc/gitconfig:ro", user))
-
 	// Creates & mounts a home directory so we can access it easily
 	err = os.Mkdir(".develbox/home", 0755)
 	args = append(args, "--mount", fmt.Sprintf("type=bind,source=%s/.develbox/home,destination=/home/%s,bind-propagation=rslave", config.GetCurrentDirectory(), user))
@@ -105,7 +102,7 @@ func Create(cfg config.Struct, deleteOld bool) {
 	}
 
 	if len(cfg.Container.Mounts) > 0 {
-		args = append(args, processMounts(cfg))
+		args = append(args, processMounts(cfg)...)
 	}
 	if len(cfg.Container.Ports) > 0 {
 		args = append(args, processPorts(cfg))
@@ -118,16 +115,19 @@ func Create(cfg config.Struct, deleteOld bool) {
 		args = append(args, "--privileged")
 	}
 
+	args = append(args, "-e=DEVELBOX_CONTAINER=1")
 	args = append(args, getEnvVars(dfltEnvVars)...)
 
-	if len(cfg.Container.Binds.Vars) > 0 {
-		args = append(args, getEnvVars(cfg.Container.Binds.Vars)...)
+	if len(cfg.Container.Binds.Variables) > 0 {
+		args = append(args, getEnvVars(cfg.Container.Binds.Variables)...)
 	}
 
 	// Mount configs from host
-	args = append(args, "-v=/etc/localtime:/etc/localtime:ro")
-	args = append(args, "-v=/etc/resolv.conf:/etc/resolv.conf:ro")
-	args = append(args, "-v=/etc/hosts:/etc/hosts:ro")
+	args = append(args, "--mount", "type=bind,src=/etc/localtime,dst=/etc/localtime,ro")
+	args = append(args, "--mount", "type=bind,src=/etc/resolv.conf,dst=/etc/resolv.conf,ro")
+	args = append(args, "--mount", "type=bind,src=/etc/hosts,dst=/etc/hosts,ro")
+	args = append(args, "--mount", "type=bind,src=/etc/timezone,dst=/etc/timezone,ro")
+	args = append(args, "--mount", "type=bind,src=/home/%s/.gitconfig,dst=/etc/gitconfig,ro", user, user)
 
 	// Mount the main folder and pass the image URI before the
 	// container is created.
@@ -135,14 +135,8 @@ func Create(cfg config.Struct, deleteOld bool) {
 	args = append(args, cfg.Image.URI, "sh")
 	err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
 
-	if err == nil && !pman.IsRunning(cfg.Container.Name) {
-		glg.Warnf("Container '%s' is not running! Retrying again with container attached.", cfg.Container.Name)
-
-		pman.Remove([]string{cfg.Container.Name}, podman.Attach{})
-
-		// Remove the "-d" argument
-		args = append(args[:2], args[3:]...)
-		err = pman.Create(args, podman.Attach{Stdout: true, Stderr: true}).Run()
+	if !pman.IsRunning(cfg.Container.Name) {
+		glg.Warnf("Container '%s' is not running!.", cfg.Container.Name)
 	}
 
 	if err != nil {
@@ -165,16 +159,27 @@ func Create(cfg config.Struct, deleteOld bool) {
 
 	pman.Stop([]string{cfg.Container.Name}, podman.Attach{Stderr: true})
 
-	if cfg.Podman.BuildOnly {
+	if cfg.Podman.AutoCommit {
+		glg.Warn("Auto commit feature is enabled, deleting old image (if exists) and commiting new one.")
+
+		// Deletes the old image
+		pman.RawCommand([]string{"rmi", cfg.Container.Name}, podman.Attach{Stderr: true})
+
+		// Commit new image
+		pman.Commit([]string{cfg.Container.Name, cfg.Image.URI}, podman.Attach{Stderr: true})
+	}
+	if cfg.Podman.AutoDelete {
+		glg.Warn("Auto delete feature is enabled, deleting container.")
 		pman.Remove([]string{cfg.Container.Name}, podman.Attach{Stderr: true})
+	} else {
+		fmt.Println("Enter to the container with: develbox enter.")
 	}
 
 	fmt.Println("Operation completed!")
-	fmt.Println("Enter to the container with: develbox enter.")
 }
 
 // setupContainer installs the packages and runs the onCreation & onFinish commands
-func setupContainer(pman *podman.Podman, cfg config.Struct) {
+func setupContainer(pman *podman.Podman, cfg config.Structure) {
 	// Runs commands that should be ran just
 	// after the container was created
 	err := RunCommandList(cfg.Container.Name,
@@ -255,7 +260,7 @@ func setupContainer(pman *podman.Podman, cfg config.Struct) {
 	}
 }
 
-func installPkgs(pman *podman.Podman, cfg config.Struct, pkgs []string, root bool) error {
+func installPkgs(pman *podman.Podman, cfg config.Structure, pkgs []string, root bool) error {
 	opert := pkgm.NewOperation("add", pkgs, []string{}, true)
 	opert.UserOperation = !root
 	cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{Stdin: true, Stdout: true, Stderr: true})
@@ -263,7 +268,7 @@ func installPkgs(pman *podman.Podman, cfg config.Struct, pkgs []string, root boo
 }
 
 // Enter runs a shell in the container and creates a pipe for package installations.
-func Enter(cfg config.Struct, root bool) error {
+func Enter(cfg config.Structure, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
 	//pipe := pipes.New(".develbox/home/.develbox")
 	//pipe.Create()
@@ -283,7 +288,7 @@ func Enter(cfg config.Struct, root bool) error {
 }
 
 // InstallAndEnter install the packages and runs a shell in the container
-func InstallAndEnter(cfg config.Struct, root bool) error {
+func InstallAndEnter(cfg config.Structure, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
 	//pipe := pipes.New(".develbox/home/.develbox")
 	//pipe.Create()
@@ -307,7 +312,7 @@ func InstallAndEnter(cfg config.Struct, root bool) error {
 }
 
 // Loops through the shared folders and creates and binds them to the container.
-func bindSharedFolders(cfg config.Struct, args *[]string) {
+func bindSharedFolders(cfg config.Structure, args *[]string) {
 	for key, value := range cfg.Container.SharedFolders {
 		switch value := value.(type) {
 		case string:

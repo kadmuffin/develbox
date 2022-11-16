@@ -69,13 +69,24 @@ func FileExists(path string) bool {
 }
 
 // processPorts returns a string with all the ports to publish
-func processPorts(cfg config.Struct) string {
+func processPorts(cfg config.Structure) string {
 	return "-p=" + strings.Join(cfg.Container.Ports, "-p=")
 }
 
 // processMounts returns a string with the extra volumes to mount
-func processMounts(cfg config.Struct) string {
-	return "-v=" + ReplaceEnvVars(strings.Join(cfg.Container.Mounts, "-v="))
+func processMounts(cfg config.Structure) (result []string) {
+	// parse %s:%s
+	regex := regexp.MustCompile(`(?P<host>.*):(?P<container>.*)`)
+
+	for _, v := range cfg.Container.Mounts {
+		match := regex.FindStringSubmatch(v)
+		if len(match) != 3 {
+			glg.Fatalf("Invalid mount format: %s", v)
+		}
+
+		result = append(result, "--mount=type=bind,src="+ReplaceEnvVars(match[1])+",dst="+ReplaceEnvVars(match[2]))
+	}
+	return result
 }
 
 // RunCommandList loops through the commands list and runs each one separately

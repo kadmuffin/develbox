@@ -127,8 +127,9 @@ The `podman` section contains the following fields:
 
 - `path` - This is the path to the podman executable (which can also be `docker`)
 - `args` - Contains the arguments to pass to the podman executable (for `podman run`)
-- `rootless` - Informs the CLI if the podman executable is rootless or not
-- `onlybuild` - Creates the container and after finishing doing its thing, it gets deleted
+- `rootless` - Informs the CLI if the podman executable is rootless or not (will mount using the `--userns=keep-id` flag and unshare with `:Z` the project directory)
+- `autodelete` - Creates the container and after finishing doing its thing, it gets deleted
+- `autocommit` - Creates the container and after finishing doing its thing, it gets committed as an image
 - `privileged` - Runs the container in privileged mode
 
 ### Container

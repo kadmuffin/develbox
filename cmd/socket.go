@@ -50,7 +50,7 @@ var (
 	}
 )
 
-func createSocket(cfg *config.Struct) {
+func createSocket(cfg *config.Structure) {
 	// Remove socket file, just in case
 	os.Remove(".develbox/home/.develbox.sock")
 

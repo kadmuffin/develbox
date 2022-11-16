@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	cfg  config.Struct
+	cfg  config.Structure
 	pman podman.Podman
 
 	// Run is the command to run command defined in config.
