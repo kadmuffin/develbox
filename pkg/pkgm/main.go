@@ -107,6 +107,7 @@ func (e *Operation) ProcessCmd(cfg *config.Structure, attach podman.Attach) (*ex
 		return nil, err
 	}
 
+	glg.Infof("Creating command to install packages: %s", baseCmd)
 	return e.sendCommand(
 		cname,
 		baseCmd,

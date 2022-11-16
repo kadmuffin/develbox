@@ -295,7 +295,7 @@ func InstallAndEnter(cfg config.Structure, root bool) error {
 	//pipe := pipes.New(".develbox/home/.develbox")
 	//pipe.Create()
 
-	err := installPkgs(&pman, cfg, cfg.Packages, true)
+	err := installPkgs(&pman, cfg, append(cfg.Packages, cfg.DevPackages...), true)
 	if err != nil {
 		glg.Error("Couldn't install packages.")
 	}
