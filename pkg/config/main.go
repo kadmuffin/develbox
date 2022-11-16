@@ -118,7 +118,7 @@ func Exists() bool {
 // FileExists checks if a file exists
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
-	return err != nil
+	return err == nil
 }
 
 // GetCurrentDirectory returns the current directory

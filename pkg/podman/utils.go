@@ -30,7 +30,7 @@ func InsideContainer() bool {
 	if os.Getenv("CODESPACES") == "true" {
 		inCtnr = false
 	}
-
+	glg.Debugf("Inside container: %s", inCtnr)
 	return inCtnr
 }
 
