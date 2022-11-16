@@ -18,8 +18,6 @@
 
 The config file contains the configuration for the application. It is a JSON file that is parsed by the CLI.
 
-In the [configs](../configs) folder, you can find some of the default config files.
-
 ## Table of Contents
 
 - [Config file](#config-file)
