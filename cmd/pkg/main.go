@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/kadmuffin/develbox/cmd/state"
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/pkgm"
 	"github.com/kadmuffin/develbox/pkg/podman"
@@ -107,7 +108,7 @@ func StartContainer(cfg *config.Structure) {
 			glg.Fatal("Container does not exist")
 		}
 
-		pman.Start([]string{cfg.Container.Name}, podman.Attach{})
+		state.StartContainer(cfg.Container.Name, pman, podman.Attach{})
 	}
 }
 

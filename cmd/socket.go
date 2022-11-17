@@ -17,6 +17,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/kadmuffin/develbox/cmd/state"
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/pkgm"
 	"github.com/kadmuffin/develbox/pkg/podman"
@@ -42,7 +43,7 @@ var (
 			if !pman.Exists(cfg.Container.Name) {
 				glg.Fatal("Container does not exist")
 			}
-			pman.Start([]string{cfg.Container.Name}, podman.Attach{})
+			state.StartContainer(cfg.Container.Name, pman, podman.Attach{})
 
 			defer os.Remove(".develbox/home/.develbox.sock")
 			createSocket(&cfg)

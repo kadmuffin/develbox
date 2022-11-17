@@ -135,7 +135,7 @@ func Create(cfg config.Structure, deleteOld bool) {
 	// Add DEVELBOX_CONTAINER label to the container
 	args = append(args, "--label", "develbox_container=1")
 	// Add DEVELBOX_PROJECT_PATH label to the container
-	args = append(args, "--label", fmt.Sprintf("develbox_project_path=%s", config.GetCurrentDirectory()))
+	args = append(args, "--label", fmt.Sprintf("develbox_project_path=\"%s\"", config.GetCurrentDirectory()))
 
 	// Mount the main folder and pass the image URI before the
 	// container is created.
@@ -212,7 +212,7 @@ func setupContainer(pman *podman.Podman, cfg config.Structure) {
 	var goInstalled bool
 
 	// Check if cfg.Packages or cfg.DevPackages contain go
-	if !contains(cfg.Packages, "go") && !contains(cfg.DevPackages, "go") {
+	if !Contains(cfg.Packages, "go") && !Contains(cfg.DevPackages, "go") {
 		fmt.Println("> Installing Go for develbox experimental features")
 		opert := pkgm.NewOperation("add", []string{"go"}, []string{}, true)
 		cmd, _ := opert.ProcessCmd(&cfg, podman.Attach{

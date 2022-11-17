@@ -92,10 +92,20 @@ func RunCommandList(name string, commands []string, pman *podman.Podman, root bo
 	return nil
 }
 
-// contains loops through a list to check if a string is inside it
-func contains(list []string, item string) bool {
+// Contains loops through a list to check if a string is inside it
+func Contains(list []string, item string) bool {
 	for _, v := range list {
 		if v == item {
+			return true
+		}
+	}
+	return false
+}
+
+// Contains loops through a list to check if a string contains an item
+func ContainsString(list []string, item string) bool {
+	for _, v := range list {
+		if strings.Contains(v, item) {
 			return true
 		}
 	}

@@ -17,6 +17,7 @@ package cmd
 import (
 	"strings"
 
+	"github.com/kadmuffin/develbox/cmd/state"
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
@@ -42,7 +43,7 @@ var (
 			if !pman.Exists(cfg.Container.Name) {
 				glg.Fatal("Container does not exist")
 			}
-			pman.Start([]string{cfg.Container.Name}, podman.Attach{})
+			state.StartContainer(cfg.Container.Name, pman, podman.Attach{})
 
 			var rootOpert bool
 			joinedArgs := strings.Join(args, " ")
