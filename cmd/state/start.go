@@ -131,28 +131,27 @@ func ChooseWhatToStop(pman podman.Podman, containers []contInfo) error {
 		}
 	}
 
-	var items = []string{}
 	if len(containers) > 0 {
-		items = append(items, "Choose another container to stop")
-	}
-	items = append(items, "Done")
-	prompt = promptui.Select{
-		Label: "Select an option",
-		Items: items,
-	}
+		prompt = promptui.Select{
+			Label: "Select an option",
+			Items: []string{"Choose another container to stop", "Done"},
+		}
 
-	_, result, err = prompt.Run()
+		_, result, err = prompt.Run()
 
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	switch result {
-	case "Stop another container":
-		return ChooseWhatToStop(pman, containers)
-	default:
-		return nil
+		switch result {
+		case "Stop another container":
+			return ChooseWhatToStop(pman, containers)
+		default:
+			return nil
+		}
 	}
+	fmt.Println("No more containers to stop")
+	return nil
 }
 
 var keyval = regexp.MustCompile(`((.*)=(.*))`)
