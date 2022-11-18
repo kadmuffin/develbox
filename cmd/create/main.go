@@ -44,15 +44,16 @@ var (
 		Short:      "Creates a new container/config for this project",
 		Args:       cobra.MaximumNArgs(1),
 		Example:    "develbox create -c alpine/latest",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.SilenceUsage = true
 			configExists := config.Exists()
 
 			if createCfg || !configExists {
 				if configExists && !forceReplace {
-					glg.Errorf("Config file already exists!\nUse -f to force the creation of a new config file.")
-					os.Exit(1)
+					return glg.Errorf("Config file already exists!\nUse -f to force the creation of a new config file.")
 				}
 
+				var err error
 				cfg := config.Structure{}
 
 				switch isURL(downloadURL) {
@@ -61,16 +62,22 @@ var (
 					case 0:
 						targetURL := strings.ReplaceAll(downloadURL, "$$version$$", "v"+versionTag)
 						fmt.Println(targetURL)
-						cfg = promptConfig(targetURL)
+						cfg, err = promptConfig(targetURL)
+						if err != nil {
+							return err
+						}
 					default:
-						cfg = downloadConfig(args[0], strings.ReplaceAll(downloadURL, "$$tag$$", "main"))
+						cfg, err = downloadConfig(args[0], strings.ReplaceAll(downloadURL, "$$tag$$", "main"))
+						if err != nil {
+							return err
+						}
 					}
 				case false:
 					var err error
 					var v1Cfg bool
 					cfg, v1Cfg, err = config.ReadFile(downloadURL)
 					if err != nil {
-						glg.Fatalf("Couldn't read config file: %s", err)
+						return glg.Errorf("Couldn't read config file: %s", err)
 					}
 
 					if v1Cfg {
@@ -107,7 +114,7 @@ var (
 					cfg.Container.Ports = strings.Split(containerPort, ",")
 				}
 
-				err := config.Write(&cfg)
+				err = config.Write(&cfg)
 				if err != nil {
 					glg.Error(err)
 				}
@@ -119,24 +126,27 @@ var (
 				if config.FileExists(".git") || config.FileExists(".gitignore") {
 					err = setupGitIgnore()
 					if err != nil {
-						glg.Error(err)
+						return err
 					}
 				}
 
 				if !promptCont() {
 					fmt.Println("Run again the following command create when you're ready to create the container:")
 					fmt.Println("develbox create")
-					return
+					return nil
 				}
 			}
 
 			cfg, err := config.Read()
 			if err != nil {
-				glg.Errorf("Failed to read .develbox/config.json! Try running 'develbox create -c --force' to create a new one.")
-				return
+				return glg.Errorf("Failed to read .develbox/config.json! Try running 'develbox create -c --force' to create a new one %s.", err)
 			}
 			container.PkgVersion = cmd.Root().Version
-			container.Create(cfg, forceReplace)
+			err = container.Create(cfg, forceReplace)
+			if err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 )

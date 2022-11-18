@@ -51,7 +51,7 @@ Created so I don't have to expose my entire computer to random node modules.`,
 )
 
 // Execute is the entrypoint for the program
-func Execute() {
+func Execute() error {
 	if os.Getuid() == 0 && !podman.InsideContainer() {
 		glg.Fatal("Develbox doesn't currently support being ran as root.")
 	}
@@ -97,7 +97,7 @@ func Execute() {
 	rootCLI.AddCommand(version.VersionCmd)
 	rootCLI.AddCommand(dockerfile.Build)
 
-	rootCLI.Execute()
+	return rootCLI.Execute()
 }
 
 // GetRootCLI returns the root command for the program

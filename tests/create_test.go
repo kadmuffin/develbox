@@ -13,3 +13,79 @@
 // limitations under the License.
 
 package main_test
+
+import (
+	"testing"
+
+	"github.com/kadmuffin/develbox/cmd"
+	"github.com/kadmuffin/develbox/pkg/container"
+	"github.com/kadmuffin/develbox/pkg/podman"
+	"github.com/kpango/glg"
+)
+
+// TestCreate tests the create function
+func TestCreate(t *testing.T) {
+	Setup(false)
+
+	// Create a container
+	container.PkgVersion = cmd.GetRootCLI().Version
+	err := container.Create(SampleConfig, true)
+	if err != nil {
+		t.Errorf("Failed to create container: %s", err)
+	}
+
+	// Check if the container exists
+	exists := pman.Exists(testContainerName)
+
+	if !exists {
+		t.Fatalf("Container %s does not exist", testContainerName)
+	}
+
+	// Remove the container
+	err = pman.Remove([]string{testContainerName}, podman.Attach{})
+	if err != nil {
+		glg.Fatalf("Failed to remove container: %s", err)
+	}
+
+	// Check if the container exists
+	exists = pman.Exists(testContainerName)
+
+	if exists {
+		t.Fatalf("Container %s still exists", testContainerName)
+	}
+}
+
+// TestCreateCmd tests the create command (cli)
+func TestCreateCmd(t *testing.T) {
+	Setup(true)
+
+	// Create a container
+	container.PkgVersion = cmd.GetRootCLI().Version
+	cmd.GetRootCLI().SetArgs([]string{"create", "-f"})
+
+	err := cmd.Execute()
+	if err != nil {
+		t.Errorf("Failed to create container: %s", err)
+	}
+
+	// Check if the container exists
+	exists := pman.Exists(testContainerName)
+
+	if !exists {
+		t.Fatalf("Container %s does not exist", testContainerName)
+	}
+
+	// Remove the container
+	err = pman.Remove([]string{testContainerName}, podman.Attach{})
+
+	if err != nil {
+		glg.Fatalf("Failed to remove container: %s", err)
+	}
+
+	// Check if the container exists
+	exists = pman.Exists(testContainerName)
+
+	if exists {
+		t.Fatalf("Container %s still exists", testContainerName)
+	}
+}

@@ -22,10 +22,4 @@ jobs:
       run: go build -v
 
     - name: Test
-      run: go test -v ./...
-    
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: ci_build
-        path: ./develbox
+      run: DEVELBOX_DEBUG=1 go test -v ./...

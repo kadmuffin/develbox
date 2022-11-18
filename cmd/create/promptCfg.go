@@ -53,14 +53,14 @@ var avaliableCfgs = map[string][]string{
 }
 
 // promptConfig create a prompt that asks to choose a distro and version.
-func promptConfig(URL string) config.Structure {
+func promptConfig(URL string) (config.Structure, error) {
 	prompt := promptui.Select{
 		Label: "Choose a distro",
 		Items: getKeys(avaliableCfgs),
 	}
 	_, distro, err := prompt.Run()
 	if err != nil {
-		glg.Fatalf("Prompt failed %v\n", err)
+		return config.Structure{}, glg.Errorf("Prompt failed %v\n", err)
 	}
 
 	prompt = promptui.Select{
@@ -69,7 +69,7 @@ func promptConfig(URL string) config.Structure {
 	}
 	_, version, err := prompt.Run()
 	if err != nil {
-		glg.Fatalf("Prompt failed %v\n", err)
+		return config.Structure{}, glg.Errorf("Prompt failed %v\n", err)
 	}
 
 	return downloadConfig(fmt.Sprintf("%s/%s", distro, version), URL)

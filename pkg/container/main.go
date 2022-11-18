@@ -32,12 +32,12 @@ var createEtcPwd bool
 var PkgVersion = "latest"
 
 // Create creates a container and runs the setupContainer function
-func Create(cfg config.Structure, deleteOld bool) {
+func Create(cfg config.Structure, deleteOld bool) error {
 	pman := podman.New(cfg.Podman.Path)
 	majorV, minorV, _, err := pman.Version()
 
 	if err != nil {
-		glg.Errorf("Can't parse podman version: %s", err)
+		return glg.Errorf("Can't parse podman version: %s", err)
 	}
 
 	if deleteOld {
@@ -46,8 +46,7 @@ func Create(cfg config.Structure, deleteOld bool) {
 	}
 
 	if pman.Exists(cfg.Container.Name) {
-		glg.Fail("Container already exists!")
-		os.Exit(1)
+		return glg.Fail("Container already exists!")
 	}
 
 	if pman.IsDocker() {
@@ -95,11 +94,11 @@ func Create(cfg config.Structure, deleteOld bool) {
 	args = MountArg(args, fmt.Sprintf("%s/.develbox/home:/home/%s", config.GetCurrentDirectory(), user), false, "rslave")
 
 	if config.GetCurrentDirectory() == os.Getenv("HOME") {
-		glg.Fatal("You can't create a develbox project on $HOME! (That means relabelling /home/$USER which is not a good idea)")
+		return glg.Error("You can't create a develbox project on $HOME! (That means relabelling /home/$USER which is not a good idea)")
 	}
 
 	if err != nil && !os.IsExist(err) {
-		glg.Fatalf("Something went wrong while creating the .develbox/home folder. %s", err)
+		return glg.Error("Something went wrong while creating the .develbox/home folder. %s", err)
 	}
 
 	if len(cfg.Container.Mounts) > 0 {
@@ -149,7 +148,7 @@ func Create(cfg config.Structure, deleteOld bool) {
 	}
 
 	if err != nil {
-		glg.Fatalf("Something went wrong while creating the container.")
+		return glg.Error("Something went wrong while creating the container.")
 	}
 	// Adds the current user to /etc/passwd
 	// Only used if the current podman version doesn't
@@ -185,6 +184,7 @@ func Create(cfg config.Structure, deleteOld bool) {
 	}
 
 	fmt.Println("Operation completed!")
+	return nil
 }
 
 // setupContainer installs the packages and runs the onCreation & onFinish commands

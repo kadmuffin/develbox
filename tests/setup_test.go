@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
 )
 
@@ -37,6 +38,7 @@ var (
 	testImageName = "alpine:latest"
 
 	podmanPath = config.GetContainerTool()
+	pman       = podman.New(podmanPath)
 
 	setupAlreadyRun = false
 )

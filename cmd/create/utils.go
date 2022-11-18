@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"sort"
 
 	"github.com/kadmuffin/develbox/pkg/config"
@@ -26,34 +25,33 @@ import (
 )
 
 // downloadConfig downloads the config file from the given URL
-func downloadConfig(argum string, url string) config.Structure {
+func downloadConfig(argum string, url string) (config.Structure, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/%s.json", url, argum))
 
 	if err != nil {
-		glg.Fatal(err)
+		return config.Structure{}, glg.Fail(err)
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		glg.Errorf("Response from source returned bad status: %d", resp.StatusCode)
-		os.Exit(1)
+		return config.Structure{}, glg.Errorf("Response from source returned bad status: %d", resp.StatusCode)
 	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		glg.Fatalf("Something went wrong while downloading the config file. %s", err)
+		return config.Structure{}, glg.Errorf("Something went wrong while downloading the config file. %s", err)
 	}
 
 	cfg, v1Cfg, err := config.ReadBytes(data)
 	if err != nil {
-		glg.Fatalf("Failed to parse the JSON data. %s", err)
+		return config.Structure{}, glg.Errorf("Failed to parse the JSON data. %s", err)
 	}
 
 	if v1Cfg {
 		glg.Warn("The config file is in the old format. Develbox will update it to the new format.")
 	}
-	return cfg
+	return cfg, nil
 }
 
 // getKeys returns the keys of a map as a slice
