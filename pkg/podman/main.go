@@ -132,6 +132,8 @@ func (e *Podman) Exists(name string) bool {
 			return false
 		}
 
+		glg.Info(string(out))
+
 		return strings.Contains(string(out), name)
 	}
 
