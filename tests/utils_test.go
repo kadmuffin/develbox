@@ -32,9 +32,10 @@ func IsGitHubActions() bool {
 // By default, it will use docker.io for the registry
 // If running under GitHub Actions, it will use the GitHub Container Registry
 func GetRegistryURL() string {
-	if IsGitHubActions() {
-		return "ghcr.io"
-	}
+	// Disabled until I figure this out
+	//if IsGitHubActions() {
+	//	return "ghcr.io"
+	//}
 
 	return "docker.io"
 }
