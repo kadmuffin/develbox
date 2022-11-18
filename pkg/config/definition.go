@@ -16,9 +16,11 @@ package config
 
 import (
 	"fmt"
+	"os/exec"
 
 	"github.com/creasty/defaults"
 	v1config "github.com/kadmuffin/develbox/pkg/config/v1config"
+	"github.com/kpango/glg"
 )
 
 // Operations is a list of pkgm that can be performed on a container
@@ -167,4 +169,33 @@ func SetName(cfg *Structure) {
 func SetDefaults(cfg *Structure) {
 	defaults.Set(cfg)
 	SetName(cfg)
+}
+
+// CheckDocker checks if we only have docker installed and if so, it sets the container engine to docker
+func CheckDocker(cfg *Structure) {
+	err := exec.Command(cfg.Podman.Path, "--version").Run()
+	if err != nil {
+		err = exec.Command("docker", "--version").Run()
+		if err == nil {
+			cfg.Podman.Path = "docker"
+			glg.Info("Couldn't find podman! Using docker instead.")
+		} else {
+			glg.Warn("Couldn't find podman nor docker on PATH!")
+		}
+	}
+}
+
+// GetContainerTool returns if we should use podman or docker
+func GetContainerTool() string {
+	err := exec.Command("podman", "--version").Run()
+	if err != nil {
+		err = exec.Command("docker", "--version").Run()
+		if err == nil {
+			glg.Info("Couldn't find podman! Using docker instead.")
+			return "docker"
+		} else {
+			glg.Fatal("Couldn't find podman nor docker on PATH!")
+		}
+	}
+	return "podman"
 }

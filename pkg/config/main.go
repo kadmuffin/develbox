@@ -184,5 +184,7 @@ func parseWithViper(data []byte) (Structure, bool, error) {
 
 	SetName(&parsed)
 
+	CheckDocker(&parsed)
+
 	return parsed, false, nil
 }

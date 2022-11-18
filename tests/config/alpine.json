@@ -1,0 +1,63 @@
+{
+    "image": {
+        "uri": "alpine:edge",
+        "on_creation": [],
+        "on_finish": [],
+        "pkgmanager": {
+            "operations": {
+                "add": "apk add {args}",
+                "del": "apk del {args}",
+                "update": "apk update {args}",
+                "upgrade": "apk upgrade {args}",
+                "search": "apk search {args}",
+                "clean": "rm -rf /var/cache/apk"
+            },
+            "modifiers": {}
+        },
+        "variables": {}
+    },
+    "podman": {
+        "path": "docker",
+        "args": [],
+        "rootless": true,
+        "auto_delete": false,
+        "auto_commit": false,
+        "privileged": true
+    },
+    "container": {
+        "name": "develbox-test",
+        "workdir": "/code",
+        "shell": "/bin/sh",
+        "rootuser": false,
+        "binds": {
+            "xorg": false,
+            "dev": false,
+            "variables": []
+        },
+        "ports": [],
+        "mounts": [],
+        "shared_folders": {
+            "alpine": "/var/cache/apk/"
+        }
+    },
+    "commands": {
+        "test": "echo test",
+        "test2": "!test",
+        "test3": "#echo test"
+    },
+    "packages": [
+        "nodejs",
+        "npm"
+    ],
+    "devpackages": [
+        "git",
+        "make"
+    ],
+    "userpkgs": {
+        "packages": [],
+        "devpackages": []
+    },
+    "experiments": {
+        "sockets": false
+    }
+}

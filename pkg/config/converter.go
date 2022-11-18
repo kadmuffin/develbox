@@ -16,6 +16,7 @@ package config
 
 import (
 	v1config "github.com/kadmuffin/develbox/pkg/config/v1config"
+	"github.com/kpango/glg"
 )
 
 // ConvertFromV1 converts a v1 config file to a v2 config file
@@ -45,6 +46,7 @@ func ConvertFromV1(cfg *v1config.Struct) Structure {
 			Path:       cfg.Podman.Path,
 			Rootless:   cfg.Podman.Rootless,
 			AutoDelete: cfg.Podman.BuildOnly,
+			AutoCommit: false,
 		},
 
 		Container: Container{
@@ -70,6 +72,8 @@ func ConvertFromV1(cfg *v1config.Struct) Structure {
 	}
 
 	SetName(&newCfg)
+
+	glg.Info("Converted config file to v2 format")
 
 	return newCfg
 }

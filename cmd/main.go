@@ -99,3 +99,8 @@ func Execute() {
 
 	rootCLI.Execute()
 }
+
+// GetRootCLI returns the root command for the program
+func GetRootCLI() *cobra.Command {
+	return rootCLI
+}

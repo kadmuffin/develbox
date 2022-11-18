@@ -18,7 +18,6 @@ package create
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/kadmuffin/develbox/cmd/version"
@@ -79,7 +78,6 @@ var (
 					}
 				}
 
-				checkDocker(&cfg)
 				config.SetDefaults(&cfg)
 
 				if containerName == "" {
@@ -152,20 +150,6 @@ func init() {
 	Create.Flags().StringVarP(&containerPort, "port", "p", "none", "The port to expose in the container.")
 	Create.Flags().StringVarP(&versionTag, "version", "v", version.Number, "The version tag from where the config will be downloaded.")
 
-}
-
-// checkDocker checks if we only have docker installed and if so, it sets the container engine to docker
-func checkDocker(cfg *config.Structure) {
-	err := exec.Command(cfg.Podman.Path, "--version").Run()
-	if err != nil {
-		err = exec.Command("docker", "--version").Run()
-		if err == nil {
-			cfg.Podman.Path = "docker"
-			glg.Warn("Couldn't find podman! Using docker instead.")
-		} else {
-			glg.Warn("Couldn't find podman nor docker on PATH!")
-		}
-	}
 }
 
 // setupGitIgnore adds the .develbox directory to the .gitignore file (if the user accepts)
