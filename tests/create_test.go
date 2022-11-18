@@ -19,13 +19,11 @@ import (
 
 	"github.com/kadmuffin/develbox/cmd"
 	"github.com/kadmuffin/develbox/pkg/container"
-	"github.com/kadmuffin/develbox/pkg/podman"
-	"github.com/kpango/glg"
 )
 
 // TestCreate tests the create function
 func TestCreate(t *testing.T) {
-	Setup(false)
+	Setup(false, false)
 
 	// Create a container
 	container.PkgVersion = cmd.GetRootCLI().Version
@@ -40,24 +38,11 @@ func TestCreate(t *testing.T) {
 	if !exists {
 		t.Fatalf("Container %s does not exist", testContainerName)
 	}
-
-	// Remove the container
-	err = pman.Remove([]string{testContainerName}, podman.Attach{})
-	if err != nil {
-		glg.Fatalf("Failed to remove container: %s", err)
-	}
-
-	// Check if the container exists
-	exists = pman.Exists(testContainerName)
-
-	if exists {
-		t.Fatalf("Container %s still exists", testContainerName)
-	}
 }
 
 // TestCreateCmd tests the create command (cli)
 func TestCreateCmd(t *testing.T) {
-	Setup(true)
+	Setup(true, false)
 
 	// Create a container
 	container.PkgVersion = cmd.GetRootCLI().Version
@@ -73,19 +58,5 @@ func TestCreateCmd(t *testing.T) {
 
 	if !exists {
 		t.Fatalf("Container %s does not exist", testContainerName)
-	}
-
-	// Remove the container
-	err = pman.Remove([]string{testContainerName}, podman.Attach{})
-
-	if err != nil {
-		glg.Fatalf("Failed to remove container: %s", err)
-	}
-
-	// Check if the container exists
-	exists = pman.Exists(testContainerName)
-
-	if exists {
-		t.Fatalf("Container %s still exists", testContainerName)
 	}
 }

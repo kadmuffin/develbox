@@ -22,7 +22,7 @@
         "create-deletion": false,
         "container": {
             "name": "develbox-test",
-            "arguments": [],
+            "arguments": ["--net=host"],
             "work-dir": "/code",
             "shell": "/bin/sh",
             "root-user": false,

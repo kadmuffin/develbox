@@ -127,7 +127,8 @@ func (e *Podman) Exists(name string) bool {
 		params = []string{"inspect", name}
 	}
 
-	return e.cmd(params, Attach{}).Run() == nil
+	_, err := e.cmd(params, Attach{}).CombinedOutput()
+	return err == nil
 }
 
 // Start starts a container and returns an error in case of failure. The first argument has to be the container's name/id.

@@ -22,7 +22,9 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/kadmuffin/develbox/cmd"
 	"github.com/kadmuffin/develbox/pkg/config"
+	"github.com/kadmuffin/develbox/pkg/container"
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
 )
@@ -41,10 +43,11 @@ var (
 	pman       = podman.New(podmanPath)
 
 	setupAlreadyRun = false
+	keepContainer   = false
 )
 
 // Setup sets up the test environment
-func Setup(copyCfg bool) {
+func Setup(copyCfg bool, createContainer bool) {
 	// Set up the logger
 	glg.Get().SetMode(glg.STD).SetLevel(glg.DEBG).SetWriter(os.Stdout)
 
@@ -62,6 +65,41 @@ func Setup(copyCfg bool) {
 	if copyCfg {
 		CopyConfig()
 	}
+
+	if keepContainer {
+		// Check if the container already exists
+		exists := pman.Exists(testContainerName)
+		switch exists {
+		case false:
+			createContainer = true
+		case true:
+			createContainer = false
+			err := pman.Start([]string{testContainerName}, podman.Attach{})
+			if err != nil {
+				glg.Fatalf("Failed to start container: %s", err)
+			}
+		}
+	}
+
+	// Create the test container
+	if createContainer {
+
+		// Create a container
+		container.PkgVersion = cmd.GetRootCLI().Version
+		err := container.Create(SampleConfig, true)
+		if err != nil {
+			glg.Fatalf("Failed to create container: %s", err)
+		}
+
+		// Check if the container exists
+		exists := pman.Exists(testContainerName)
+
+		if !exists {
+			glg.Fatal("Container %s does not exist", testContainerName)
+		}
+	}
+
+	keepContainer = false
 	setupAlreadyRun = true
 }
 
@@ -69,7 +107,7 @@ func Setup(copyCfg bool) {
 func cleanTestEnv() error {
 	// Delete and create a new .develbox folder
 	os.RemoveAll(".develbox")
-	os.MkdirAll(".develbox", 0755)
+	os.MkdirAll(".develbox/home", 0755)
 
 	// Get the list of containers
 	out, err := exec.Command(podmanPath, "ps", "-a", "-q").Output()
@@ -78,7 +116,7 @@ func cleanTestEnv() error {
 	}
 
 	// Remove all containers with the test name
-	if len(out) > 0 {
+	if len(out) > 0 && !keepContainer {
 		// Remove the trailing newline
 		out = out[:len(out)-1]
 

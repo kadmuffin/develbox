@@ -277,47 +277,38 @@ func installPkgs(pman *podman.Podman, cfg config.Structure, pkgs []string, root 
 }
 
 // Enter runs a shell in the container and creates a pipe for package installations.
+var DontAttachEnter = false
+
 func Enter(cfg config.Structure, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
-	//pipe := pipes.New(".develbox/home/.develbox")
-	//pipe.Create()
 
-	cmd := pman.Exec([]string{cfg.Container.Name, cfg.Container.Shell}, cfg.Image.Variables, false, root,
-		podman.Attach{
-			Stdin:     true,
-			Stdout:    true,
-			Stderr:    true,
-			PseudoTTY: true,
-		})
+	attach := podman.Attach{
+		Stdin:     !DontAttachEnter,
+		Stdout:    !DontAttachEnter,
+		Stderr:    !DontAttachEnter,
+		PseudoTTY: !DontAttachEnter,
+	}
 
-	//go pkgPipe(&cfg, pipe)
-	err := cmd.Run()
-	//pipe.Remove()
-	return err
+	cmd := pman.Exec([]string{cfg.Container.Name, cfg.Container.Shell}, cfg.Image.Variables, false, root, attach)
+
+	if DontAttachEnter {
+		DontAttachEnter = false
+		_, err := cmd.CombinedOutput()
+		return err
+	}
+	return cmd.Run()
 }
 
 // InstallAndEnter install the packages and runs a shell in the container
 func InstallAndEnter(cfg config.Structure, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
-	//pipe := pipes.New(".develbox/home/.develbox")
-	//pipe.Create()
 
 	err := installPkgs(&pman, cfg, append(cfg.Packages, cfg.DevPackages...), true)
 	if err != nil {
 		glg.Error("Couldn't install packages.")
 	}
 
-	cmd := pman.Exec([]string{cfg.Container.Name, cfg.Container.Shell}, cfg.Image.Variables, false, root,
-		podman.Attach{
-			Stdin:     true,
-			Stdout:    true,
-			Stderr:    true,
-			PseudoTTY: true,
-		})
-
-	//go pkgPipe(&cfg, pipe)
-	return cmd.Run()
-	//pipe.Remove()
+	return Enter(cfg, root)
 }
 
 // Loops through the shared folders and creates and binds them to the container.

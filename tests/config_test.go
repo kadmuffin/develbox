@@ -44,7 +44,7 @@ var (
 			},
 		},
 		Podman: config.Podman{
-			Args:       []string{},
+			Args:       []string{"--net=host"},
 			Privileged: true,
 			Path:       "docker",
 			Rootless:   true,
@@ -98,7 +98,7 @@ func init() {
 // TestConfig tests the read related functions of the config package
 func TestConfig(t *testing.T) {
 	// Run setup steps
-	Setup(true)
+	Setup(true, false)
 
 	// Read the config file
 	cfg, err := config.Read()
@@ -141,7 +141,7 @@ func TestConfig(t *testing.T) {
 // TestConversion tests the conversion of a v1 config to a v2 config
 func TestConversion(t *testing.T) {
 	// Run setup steps
-	Setup(false)
+	Setup(false, false)
 
 	// Copy the v1 config to the .develbox/config.json file
 	exec.Command("cp", "config/alpine.v1.json", ".develbox/config.json").Run()
@@ -173,7 +173,7 @@ func TestConversion(t *testing.T) {
 // TestWriteConfig tests writing a config template
 func TestWriteConfig(t *testing.T) {
 	// Run setup steps
-	Setup(false)
+	Setup(false, false)
 
 	err := config.Write(&SampleConfig)
 	if err != nil {
