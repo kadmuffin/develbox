@@ -75,6 +75,8 @@ func ContainerExists(name string) bool {
 		return strings.Contains(string(out), name)
 	}
 
+	pman := podman.New(podmanPath)
+
 	switch pman.IsDocker() {
 	case true:
 		cmd := pman.RawCommand([]string{"inspect", name}, podman.Attach{})

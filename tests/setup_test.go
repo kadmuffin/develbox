@@ -25,7 +25,6 @@ import (
 	"github.com/kadmuffin/develbox/cmd"
 	"github.com/kadmuffin/develbox/pkg/config"
 	"github.com/kadmuffin/develbox/pkg/container"
-	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
 )
 
@@ -40,7 +39,6 @@ var (
 	testImageName = "alpine:latest"
 
 	podmanPath = config.GetContainerTool()
-	pman       = podman.New(podmanPath)
 
 	setupAlreadyRun = false
 
@@ -69,7 +67,7 @@ func Setup(copyCfg bool, createContainer bool) {
 		CopyConfig()
 	}
 
-	if keepContainer {
+	if keepContainer && os.Getenv("GITHUB_ACTIONS") != "true" {
 		// Check if the container already exists
 		exists := ContainerExists(testContainerName)
 		switch exists {
@@ -77,11 +75,9 @@ func Setup(copyCfg bool, createContainer bool) {
 			createContainer = true
 		case true:
 			createContainer = false
-			if os.Getenv("GITHUB_ACTIONS") != "true" {
-				_, err := exec.Command(podmanPath, "start", testContainerName).CombinedOutput()
-				if err != nil {
-					glg.Fatalf("Failed to start container: %s", err)
-				}
+			_, err := exec.Command(podmanPath, "start", testContainerName).CombinedOutput()
+			if err != nil {
+				glg.Fatalf("Failed to start container: %s", err)
 			}
 		}
 	}
