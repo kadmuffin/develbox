@@ -130,6 +130,8 @@ func TestConfig(t *testing.T) {
 		t.Fatalf("Failed to read config file: %s", err)
 	}
 
+	cfg.Podman.Path = podmanPath
+
 	// We expected a v2 config, so we should get false
 	if wasV1Conf {
 		t.Fatalf("[config.ReadBytes()] Detected v1 config instead of v2")

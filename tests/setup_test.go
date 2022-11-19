@@ -108,6 +108,7 @@ func Setup(copyCfg bool, createContainer bool) {
 // Clean cleans the test environment
 func cleanTestEnv() error {
 	// Delete and create a new .develbox folder
+	os.Remove(".develbox/config.json")
 	if !keepContainer {
 		os.RemoveAll(".develbox")
 		os.MkdirAll(".develbox/home", 0755)
