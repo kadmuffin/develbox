@@ -97,6 +97,7 @@ func init() {
 
 // TestConfig tests the read related functions of the config package
 func TestConfig(t *testing.T) {
+	t.Logf("Current location is %s", os.Getenv("PWD"))
 	// Run setup steps
 	Setup(true, false)
 
