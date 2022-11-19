@@ -30,6 +30,7 @@ var createEtcPwd bool
 
 // PkgVersion specifies the version of develbox (inside the container)
 var PkgVersion = "latest"
+var DontStopOnFinish = false
 
 // Create creates a container and runs the setupContainer function
 func Create(cfg config.Structure, deleteOld bool) error {
@@ -165,7 +166,10 @@ func Create(cfg config.Structure, deleteOld bool) error {
 
 	setupContainer(&pman, cfg)
 
-	pman.Stop([]string{cfg.Container.Name}, podman.Attach{Stderr: true})
+	if !DontStopOnFinish {
+		pman.Stop([]string{cfg.Container.Name}, podman.Attach{Stderr: true})
+	}
+	DontStopOnFinish = false
 
 	if cfg.Podman.AutoCommit {
 		glg.Warn("Auto commit feature is enabled, deleting old image (if exists) and commiting new one.")

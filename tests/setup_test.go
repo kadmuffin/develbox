@@ -89,6 +89,7 @@ func Setup(copyCfg bool, createContainer bool) {
 
 		// Create a container
 		container.PkgVersion = cmd.GetRootCLI().Version
+		container.DontStopOnFinish = true
 		err := container.Create(SampleConfig, true)
 		if err != nil {
 			glg.Fatalf("Failed to create container: %s", err)
