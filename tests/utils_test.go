@@ -68,6 +68,7 @@ func ContainerExists(name string) bool {
 		if err != nil {
 			glg.Errorf("Container %s does not exist", name)
 			glg.Debug(err)
+			return false
 		}
 
 	case false:
@@ -76,6 +77,7 @@ func ContainerExists(name string) bool {
 		if err != nil {
 			glg.Errorf("Container %s does not exist", name)
 			glg.Debug(err)
+			return false
 		}
 
 	}

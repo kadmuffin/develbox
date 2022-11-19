@@ -95,7 +95,7 @@ func Setup(copyCfg bool, createContainer bool) {
 		exists := pman.Exists(testContainerName)
 
 		if !exists {
-			glg.Fatal("Container %s does not exist", testContainerName)
+			glg.Fatalf("Container %s does not exist", testContainerName)
 		}
 	}
 
