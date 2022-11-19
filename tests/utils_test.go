@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
 )
 
@@ -53,4 +54,30 @@ func PullImage() {
 			glg.Fatalf("Failed to pull image: %s", string(out))
 		}
 	}
+}
+
+// ContainerExists checks if a container exists
+func ContainerExists(name string) bool {
+	// Check if the container exists
+
+	switch pman.IsDocker() {
+	case true:
+		cmd := pman.RawCommand([]string{"inspect", name}, podman.Attach{})
+
+		_, err := cmd.CombinedOutput()
+		if err != nil {
+			glg.Errorf("Container %s does not exist", name)
+			glg.Debug(err)
+		}
+
+	case false:
+		cmd := pman.RawCommand([]string{"container", "exists", name}, podman.Attach{})
+		_, err := cmd.CombinedOutput()
+		if err != nil {
+			glg.Errorf("Container %s does not exist", name)
+			glg.Debug(err)
+		}
+
+	}
+	return true
 }
