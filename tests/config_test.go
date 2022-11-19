@@ -107,6 +107,8 @@ func TestConfig(t *testing.T) {
 		t.Fatalf("Failed to read config file: %s", err)
 	}
 
+	cfg.Podman.Path = podmanPath
+
 	// Compare the two configs
 	if !CompareConfigs(cfg, SampleConfig) {
 		t.Fatalf("[config.Read()] Config file does not match template")
@@ -164,6 +166,8 @@ func TestConversion(t *testing.T) {
 	if !wasV1Conf {
 		t.Fatalf("[config.Read() V1Cfg] Detected v2 config instead of v1")
 	}
+
+	v1cfg.Podman.Path = podmanPath
 
 	// It should be aproximately the same as the original config
 	if !CompareConfigs(v1cfg, SampleConfig) {

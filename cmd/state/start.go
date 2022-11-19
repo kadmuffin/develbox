@@ -226,7 +226,10 @@ func SearchActiveContainer(pman podman.Podman) ([]ContInfo, error) {
 	return activeContainers, nil
 }
 
-var keyval = regexp.MustCompile(`([^,:=]*)[:=]([^,]*)`)
+// keyval parses a string like this:
+// "develbox_project_path=/home/username/project,develbox_container=1,develbox_version=0.1.0"
+// and return the value of the key
+var keyval = regexp.MustCompile(`\s*([^\s,:=]*)\s*[:=]\s*([^\s,:=]*)\s*`)
 
 // parseFromField parses a field from a podman ps --format
 func parseFromField(field string, key string) (string, error) {
