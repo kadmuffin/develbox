@@ -18,6 +18,11 @@ jobs:
       with:
         go-version: 1.19
 
+    - name: Set up podman
+      uses: containers/setup-podman@v3
+      with:
+        podman-version: 3.4.2
+
     - name: Build
       run: go build -v
 

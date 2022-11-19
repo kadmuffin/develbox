@@ -45,7 +45,6 @@ func GetRegistryURL() string {
 // PullImage pulls the latest image
 func PullImage() {
 	if !setupAlreadyRun {
-		registryURL = GetRegistryURL()
 		image := fmt.Sprintf("%s/%s", registryURL, testImageName)
 
 		// Pull the latest image
@@ -64,7 +63,7 @@ func PullImage() {
 func ContainerExists(name string) bool {
 	// Check if the container exists
 
-	if os.Getenv("GITHUB_ACTIONS") == "true" {
+	if os.Getenv("GITHUB_ACTIONS") == "true" && !strings.Contains(podmanPath, "podman") {
 		// GitHub Actions doesn't support podman
 		// So we have to use docker
 		out, err := exec.Command("docker", "ps", "-a", "--format", "{{.Names}}").CombinedOutput()

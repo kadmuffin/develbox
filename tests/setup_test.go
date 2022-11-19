@@ -67,7 +67,7 @@ func Setup(copyCfg bool, createContainer bool) {
 		CopyConfig()
 	}
 
-	if keepContainer && os.Getenv("GITHUB_ACTIONS") != "true" {
+	if keepContainer {
 		// Check if the container already exists
 		exists := ContainerExists(testContainerName)
 		switch exists {
@@ -151,5 +151,28 @@ func CopyConfig() {
 	out, err := exec.Command("cp", "config/alpine.json", ".develbox/config.json").CombinedOutput()
 	if err != nil {
 		glg.Fatalf("Failed to copy config file: %s", string(out))
+	}
+}
+
+func init() {
+	// Set the registry URL
+	registryURL = os.Getenv("REGISTRY_URL")
+	if registryURL == "" {
+		registryURL = "docker.io"
+	}
+
+	// Set the container engine path
+	podmanPath = config.GetContainerTool()
+
+	// Check if the container engine exists
+	_, err := exec.Command(podmanPath, "version").CombinedOutput()
+	if err != nil {
+		glg.Fatalf("Failed to get container tool version: %s", err)
+	}
+
+	// Check if the container engine is running
+	_, err = exec.Command(podmanPath, "info").CombinedOutput()
+	if err != nil {
+		glg.Fatalf("Failed to get container tool info: %s", err)
 	}
 }

@@ -46,7 +46,7 @@ var (
 		Podman: config.Podman{
 			Args:       []string{"--net=host"},
 			Privileged: true,
-			Path:       "docker",
+			Path:       podmanPath,
 			Rootless:   true,
 			AutoDelete: false,
 			AutoCommit: false,

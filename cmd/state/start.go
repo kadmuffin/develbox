@@ -169,8 +169,6 @@ func chooseWhatToStop(pman podman.Podman, containers []ContInfo) error {
 	return nil
 }
 
-var keyval = regexp.MustCompile(`((.*)=(.*))`)
-
 // ContInfo is a struct to store the information of a container
 type ContInfo struct {
 	Name        string
@@ -207,11 +205,20 @@ func SearchActiveContainer(pman podman.Podman) ([]ContInfo, error) {
 		fields := strings.Split(line, "\t")
 
 		if container.ContainsString(fields, "develbox") {
+			ppath, err := parseFromField(fields[2], "develbox_project_path")
+			if err != nil {
+				glg.Warn(err)
+			}
+
+			dboxVersion, err := parseFromField(fields[2], "develbox_version")
+			if err != nil {
+				glg.Warn(err)
+			}
 			activeContainers = append(activeContainers, ContInfo{
 				Name:        fields[1],
 				ID:          fields[0],
-				ProjectPath: parseFromField(fields[2], "develbox_project_path"),
-				DBoxVersion: parseFromField(fields[2], "develbox_version"),
+				ProjectPath: ppath,
+				DBoxVersion: dboxVersion,
 			})
 		}
 	}
@@ -219,8 +226,10 @@ func SearchActiveContainer(pman podman.Podman) ([]ContInfo, error) {
 	return activeContainers, nil
 }
 
+var keyval = regexp.MustCompile(`([^,=]*)=([^,]*)`)
+
 // parseFromField parses a field from a podman ps --format
-func parseFromField(field string, key string) string {
+func parseFromField(field string, key string) (string, error) {
 	// Remove the curly braces
 	field = strings.Trim(field, "{}")
 	// Split the field into key value pairs
@@ -231,9 +240,12 @@ func parseFromField(field string, key string) string {
 		if strings.Contains(pair, key) {
 			// Split the pair into key and value
 			split := keyval.FindStringSubmatch(pair)
+			if len(split) != 3 {
+				return "", fmt.Errorf("field %q does not contain key %q", field, key)
+			}
 			// Return the value
-			return split[3]
+			return split[2], nil
 		}
 	}
-	return ""
+	return "", fmt.Errorf("field %q does not contain key %q", field, key)
 }
