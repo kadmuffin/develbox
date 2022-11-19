@@ -33,7 +33,7 @@ func TestCreate(t *testing.T) {
 	}
 
 	// Check if the container exists
-	exists := pman.Exists(testContainerName)
+	exists := ContainerExists(testContainerName)
 
 	if !exists {
 		t.Fatalf("Container %s does not exist", testContainerName)
@@ -54,7 +54,7 @@ func TestCreateCmd(t *testing.T) {
 	}
 
 	// Check if the container exists
-	exists := pman.Exists(testContainerName)
+	exists := ContainerExists(testContainerName)
 
 	if !exists {
 		t.Fatalf("Container %s does not exist", testContainerName)

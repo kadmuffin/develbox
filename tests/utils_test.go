@@ -19,7 +19,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
+	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
 )
 
@@ -53,4 +55,46 @@ func PullImage() {
 			glg.Fatalf("Failed to pull image: %s", string(out))
 		}
 	}
+}
+
+// ContainerExists checks if a container exists
+// For some reason, without this function, the tests fail
+// Mainly, podman.Exists() returns false even though the container exists
+// Even though the code below is basically the same as podman.Exists()
+func ContainerExists(name string) bool {
+	// Check if the container exists
+
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		// GitHub Actions doesn't support podman
+		// So we have to use docker
+		out, err := exec.Command("docker", "ps", "-a", "--format", "{{.Names}}").CombinedOutput()
+		if err != nil {
+			glg.Fatalf("Failed to check if container exists: %s", string(out))
+		}
+
+		return strings.Contains(string(out), name)
+	}
+
+	switch pman.IsDocker() {
+	case true:
+		cmd := pman.RawCommand([]string{"inspect", name}, podman.Attach{})
+
+		_, err := cmd.Output()
+		if err != nil {
+			glg.Errorf("Container %s does not exist", name)
+			glg.Debug(err)
+			return false
+		}
+
+	case false:
+		cmd := pman.RawCommand([]string{"container", "exists", name}, podman.Attach{})
+		_, err := cmd.Output()
+		if err != nil {
+			glg.Errorf("Container %s does not exist", name)
+			glg.Debug(err)
+			return false
+		}
+
+	}
+	return true
 }
