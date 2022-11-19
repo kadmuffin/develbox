@@ -92,7 +92,7 @@ func Setup(copyCfg bool, createContainer bool) {
 		}
 
 		// Check if the container exists
-		exists := ContainerExists(testContainerName)
+		exists := pman.Exists(testContainerName)
 
 		if !exists {
 			glg.Fatalf("Container %s does not exist", testContainerName)

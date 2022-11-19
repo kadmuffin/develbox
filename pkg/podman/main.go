@@ -125,14 +125,10 @@ func (e *Podman) Exists(name string) bool {
 	// the closest thing I could find.
 	if e.IsDocker() {
 		//params = []string{"inspect", name}
-		params := []string{"ps", "-a", "--filter", fmt.Sprintf("name=%s", name), "--format", "{{.Names}}"}
-		cmd := e.cmd(params, Attach{})
-		out, err := cmd.Output()
+		out, err := e.cmd([]string{"ps", "-a", "--format", "{{.Names}}"}, Attach{}).CombinedOutput()
 		if err != nil {
-			return false
+			glg.Fatalf("Failed to check if container exists: %s", string(out))
 		}
-
-		glg.Info(string(out))
 
 		return strings.Contains(string(out), name)
 	}

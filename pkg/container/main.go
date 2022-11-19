@@ -293,8 +293,11 @@ func Enter(cfg config.Structure, root bool) error {
 
 	if DontAttachEnter {
 		DontAttachEnter = false
-		_, err := cmd.CombinedOutput()
-		return err
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("%s: %s", err, out)
+		}
+		return nil
 	}
 	return cmd.Run()
 }
@@ -305,7 +308,7 @@ func InstallAndEnter(cfg config.Structure, root bool) error {
 
 	err := installPkgs(&pman, cfg, append(cfg.Packages, cfg.DevPackages...), true)
 	if err != nil {
-		glg.Error("Couldn't install packages.")
+		return glg.Errorf("Couldn't install packages. %s", err)
 	}
 
 	return Enter(cfg, root)
