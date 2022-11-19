@@ -69,7 +69,7 @@ func Setup(copyCfg bool, createContainer bool) {
 		CopyConfig()
 	}
 
-	if keepContainer && os.Getenv("GITHUB_ACTIONS") != "true" {
+	if keepContainer {
 		// Check if the container already exists
 		exists := ContainerExists(testContainerName)
 		switch exists {
@@ -77,9 +77,11 @@ func Setup(copyCfg bool, createContainer bool) {
 			createContainer = true
 		case true:
 			createContainer = false
-			_, err := exec.Command(podmanPath, "start", testContainerName).CombinedOutput()
-			if err != nil {
-				glg.Fatalf("Failed to start container: %s", err)
+			if os.Getenv("GITHUB_ACTIONS") != "true" {
+				_, err := exec.Command(podmanPath, "start", testContainerName).CombinedOutput()
+				if err != nil {
+					glg.Fatalf("Failed to start container: %s", err)
+				}
 			}
 		}
 	}
@@ -110,8 +112,10 @@ func Setup(copyCfg bool, createContainer bool) {
 // Clean cleans the test environment
 func cleanTestEnv() error {
 	// Delete and create a new .develbox folder
-	os.RemoveAll(".develbox")
-	os.MkdirAll(".develbox/home", 0755)
+	if !keepContainer {
+		os.RemoveAll(".develbox")
+		os.MkdirAll(".develbox/home", 0755)
+	}
 
 	// Get the list of containers
 	out, err := exec.Command(podmanPath, "ps", "-a", "-q").Output()
