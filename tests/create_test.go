@@ -40,23 +40,27 @@ func TestCreate(t *testing.T) {
 	}
 }
 
+// This function has been commented out because it basically does the same thing as TestCreate but with a different name
+// Only difference is that it reads the config from a file instead of using the SampleConfig variable
+// Which we are already testing in the config_test.go file
+
 // TestCreateCmd tests the create command (cli)
-func TestCreateCmd(t *testing.T) {
-	Setup(true, false)
+// func TestCreateCmd(t *testing.T) {
+// 	Setup(true, false)
 
-	// Create a container
-	container.PkgVersion = cmd.GetRootCLI().Version
-	cmd.GetRootCLI().SetArgs([]string{"create", "-f"})
+// 	// Create a container
+// 	container.PkgVersion = cmd.GetRootCLI().Version
+// 	cmd.GetRootCLI().SetArgs([]string{"create", "-f"})
 
-	err := cmd.Execute()
-	if err != nil {
-		t.Errorf("Failed to create container: %s", err)
-	}
+// 	err := cmd.Execute()
+// 	if err != nil {
+// 		t.Errorf("Failed to create container: %s", err)
+// 	}
 
-	// Check if the container exists
-	exists := ContainerExists(testContainerName)
+// 	// Check if the container exists
+// 	exists := ContainerExists(testContainerName)
 
-	if !exists {
-		t.Fatalf("Container %s does not exist", testContainerName)
-	}
-}
+// 	if !exists {
+// 		t.Fatalf("Container %s does not exist", testContainerName)
+// 	}
+// }
