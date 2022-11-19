@@ -207,12 +207,12 @@ func SearchActiveContainer(pman podman.Podman) ([]ContInfo, error) {
 		if container.ContainsString(fields, "develbox") {
 			ppath, err := parseFromField(fields[2], "develbox_project_path")
 			if err != nil {
-				glg.Warn(err)
+				glg.Info(err)
 			}
 
 			dboxVersion, err := parseFromField(fields[2], "develbox_version")
 			if err != nil {
-				glg.Warn(err)
+				glg.Info(err)
 			}
 			activeContainers = append(activeContainers, ContInfo{
 				Name:        fields[1],
@@ -226,7 +226,7 @@ func SearchActiveContainer(pman podman.Podman) ([]ContInfo, error) {
 	return activeContainers, nil
 }
 
-var keyval = regexp.MustCompile(`([^,=]*)=([^,]*)`)
+var keyval = regexp.MustCompile(`([^,:=]*)[:=]([^,]*)`)
 
 // parseFromField parses a field from a podman ps --format
 func parseFromField(field string, key string) (string, error) {
