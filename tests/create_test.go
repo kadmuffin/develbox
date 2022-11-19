@@ -15,8 +15,6 @@
 package main_test
 
 import (
-	"os"
-	"os/exec"
 	"testing"
 
 	"github.com/kadmuffin/develbox/cmd"
@@ -35,32 +33,7 @@ func TestCreate(t *testing.T) {
 	}
 
 	// Check if the container exists
-	exists := pman.Exists(testContainerName)
-
-	// Log system info (if running in github actions)
-	if os.Getenv("GITHUB_ACTIONS") == "true" {
-		out, _ := exec.Command("uname", "-a").CombinedOutput()
-		// Debug stuff
-		t.Log(string(out))
-
-		out, _ = exec.Command("docker", "version").CombinedOutput()
-		// Debug stuff
-		t.Log(string(out))
-
-		out, _ = exec.Command("docker", "info").CombinedOutput()
-		// Debug stuff
-		t.Log(string(out))
-	}
-
-	if os.Getenv("GITHUB_ACTIONS") == "true" {
-		out, _ := exec.Command("docker", "inspect", testContainerName).CombinedOutput()
-		// Debug stuff
-		t.Log(string(out))
-
-		out, _ = exec.Command("docker", "logs", testContainerName).CombinedOutput()
-		// Debug stuff
-		t.Log(string(out))
-	}
+	exists := ContainerExists(testContainerName)
 
 	if !exists {
 		t.Fatalf("Container %s does not exist", testContainerName)
@@ -81,7 +54,7 @@ func TestCreateCmd(t *testing.T) {
 	}
 
 	// Check if the container exists
-	exists := pman.Exists(testContainerName)
+	exists := ContainerExists(testContainerName)
 
 	if !exists {
 		t.Fatalf("Container %s does not exist", testContainerName)

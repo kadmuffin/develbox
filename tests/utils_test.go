@@ -64,7 +64,7 @@ func ContainerExists(name string) bool {
 	case true:
 		cmd := pman.RawCommand([]string{"inspect", name}, podman.Attach{})
 
-		_, err := cmd.CombinedOutput()
+		_, err := cmd.Output()
 		if err != nil {
 			glg.Errorf("Container %s does not exist", name)
 			glg.Debug(err)
@@ -72,7 +72,7 @@ func ContainerExists(name string) bool {
 
 	case false:
 		cmd := pman.RawCommand([]string{"container", "exists", name}, podman.Attach{})
-		_, err := cmd.CombinedOutput()
+		_, err := cmd.Output()
 		if err != nil {
 			glg.Errorf("Container %s does not exist", name)
 			glg.Debug(err)
