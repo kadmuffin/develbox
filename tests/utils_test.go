@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/kadmuffin/develbox/pkg/podman"
 	"github.com/kpango/glg"
@@ -59,6 +60,17 @@ func PullImage() {
 // ContainerExists checks if a container exists
 func ContainerExists(name string) bool {
 	// Check if the container exists
+
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		// GitHub Actions doesn't support podman
+		// So we have to use docker
+		out, err := exec.Command("docker", "ps", "-a", "--format", "{{.Names}}").CombinedOutput()
+		if err != nil {
+			glg.Fatalf("Failed to check if container exists: %s", string(out))
+		}
+
+		return strings.Contains(string(out), name)
+	}
 
 	switch pman.IsDocker() {
 	case true:
