@@ -43,7 +43,10 @@ var (
 	pman       = podman.New(podmanPath)
 
 	setupAlreadyRun = false
-	keepContainer   = false
+
+	// keepContainer is a flag to keep the container after the tests are done.
+	// Only works outside of GitHub Actions (for some reason)
+	keepContainer = false
 )
 
 // Setup sets up the test environment
@@ -66,7 +69,7 @@ func Setup(copyCfg bool, createContainer bool) {
 		CopyConfig()
 	}
 
-	if keepContainer {
+	if keepContainer && os.Getenv("GITHUB_ACTIONS") != "true" {
 		// Check if the container already exists
 		exists := ContainerExists(testContainerName)
 		switch exists {
