@@ -74,7 +74,7 @@ func Setup(copyCfg bool, createContainer bool) {
 			createContainer = true
 		case true:
 			createContainer = false
-			err := pman.Start([]string{testContainerName}, podman.Attach{})
+			_, err := exec.Command(podmanPath, "start", testContainerName).CombinedOutput()
 			if err != nil {
 				glg.Fatalf("Failed to start container: %s", err)
 			}
