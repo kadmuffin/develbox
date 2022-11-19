@@ -53,7 +53,22 @@ var (
 	}
 )
 
+// StartContainer starts the container
 func StartContainer(name string, pman podman.Podman, attach podman.Attach) error {
+	err := SearchActiveContainers(name, pman, attach)
+	if err != nil {
+		return err
+	}
+
+	err = pman.Start([]string{name}, attach)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SearchActiveContainers searches for all containers that are running and asks user to choose which ones to stop
+func SearchActiveContainers(name string, pman podman.Podman, attach podman.Attach) error {
 	containers, err := SearchActiveContainer(pman)
 	if err != nil {
 		glg.Warn(err)
@@ -87,17 +102,17 @@ func StartContainer(name string, pman podman.Podman, attach podman.Attach) error
 				}
 			}
 		case "Choose what to stop":
-			ChooseWhatToStop(pman, containers)
+			chooseWhatToStop(pman, containers)
 		default:
 			fmt.Println("Not stopping any containers")
 		}
 	}
-	return pman.Start([]string{name}, attach)
+	return nil
 }
 
-// ChooseWhatToStop is a prompt that allows the user to choose what to stop
+// chooseWhatToStop is a prompt that allows the user to choose what to stop
 // It's a recursive function that doesn't exit until the user selects "Done"
-func ChooseWhatToStop(pman podman.Podman, containers []contInfo) error {
+func chooseWhatToStop(pman podman.Podman, containers []ContInfo) error {
 	contString := make([]string, len(containers))
 	for i, container := range containers {
 		contString[i] = container.String()
@@ -145,7 +160,7 @@ func ChooseWhatToStop(pman podman.Podman, containers []contInfo) error {
 
 		switch result {
 		case "Stop another container":
-			return ChooseWhatToStop(pman, containers)
+			return chooseWhatToStop(pman, containers)
 		default:
 			return nil
 		}
@@ -156,35 +171,35 @@ func ChooseWhatToStop(pman podman.Podman, containers []contInfo) error {
 
 var keyval = regexp.MustCompile(`((.*)=(.*))`)
 
-// contInfo is a struct to store the information of a container
-type contInfo struct {
+// ContInfo is a struct to store the information of a container
+type ContInfo struct {
 	Name        string
 	ID          string
 	ProjectPath string
 	DBoxVersion string
 }
 
-func (e *contInfo) String() string {
+func (e *ContInfo) String() string {
 	return fmt.Sprintf("%s (%s) Path: %s", e.Name, e.ID, e.ProjectPath)
 }
 
 // SearchActiveContainer searches for all active containers and returns id, name, and project path of containers that match
 // Mainly, it searches containers with the label develbox_container=1
 // For the project path it gets the label develbox_project_path
-func SearchActiveContainer(pman podman.Podman) ([]contInfo, error) {
+func SearchActiveContainer(pman podman.Podman) ([]ContInfo, error) {
 	cmd := pman.RawCommand([]string{"ps", "--format", "{{.ID}}\t{{.Names}}\t{{.Labels}}"}, podman.Attach{
 		Stderr: true,
 	})
 	containers, err := cmd.Output()
 	if err != nil {
-		return []contInfo{}, err
+		return []ContInfo{}, err
 	}
 
 	// Split the output into lines
 	lines := strings.Split(string(containers), "\n")
 
 	// Create a slice to store the containers
-	var activeContainers []contInfo
+	var activeContainers []ContInfo
 
 	// Loop through the lines
 	for _, line := range lines {
@@ -192,7 +207,7 @@ func SearchActiveContainer(pman podman.Podman) ([]contInfo, error) {
 		fields := strings.Split(line, "\t")
 
 		if container.ContainsString(fields, "develbox") {
-			activeContainers = append(activeContainers, contInfo{
+			activeContainers = append(activeContainers, ContInfo{
 				Name:        fields[1],
 				ID:          fields[0],
 				ProjectPath: parseFromField(fields[2], "develbox_project_path"),

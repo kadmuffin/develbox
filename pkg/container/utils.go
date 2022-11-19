@@ -102,7 +102,7 @@ func Contains(list []string, item string) bool {
 	return false
 }
 
-// Contains loops through a list to check if a string contains an item
+// ContainsString loops through a list to check if a string contains an item
 func ContainsString(list []string, item string) bool {
 	for _, v := range list {
 		if strings.Contains(v, item) {

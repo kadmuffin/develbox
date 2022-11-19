@@ -193,9 +193,8 @@ func GetContainerTool() string {
 		if err == nil {
 			glg.Info("Couldn't find podman! Using docker instead.")
 			return "docker"
-		} else {
-			glg.Fatal("Couldn't find podman nor docker on PATH!")
 		}
+		glg.Fatal("Couldn't find podman nor docker on PATH!")
 	}
 	return "podman"
 }

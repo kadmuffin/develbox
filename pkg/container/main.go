@@ -30,6 +30,8 @@ var createEtcPwd bool
 
 // PkgVersion specifies the version of develbox (inside the container)
 var PkgVersion = "latest"
+
+// DontStopOnFinish prevents the container from stopping after the create commands are ran
 var DontStopOnFinish = false
 
 // Create creates a container and runs the setupContainer function
@@ -280,9 +282,10 @@ func installPkgs(pman *podman.Podman, cfg config.Structure, pkgs []string, root 
 	return cmd.Run()
 }
 
-// Enter runs a shell in the container and creates a pipe for package installations.
+// DontAttachEnter is a flag that tells the enter command to not attach to the container (for the enter command)
 var DontAttachEnter = false
 
+// Enter runs a shell in the container and creates a pipe for package installations.
 func Enter(cfg config.Structure, root bool) error {
 	pman := podman.New(cfg.Podman.Path)
 

@@ -38,6 +38,11 @@ var (
 				glg.Fatal("Container does not exist")
 			}
 
+			err = SearchActiveContainers(cfg.Container.Name, pman, podman.Attach{})
+			if err != nil {
+				glg.Fatal(err)
+			}
+
 			err = pman.Stop([]string{cfg.Container.Name}, podman.Attach{})
 			if err != nil {
 				glg.Fatal(err)
